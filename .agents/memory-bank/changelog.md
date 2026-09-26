@@ -41,3 +41,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reoriented `.agents/workflows/play-console-release-workflow.md`, `development-release-cycle.md`, and CI signing skill (`android-headless-signing-ci`) to `com.clawstack.shellguard`.
 - Hardened LAN & Tailscale network security configuration (`base-config cleartextTrafficPermitted`) across architecture and Ktor transport specifications.
 
+## [0.0.0.2] - 2026-09-25
+
+### Added
+- Stage 0 Android application foundation scaffold:
+  - Local git repository initialized on branch `chore/stage-0-initial-scaffold`.
+  - Gradle 9.3.1 toolchain, AGP 9.1.1, Kotlin 2.2.10, and sanitized `libs.versions.toml` with zero third-party telemetry SDKs.
+  - Android 15/16 16 KB page-size compliance via uncompressed packaging (`packaging.jniLibs.useLegacyPackaging = false`).
+  - R8 preservation rules for SQLCipher JNI (`net.zetetic.**`) and Room DAOs.
+  - Home lab and Tailscale CGNAT cleartext transport configuration (`res/xml/network_security_config.xml`).
+  - OS cloud backup exclusion rules in `res/xml/data_extraction_rules.xml`.
+  - `ShellGuardApp.kt` loading native SQLCipher binaries and exposing frameworkless `AppContainer` lazy DI.
+  - `MainActivity.kt` with `FLAG_SECURE` window shielding and Reef Modernist Stage 0 baseline UI.
+  - `crypto/ClawCrypto.kt` (SHA-256, format validation, HMAC) and `crypto/AndroidKeyStoreHelper.kt` (AES-256-GCM hardware key management).
+  - Passing `ClawCryptoTest` unit test suite.
+
