@@ -56,3 +56,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `crypto/ClawCrypto.kt` (SHA-256, format validation, HMAC) and `crypto/AndroidKeyStoreHelper.kt` (AES-256-GCM hardware key management).
   - Passing `ClawCryptoTest` unit test suite.
 
+## [0.0.0.3] - 2026-09-26
+
+### Added
+- Phase 1: Cryptographic Engine & SQLCipher Room Architecture:
+  - `ShellCryptionEngine.kt`: HKDF-SHA-256 key derivation with salt and `info = "clawchives-shellcryption-v1"`, AES-GCM-256 with 10 AAD domain namespaces, and `@Serializable ShellCryptionEnvelope`.
+  - Room 2.7+ SQLCipher encrypted database (`ShellGuardDatabase.kt`) with 7 entities (`VaultPearl`, `SecureNote`, `SshKey`, `SecureAttachment`, `SyncMetadata`, `AuditLog`, `AgentKey`) and reactive DAOs.
+  - Hybrid File-System Vault architecture protecting against CWE-400 2MB CursorWindow limits on attachments.
+  - Authentic ClawStack Gateway UI & Theme Engine (`GatewayScreen.kt`, `GatewayViewModel.kt`) with 100% brand parity against ShellGuard Web & TOTP:
+    - 🐚 gradient brand emblem, `"ShellGuard ©™"` title, and subtitle.
+    - Unified 56dp segmented URL bar with interactive protocol selector (`http://` vs `https://`), borderless host input, vertical divider, and animated port input.
+    - Dual mode toggles (`Upload File` vs `Paste ClawKey©™`).
+    - 110dp `.json` identity file dropzone with tap-to-change and remove actions.
+    - Amber warning box and Zero-Knowledge Authentication disclaimer card.
+    - Password masking with toggleable eye visibility, paste from clipboard, and valid ClawKey format badge.
+  - Passing test suites for `ClawCryptoTest`, `ShellCryptionEngineTest`, and `RoomDatabaseTest` (16/16 tests passing green).
+  - Verified live deployment and UI rendering on physical Google Pixel (LineageOS ARM64, FLAG_SECURE active).
+
+
