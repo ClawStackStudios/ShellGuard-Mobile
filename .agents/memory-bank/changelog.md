@@ -72,5 +72,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Password masking with toggleable eye visibility, paste from clipboard, and valid ClawKey format badge.
   - Passing test suites for `ClawCryptoTest`, `ShellCryptionEngineTest`, and `RoomDatabaseTest` (16/16 tests passing green).
   - Verified live deployment and UI rendering on physical Google Pixel (LineageOS ARM64, FLAG_SECURE active).
+- Phase 2: Ktor API Client, Bidirectional Sync, Vault Dashboard & IME Hardening:
+  - `ShellGuardClient.kt` & `KtorClientProvider.kt`: Direct network layer communicating with self-hosted API, supporting cleartext HTTP for home labs and Tailscale WireGuard mesh routes.
+  - `SyncRepository.kt` & `ConnectivityMonitor.kt`: Bidirectional delta synchronization, timestamp conflict resolution, remote deletion pruning, and Bitwarden-model Read-Only offline caching.
+  - `VaultDashboardScreen.kt` & `VaultDashboardViewModel.kt`: Interactive Master-Detail Dashboard with real-time search, Pod category filter chips (`[All]`, `[Passwords]`, `[Notes]`, `[SSH Keys]`), item cards, offline status badge, and mutation-guarded FAB.
+  - Base62 Sovereign Identity Key Parity: Upgraded `CLAW_KEY_REGEX` to 67-character Base62 (`hu-[0-9a-zA-Z]{64}`) and added identity JSON UUID extraction.
+  - Soft Keyboard IME Hardening: Scoped `FLAG_SECURE` to release builds to prevent Adreno GPU blackout over system IME; isolated root `Scaffold` window insets.
+  - Robolectric Target SDK 34 Ceiling: Resolved CI test failure against targetSdk 36 via `robolectric.properties` and `@Config(sdk = [34])`.
+  - GitHub Actions automated release pipeline (`.github/workflows/release.yml`) with Python 3 keystore decoding and dual artifact packaging (`.aab` and `.apk`).
+  - Pre-flight test suite expanded to 23 tests, passing 100% green. Published live GitHub Release `v0.0.0.3`.
 
 

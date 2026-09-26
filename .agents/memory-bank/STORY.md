@@ -2,6 +2,12 @@
 
 Present tense. The hand talking as it works.
 
+> **Narrative Architecture Update (2026-09-26)**:
+> Starting from the v0.0.0.3 release, reflective session narratives and auditable choice logs are organized into dedicated `/story` registers per [.agents/workflows/story.md](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/workflows/story.md):
+> - Autobiographical narrative accounts: [myStory.md](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/memory-bank/myStory.md)
+> - Auditable structured decision records: [decisionsMade.md](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/memory-bank/decisionsMade.md)
+> - The live stroke-by-stroke hand trail continues below in `STORY.md`.
+
 ## 2026-09-25 — Stage 0 Scaffold & Security Baseline
 
 I initialize the Git repository on `main` and branch immediately into `chore/stage-0-initial-scaffold`.

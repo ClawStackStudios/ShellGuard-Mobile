@@ -32,7 +32,7 @@ UI (Compose) ──(UserIntent)──> ViewModel ──> UseCase ──> Reposit
   - Layer 3: SQLCipher whole-database encryption at rest with Android KeyStore-managed passphrase.
 - **Claw Re-Prompt Guardrail**: Designated high-security items (`reprompt == true`) enforce a biometric or PIN re-verification gate before the user can reveal hidden secrets or copy them to the clipboard, even when the vault is already unlocked.
 - **Biometric Recovery State Machine**: Hardware biometric keys invalidated by new biometric enrollments (`KeyPermanentlyInvalidatedException`) automatically route to Master Password/PIN fallback to regenerate keys without user lockout or data loss.
-- **CWE-359 Sensitive Clipboard Masking**: Copies apply `ClipDescription.EXTRA_IS_SENSITIVE = true` to mask cleartext previews in Android 13+ clipboard overlays, paired with a 30s/60s auto-purge timer.
+- **CWE-359 Sensitive Clipboard Masking**: → Consolidated to `long-term/patterns.md § pattern: cwe-359-sensitive-clipboard-masking` (weight: 3, 2026-09-26)
 - **Pre-DAO Fingerprint Deduplication**: `title | username | secret` hash comparison before database writes prevents duplicate false negatives.
 
 ## Autofill & System Integration Patterns

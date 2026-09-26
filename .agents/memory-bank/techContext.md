@@ -33,7 +33,7 @@ packaging {
 Ensures `.so` libraries remain uncompressed and 16 KB page-aligned inside APKs/AABs for Android 15+.
 
 ## Network Invariants: Cleartext HTTP, LAN & Tailscale
-1. **Cleartext HTTP Policy**: Self-hosted home lab servers (Unraid, TrueNAS, Docker) and Tailscale WireGuard overlays often operate without public CA certificates. Cleartext HTTP is explicitly permitted and intentional.
+1. **Cleartext HTTP Policy**: → Consolidated to `long-term/constraints.md § constraint: cleartext-lan-and-tailscale-transport` (weight: 3, 2026-09-26)
 2. **Network Security Config (`res/xml/network_security_config.xml`)**:
    ```xml
    <?xml version="1.0" encoding="utf-8"?>
