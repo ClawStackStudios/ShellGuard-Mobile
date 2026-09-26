@@ -1,0 +1,44 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+    <!-- Outer Bioluminescent Shield -->
+    <path
+        android:fillColor="#1E293B"
+        android:strokeColor="#06B6D4"
+        android:strokeWidth="2"
+        android:pathData="M48,8 L78,20 L78,50 C78,68 65,82 48,88 C31,82 18,68 18,50 L18,20 Z" />
+    
+    <!-- Inner Shell Layer -->
+    <path
+        android:fillColor="#0F172A"
+        android:strokeColor="#334155"
+        android:strokeWidth="1.5"
+        android:pathData="M48,16 L70,26 L70,48 C70,62 60,73 48,78 C36,73 26,62 26,48 L26,26 Z" />
+    
+    <!-- Central Shell Ridge Fan -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#06B6D4"
+        android:strokeWidth="1.5"
+        android:pathData="M48,70 L34,42 M48,70 L42,34 M48,70 L48,32 M48,70 L54,34 M48,70 L62,42" />
+
+    <!-- Lock Shackle -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#06B6D4"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M42,44 C42,38 45,36 48,36 C51,36 54,38 54,44" />
+
+    <!-- Lock Body -->
+    <path
+        android:fillColor="#06B6D4"
+        android:pathData="M38,44 L58,44 A2,2 0 0,1 60,46 L60,56 A2,2 0 0,1 58,58 L38,58 A2,2 0 0,1 36,56 L36,46 A2,2 0 0,1 38,44 Z" />
+
+    <!-- Keyhole -->
+    <path
+        android:fillColor="#030712"
+        android:pathData="M48,48 C47,48 46,49 46,50 C46,50.7 46.5,51.3 47.2,51.5 L47,54 L49,54 L48.8,51.5 C49.5,51.3 50,50.7 50,50 C50,49 49,48 48,48 Z" />
+</vector>

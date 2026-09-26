@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.ShellGuard.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#0A0F14</item>
+        <item name="postSplashScreenTheme">@style/Theme.ShellGuard</item>
+    </style>
+
+    <style name="Theme.ShellGuard" parent="android:Theme.DeviceDefault.NoActionBar" />
+</resources>

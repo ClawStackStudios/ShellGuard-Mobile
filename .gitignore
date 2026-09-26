@@ -1,0 +1,40 @@
+# Built binaries and packaging outputs
+*.apk
+*.aab
+*.apks
+*.obb
+*.dex
+*.class
+build/
+**/build/
+
+# Gradle and Kotlin cache
+.gradle/
+.kotlin/
+*.iml
+
+# Local machine configs & environment variables
+local.properties
+/local.properties
+.env
+*.env.local
+
+# Signing keys & Keystores (CRITICAL: Never commit private release keys)
+*.jks
+*.keystore
+*.p12
+*.pem
+my-upload-key.jks
+debug.keystore
+
+# Android Studio & IDE
+.idea/
+.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Agent internal design assets & scratchpad
+.agents/internal/
+.agents/scratch/
+**/scratch/**

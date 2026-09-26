@@ -1,0 +1,50 @@
+# Progress: ShellGuard Mobile
+
+## Current Status: Stage 0 Scaffold Verified & Operational (Transitioning to Phase 1)
+All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold has been executed, compiled, and verified green with 100% test pass rate and clean APK packaging.
+
+## What Works (Documented, Designed & Scaffolded)
+- [x] Complete ecosystem mapping of Web Server and TOTP Companion.
+- [x] Full architecture specification with threat model and invariants (`architecture.md`).
+- [x] Cryptography & KeyStore specification with 10 AAD namespaces (`crypto-and-keystore.md`).
+- [x] Complete Room 2.7+ SQLCipher schema with all 7 entities and DAOs (`room-storage-schema.md`).
+- [x] Hybrid File-System Vault architecture preventing 2MB `CursorWindow` crashes on attachments.
+- [x] Full Ktor API client and DTOs for all 4 vault domains (`routes-and-contracts.md`).
+- [x] Reef Modernist design system, theme tokens, and master-detail layout (`ui-ux-design-system.md`).
+- [x] Android Autofill Framework & Credential Manager specification (`autofill-service-spec.md`).
+- [x] Configurable URI match detection (`UriMatchMode`: Base Domain, Host, Exact, Starts With, Never).
+- [x] Android 11+ Keyboard Inline Suggestion chips (`InlinePresentation`).
+- [x] Claw Re-Prompt security guardrail requiring biometric confirmation for designated items.
+- [x] Algorithmic TOTP generator & CameraX scanner pipeline (`totp-engine-spec.md`).
+- [x] Bitwarden-model Read-Only Offline Vault Caching with `ConnectivityMonitor` and mutation guards (`sync-and-offline-engine-spec.md`).
+- [x] Bitwarden intake, `.sgvault.bak`, and deduplication engine (`import-export-and-migration-spec.md`).
+- [x] Android verification gates & release protocol (`verification-gates.md`).
+- [x] Android 15/16 16 KB memory page size alignment guide (`16kb-page-size-alignment-guide.md`).
+- [x] Adaptive icon & Android 12+ splash screen specification (`app-icon-and-splash.md`).
+- [x] Quick Settings TileService & Glance AppWidgets specification (`widgets-and-quick-tiles-spec.md`).
+- [x] Biometric invalidation recovery state machine & sensitive clipboard masking (`EXTRA_IS_SENSITIVE`).
+- [x] Master Project Roadmap (`ROADMAP.md`).
+- [x] Multi-stage Google AI Studio meta-prompt (`meta-prompt-ai-studio.md`).
+- [x] Definitive root `DESIGN.md` establishing 1:1 visual and interactive continuity against `ShellGuard` and `ShellGuard-TOTP`.
+- [x] Project governance & Android development rules (`.agents/rules/android-development.md`) reoriented to full mobile vault client.
+- [x] Migration rules & deployment workflows (`zero-knowledge-migration.md`, `migration-and-ingest.md`, `play-console-release-workflow.md`, `development-release-cycle.md`) reoriented to multi-domain vault client.
+- [x] **Stage 0 Android Foundation Scaffold**:
+  - Local git repository initialized on branch `chore/stage-0-initial-scaffold` with strict `.gitignore`.
+  - Gradle 9.3.1 wrapper, AGP 9.1.1, Kotlin 2.2.10, and sanitized `libs.versions.toml`.
+  - Android 15/16 16 KB page-size uncompressed native packaging (`useLegacyPackaging = false`).
+  - ProGuard/R8 rules preserving SQLCipher JNI bindings and stripping debug logs.
+  - Home lab `<base-config cleartextTrafficPermitted="true">` in `network_security_config.xml`.
+  - Cloud backup exclusion rules in `data_extraction_rules.xml`.
+  - `ShellGuardApp.kt` with SQLCipher native loader and `DefaultAppContainer` lazy DI.
+  - `MainActivity.kt` with `FLAG_SECURE` window memory shielding and Stage 0 baseline UI.
+  - `ClawCrypto.kt` & `AndroidKeyStoreHelper.kt` with SHA-256, ClawKey format validation, and HMAC tests.
+  - Verification gates passing 100%: `./gradlew testDebugUnitTest` (32 tasks executed) and `./gradlew assembleDebug` (`app-debug.apk` 64MB generated).
+
+## What's Left to Build (Phase 1 through Phase 6)
+- [ ] Phase 1: Cryptographic Engine & Local Cache (Tasks 01 & 02).
+- [ ] Phase 2: Ktor API Client & Bidirectional Sync (Tasks 03 & 04).
+- [ ] Phase 3: Vault Domains & Universal Item Editor (Tasks 05 & 06).
+- [ ] Phase 4: TOTP Engine & Biometric Security Lifecycle (Tasks 07 & 08).
+- [ ] Phase 5: Android Autofill & Credential Provider (Tasks 09 & 10).
+- [ ] Phase 6: Settings, Backup Bridge & Release Hardening (Tasks 11 & 12).
+
