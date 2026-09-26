@@ -189,6 +189,7 @@ Android 15+ (API 35/36) mandates 16 KB page-aligned native binaries:
 
 - **KeyStore Headless JVM Fallback**: KeyStore wrapper classes (`AndroidKeyStoreHelper`, `EncryptedDeviceVault`) must provide a fallback mechanism to HMAC-derived `SecretKeySpec` for headless JVM unit tests when `AndroidKeyStore` is absent.
 - **Robolectric Framework SQLite Open Helper**: When configuring Room databases (`ShellGuardDatabase`), always detect Robolectric via `Class.forName("org.robolectric.Robolectric")` and assign `FrameworkSQLiteOpenHelperFactory()` to prevent host `UnsatisfiedLinkError` crashes against native SQLCipher binaries.
+- **Robolectric Target SDK Ceiling (`sdk=34`)**: When `targetSdk = 36`, Robolectric's `DefaultSdkProvider` fails with `UnsupportedOperationException` on host/CI runners if tests run against unsupported SDK 36. Always declare `sdk=34` in `app/src/test/resources/robolectric.properties` and annotate Robolectric test classes with `@Config(sdk = [34])`.
 - **ProGuard / R8 Release Hardening (`app/proguard-rules.pro`)**:
   ProGuard rules in release builds strictly protect reflection, serialization, and JNI bridges from being stripped by R8:
   - `-keep class net.zetetic.** { *; }` (SQLCipher JNI preservation).

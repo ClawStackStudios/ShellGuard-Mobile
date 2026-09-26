@@ -99,3 +99,19 @@ Successes:
 - All 23 unit tests pass green; verified live on Google Pixel with zero blackout, smooth cursor positioning, and active login button.
 - User tested and confirmed live on hardware.
 ---
+Date: 2026-09-26
+TaskRef: "Phase 2 Release Automation, GitHub Actions CI Signing, and Robolectric Target SDK Ceiling"
+
+Learnings:
+- Robolectric SDK 36 Ceiling: When `targetSdk` is 36 (Android 16), Robolectric's `DefaultSdkProvider` fails on headless CI runners with `java.lang.UnsupportedOperationException` unless `robolectric.properties` declares `sdk=34` and tests use `@Config(sdk = [34])`.
+- Unified Secret Schema: Standardized GitHub Actions repository secrets on `ANDROID_SIGNING_KEY`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and `ANDROID_KEY_PASSWORD`.
+- Python 3 In-Memory Keystore Decode: `python3 -c "import os, base64; open('my-upload-key.jks', 'wb').write(base64.b64decode(os.environ['SIGNING_KEY'].strip()))"` reliably handles all OS padding/newlines in CI.
+
+Difficulties & Friction:
+- GitHub Actions CI failed on initial tag push during pre-flight unit test gate due to Robolectric SDK 36 incompatibility. Diagnosed and fixed immediately with `robolectric.properties` and `@Config(sdk = [34])`.
+- Re-run via `workflow_dispatch` executed completely green, publishing signed `.aab` and `.apk` assets.
+
+Successes:
+- GitHub Release v0.0.0.3 published live on GitHub.
+- Full 7-document documentation suite mirrors ShellGuard-TOTP.
+---

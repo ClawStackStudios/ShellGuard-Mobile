@@ -49,6 +49,16 @@
   export GRADLE_OPTS="-XX:-UsePerfData -Djava.io.tmpdir=$PWD/app/build/tmp"
   ```
 - **ProGuard / R8 Reality vs. Native Obfuscation Myth**: ProGuard/R8 operates strictly on JVM bytecode (`.class`/`.dex`); it CANNOT obfuscate precompiled native ELF `.so` libraries (`libsqlcipher.so`). R8 in release builds requires explicit preservation rules (`-keep class net.zetetic.** { *; }`, Kotlinx `@Serializable` companion serializers, Room DAOs) to prevent runtime `UnsatisfiedLinkError` and serialization crashes. Strip `Log.d`/`Log.v` debug logs via `-assumenosideeffects` to eliminate cleartext leakages.
+- **Pattern: Robolectric Target SDK Ceiling (`sdk=34`)**:
+  - *Rule*: Whenever `targetSdk` is set to Android 16 (API 36), configure `app/src/test/resources/robolectric.properties` with `sdk=34` and annotate Robolectric tests with `@Config(sdk = [34])`.
+  - *Anti-Pattern*: Omitting SDK configuration causes `DefaultSdkProvider.java:170` to throw `UnsupportedOperationException` on CI runners during headless testing.
+- **Pattern: Standardized GitHub Actions Release Signing Schema**:
+  - *Rule*: Maintain strict repository secret parity across all projects:
+    - `ANDROID_SIGNING_KEY`: Single-line `base64 -w 0` string of `my-upload-key.jks`.
+    - `ANDROID_KEYSTORE_PASSWORD`: Keystore master password.
+    - `ANDROID_KEY_ALIAS`: Key alias (default `upload`).
+    - `ANDROID_KEY_PASSWORD`: Private key password.
+  - *Decoding*: Always decode via Python 3 `base64.b64decode(os.environ['SIGNING_KEY'].strip())` to prevent GNU base64 newline/padding failures on Linux runners.
 
 ## Design System & Touch Form Ergonomics
 **Pattern: Reef Modernist Mobile & Blind Side-by-Side Parity**

@@ -1,9 +1,5 @@
 # Decision Log
 
-
-## 2026-09-24 — autofill architecture
-Specified dual support for Android Autofill Framework (API 26+) and modern Credential Manager (API 34+) with mandatory biometric gating prior to credential emission.
-
 ## 2026-09-24 — 16kb page-size alignment
 Locked SQLCipher for Android to 4.6.1+ with `useLegacyPackaging = false` in Gradle to guarantee 16 KB page-size compliance for Android 15/16 devices.
 
@@ -60,5 +56,8 @@ Discovered ShellGuard master identity keys use Base62 alphanumeric encoding (`hu
 
 ## 2026-09-26 — debug flag_secure scoping & ime inset resolution
 Diagnosed black screen and cursor invisibility during soft keyboard IME input on physical Pixel. Traced to unconditional `FLAG_SECURE` triggering Adreno 530 compositor blackout over system IME window, combined with `Scaffold` double-subtracting IME padding. Scoped `FLAG_SECURE` to `!BuildConfig.DEBUG` (matching ShellGuard-TOTP pattern) and set `contentWindowInsets = WindowInsets(0, 0, 0, 0)` on root `Scaffold`, verifying smooth typing and visual cursor retention.
+
+## 2026-09-26 — robolectric sdk 36 ceiling in headless ci
+Encountered UnsupportedOperationException from DefaultSdkProvider during headless GitHub Actions CI test run due to targetSdk = 36. Capped Robolectric to Android 14 via app/src/test/resources/robolectric.properties with sdk=34 and @Config(sdk = [34]) on test classes, greening the test gate and enabling successful release signing.
 
 

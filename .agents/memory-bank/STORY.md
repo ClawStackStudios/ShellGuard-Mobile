@@ -184,3 +184,14 @@ I inspected `ShellGuard-TOTP/.github/workflows/release.yml` and mirrored its exa
   - Gate 1 (Tests): `./gradlew testDebugUnitTest` — 23/23 tests pass 100% green.
   - Gate 2 (Build): `./gradlew assembleDebug` — 49 actionable tasks, compilation succeeded in 1m.
   - The joint holds.
+
+## 2026-09-26 — Cloud Release Execution, Robolectric Target SDK Ceiling & Learning Consolidation
+
+The user configured the 4 repository secrets in GitHub (`ANDROID_SIGNING_KEY`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`) and pushed release tag `v0.0.0.3`.
+I trace the remote GitHub Actions pipeline:
+- The runner executed `🛡️ Pre-Flight Test Gate` and failed on `RoomDatabaseTest > classMethod FAILED: java.lang.UnsupportedOperationException at DefaultSdkProvider.java:170`.
+- I trace the failure to its root: `targetSdk = 36` (Android 16) causes Robolectric to default to an Android 16 shadow environment, which is unsupported by the current Robolectric SDK provider.
+- I correct the joint: declared `sdk=34` in `app/src/test/resources/robolectric.properties` and annotated `RoomDatabaseTest` with `@Config(sdk = [34])`.
+- Tapped the local suite: `./gradlew testDebugUnitTest` passed 23/23 tests green.
+- Re-ran the workflow on `main`. The pipeline completed 100% green across all steps: tests passed, keystore was decoded, `bundleRelease` and `assembleRelease` built and cryptographically signed the binaries, and GitHub Release `v0.0.0.3` was published live with signed `shellguard-mobile-v0.0.0.3.aab` and `.apk` assets.
+- I persist the learnings into `.agents/rules/android-development.md` §9 and `.agents/memory-bank/consolidated_learnings.md`, noting the Robolectric SDK ceiling (`sdk=34`) and standardized secret naming schema.
