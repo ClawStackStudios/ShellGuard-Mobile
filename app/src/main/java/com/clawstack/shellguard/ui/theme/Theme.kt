@@ -8,8 +8,31 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+
+@Immutable
+data class ShellGuardCustomColors(
+    val bgBase: Color,
+    val bgSurface: Color,
+    val bgElevated: Color,
+    val bgFloating: Color,
+    val textMain: Color,
+    val textMuted: Color,
+    val borderSubtle: Color,
+    val primaryAccent: Color,
+    val secondaryAccent: Color,
+    val warning: Color = WarningBoxBg,
+    val danger: Color = StatusError,
+    val success: Color = StatusSuccess
+)
+
+val LocalShellGuardColors = staticCompositionLocalOf<ShellGuardCustomColors> {
+    error("No ShellGuardColors provided")
+}
 
 private val DarkColorScheme = darkColorScheme(
     primary = ReefPink,
@@ -55,8 +78,25 @@ fun ShellGuardTheme(
         else -> DarkColorScheme // ShellGuard defaults to Dark Modernist palette
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        content = content
+    val customColors = ShellGuardCustomColors(
+        bgBase = if (darkTheme) OceanDark else Color.White,
+        bgSurface = if (darkTheme) SurfaceDark else Color(0xFFF9FAFB),
+        bgElevated = if (darkTheme) SurfaceContainerDark else Color(0xFFF3F4F6),
+        bgFloating = if (darkTheme) SurfaceContainerHighestDark else Color.White,
+        textMain = if (darkTheme) TextPrimary else Color(0xFF111827),
+        textMuted = if (darkTheme) TextMuted else Color(0xFF6B7280),
+        borderSubtle = if (darkTheme) BorderSubtle else Color(0xFFE5E7EB),
+        primaryAccent = ReefPink,
+        secondaryAccent = BrandClawCyan,
+        warning = WarningBoxBg,
+        danger = StatusError,
+        success = StatusSuccess
     )
+
+    CompositionLocalProvider(LocalShellGuardColors provides customColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            content = content
+        )
+    }
 }

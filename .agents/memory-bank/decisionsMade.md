@@ -39,3 +39,40 @@ The story says how it felt. This says what was actually chosen and why.
 **Confidence**: high — verified against live published release tag `v0.0.0.3`.
 **Outcome**: `progress.md` and `changelog.md` now accurately reflect Phase 2 completion and transition to Phase 3.
 **Pattern reference**: New pattern — first instance.
+
+## auto-version-password-history-on-save — 2026-09-26 13:00
+
+**Context**: In `SyncRepository.savePearlDetail()`, deciding whether password history snapshotting should be an explicit user action or automated repository logic.
+**Options considered**:
+- Require user to manually toggle "Save prior password to history" in the UI — Preserves explicit user intent, but risks data loss when users forget during quick rotations.
+- Automatically compare `newPassword != currentPassword` and prepend the old secret to encrypted `vault_pearls_history:{id}` — Ensures zero-friction audit trails, but performs an automatic write.
+**Chosen**: Automatically detect and prepend changed passwords to history (capped at 20).
+**Why**: Security history must be effortless and defensive. Users routinely rotate passwords under stress; a vault that requires manual opt-in to remember what was just replaced will inevitably fail someone during a service rollback.
+**Confidence**: high — verified via unit tests and HKDF AAD roundtrip decryption.
+**Outcome**: Verified in `SyncRepositoryTest.testSavePearlDetailUpdatesPasswordHistory()`; seamlessly preserved history without user intervention.
+**Pattern reference**: New pattern — first instance.
+
+## polymorphic-single-form-architecture — 2026-09-26 13:15
+
+**Context**: Deciding whether to create three separate editor screens (`PearlFormScreen`, `NoteFormScreen`, `SshKeyFormScreen`) or one universal `ItemFormScreen` for Phase 3.
+**Options considered**:
+- Three separate screens and viewmodels — High compile-time isolation, but causes massive code duplication for custom fields, tags chips, pinned app bars, and keyboard IME scrolling.
+- A single unified `ItemFormScreen` with domain tabs in Create mode and domain locking in Edit mode — Slightly more UI state branches, but guarantees 100% ergonomic parity with the web client.
+**Chosen**: Single unified `ItemFormScreen`.
+**Why**: The web client's ergonomics feel right because the user never feels like they are navigating to a different "app" just to jot a note versus saving a password. Duplicating 300+ lines of IME scaffolding across three screens felt like fighting the grain.
+**Confidence**: high — verified on live Pixel hardware.
+**Outcome**: Successfully handled Password, Note, and SSH Key editing with shared tags builder and custom fields dialog.
+**Pattern reference**: New pattern — first instance.
+
+## accessible-back-on-vault-error-state — 2026-09-26 13:03
+
+**Context**: During physical Pixel verification, tapping an item with locked in-memory keys displayed an error state with only a "Retry" button.
+**Options considered**:
+- Keep only "Retry" and rely on Android's system back gesture / button — Minimal UI, but traps users who cannot retry without re-authenticating at the Gateway.
+- Add an explicit `OutlinedButton(onClick = onBackClick) { Text("Back") }` alongside `Retry` — Provides an immediate, explicit exit path back to the Dashboard.
+**Chosen**: Add explicit `Back` button.
+**Why**: Trapping a user on an error screen with a button that will continually fail violates trust. When a security boundary denies access, the door back to safety must always remain open.
+**Confidence**: high — directly validated via Compose hierarchy dump.
+**Outcome**: Pixel UI hierarchy confirmed both `Back` and `Retry` buttons rendered and functional.
+**Pattern reference**: New pattern — first instance (`fail-safe-navigation-on-security-errors`).
+

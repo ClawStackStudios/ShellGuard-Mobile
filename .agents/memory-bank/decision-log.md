@@ -1,8 +1,5 @@
 # Decision Log
 
-## 2026-09-24 — 16kb page-size alignment
-Locked SQLCipher for Android to 4.6.1+ with `useLegacyPackaging = false` in Gradle to guarantee 16 KB page-size compliance for Android 15/16 devices.
-
 ## 2026-09-24 — hybrid file-system vault
 Decoupled multi-megabyte attachment BLOBs from Room database rows to prevent Android SQLite 2MB CursorWindowAllocationException crashes. Stored metadata in Room and streamed encrypted files to internal disk.
 
@@ -59,5 +56,9 @@ Diagnosed black screen and cursor invisibility during soft keyboard IME input on
 
 ## 2026-09-26 — robolectric sdk 36 ceiling in headless ci
 Encountered UnsupportedOperationException from DefaultSdkProvider during headless GitHub Actions CI test run due to targetSdk = 36. Capped Robolectric to Android 14 via app/src/test/resources/robolectric.properties with sdk=34 and @Config(sdk = [34]) on test classes, greening the test gate and enabling successful release signing.
+
+## 2026-09-26 — polymorphic item editor & encrypted custom fields
+Architected universal `ItemFormScreen` and polymorphic `ItemDetailScreen` supporting Passwords, Notes, and SSH Keys. Wrapped custom fields (`TEXT`, `HIDDEN`, `BOOLEAN`, `LINKED`) and password history into domain-specific HKDF AAD encryption (`vault_*_custom`, `vault_pearls_history`) with sensitive clipboard auto-scrubbing and offline mutation guards.
+
 
 

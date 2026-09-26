@@ -128,6 +128,8 @@ Master identity keys, session tokens, and PIN hashes are stored exclusively in `
   All cryptographic, seed, or secret input fields (passwords, PINs, seeds, keys) MUST apply:
   - `PasswordVisualTransformation()` (paired with an accessible toggleable eye icon).
   - `KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false)` to prevent predictive dictionary learning and third-party keyboard telemetry caching.
+- **Fail-Safe Navigation & Unconditional Exit Routes**:
+  Every screen composable that renders an error, locked, or unauthenticated UI state MUST provide an explicit, accessible navigation exit route (`onBackClick` or close action) alongside any retry/re-auth action. Solitary "Retry" buttons that depend on pre-existing session state create fatal navigational traps when the underlying failure is terminal (e.g. cleared in-memory keys, expired session tokens). The return path to a safe parent surface (Dashboard or Gateway) must always remain visible and unobstructed.
 
 ---
 

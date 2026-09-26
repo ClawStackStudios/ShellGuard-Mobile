@@ -7,14 +7,14 @@
 - "I will update the docs later" is treated as an incomplete task.
 
 ## 2. Trigger Conditions
-You MUST proactively update the corresponding `.agents/memory-bank/` files or `docs/` files when:
-- **State Model Changes:** If you alter how data flows, where it is stored, or how contexts (like React Context or Zustand) are structured, you must update `attractorBeacon.md` and/or `systemPatterns.md`.
-- **API/Endpoint Changes:** If a server route's payload or response shape changes, update the API documentation or relevant README.
-- **Component Refactors:** If a large component is split or renamed, update the overarching UI documentation and `activeContext.md`.
-- **Dependency Changes:** If a new core dependency is added (e.g., swapping a crypto library), update `techContext.md`.
+You MUST proactively update the corresponding `.agents/memory-bank/` files or `project/` specs when:
+- **State Model Changes:** If you alter how data flows, where it is stored, or how MVI state models (ViewModel `StateFlow`, Room DAOs, or KeyStore vaults) are structured, you must update `systemPatterns.md` and/or `project/room-storage-schema.md`.
+- **API/Endpoint Changes:** If a server route's payload or response shape changes, update `routes-and-contracts.md` and `techContext.md`.
+- **Component Refactors:** If a large component or screen is split or renamed, update the overarching UI documentation and `activeContext.md`.
+- **Dependency Changes:** If a new core dependency is added (e.g., swapping a crypto or serialization library), update `techContext.md`.
 
 ## 3. Inline Documentation
-- Maintain JSDoc/TSDoc integrity. If you change a function signature, you must update its `@param` and `@returns` docstrings immediately.
+- Maintain KotlinDoc (`/** ... */`) integrity. If you change a public method, ViewModel intent, or repository signature, update its `@param` and `@return` documentation.
 - Preserve existing comments that explain *why* code exists, unless the *why* has fundamentally changed.
 
 ## 4. The "Same Commit" Mandate

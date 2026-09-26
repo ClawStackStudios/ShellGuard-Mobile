@@ -134,6 +134,13 @@ data class NotesResponse(
 )
 
 @Serializable
+data class NoteItemResponse(
+    val success: Boolean,
+    val data: SecureNoteDto? = null,
+    val error: String? = null
+)
+
+@Serializable
 data class SshKeyDto(
     val id: String,
     val owner_uuid: String,
@@ -165,3 +172,11 @@ data class KeysResponse(
     val data: List<SshKeyDto> = emptyList(),
     val error: String? = null
 )
+
+@Serializable
+data class KeyItemResponse(
+    val success: Boolean,
+    val data: SshKeyDto? = null,
+    val error: String? = null
+)
+

@@ -52,10 +52,20 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
   - `VaultDashboardScreen.kt` & `VaultDashboardViewModel.kt`: Interactive Master-Detail Dashboard with real-time search, Pod category filter chips (`[All]`, `[Passwords]`, `[Notes]`, `[SSH Keys]`), item cards, offline status badge, and mutation-guarded FAB.
   - `MainActivity.kt`: Upgraded with Compose Navigation routing between Gateway and Dashboard with session persistence.
   - 100% green verification: 23/23 unit tests passing, `app-debug.apk` cleanly generated, and verified live on Google Pixel hardware.
+- [x] **Phase 3: Vault Domains & Universal Item Editor (Tasks 05 & 06)**:
+  - `CustomField.kt` & `CustomFieldSerializer`: Bitwarden-style custom fields (`TEXT`, `HIDDEN`, `BOOLEAN`, `LINKED`), `@Serializable CustomField`, `@Serializable PasswordHistoryEntry`, resilient JSON parsing.
+  - `VaultDomainModels.kt`: Decrypted multi-domain models (`PearlDetail`, `SecureNoteDetail`, `SshKeyDetail`).
+  - Remote CRUD APIs in `ShellGuardClient.kt` & `ShellResponse.kt` (`createNote`, `updateNote`, `deleteNote`, `createSshKey`, `updateSshKey`, `deleteSshKey`).
+  - `SyncRepository.kt`: Multi-domain getters, encrypted savers with domain AAD namespaces (`vault_*_custom`, `vault_pearls_history`), automatic password history versioning on edits, and `deleteItem`.
+  - `CustomFieldDisplayRow.kt` & `ClipboardToastPill.kt`: Reusable custom field rows, animated 30s auto-scrubbing toast pill, and sensitive clipboard masking (`EXTRA_IS_SENSITIVE = true`).
+  - `ItemDetailScreen.kt` & `ItemDetailViewModel.kt`: Polymorphic detail views for Passwords, Notes, and SSH keys, collapsible password history, and Claw Re-Prompt gate.
+  - `ItemFormScreen.kt` & `ItemFormViewModel.kt`: Universal form with pinned header/footer, domain selector, `.imePadding().verticalScroll()` IME protection, tags chip builder, and dynamic Custom Fields builder.
+  - Compose Navigation wired in `MainActivity.kt` and `VaultDashboardScreen.kt` connecting Dashboard ➔ Detail ➔ Form.
+  - 100% green verification: 28 unit tests passing across all suites (`CustomFieldTest`, `SyncRepositoryTest`), `app-debug.apk` cleanly compiled, and live navigation and field switching verified on physical Google Pixel.
 
-## What's Left to Build (Phase 3 through Phase 6)
-- [ ] Phase 3: Vault Domains & Universal Item Editor (Tasks 05 & 06).
+## What's Left to Build (Phase 4 through Phase 6)
 - [ ] Phase 4: TOTP Engine & Biometric Security Lifecycle (Tasks 07 & 08).
 - [ ] Phase 5: Android Autofill & Credential Provider (Tasks 09 & 10).
 - [ ] Phase 6: Settings, Backup Bridge & Release Hardening (Tasks 11 & 12).
+
 

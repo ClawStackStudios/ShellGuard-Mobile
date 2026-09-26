@@ -92,6 +92,7 @@ fun VaultDashboardScreen(
     viewModel: VaultDashboardViewModel,
     modifier: Modifier = Modifier,
     onItemClick: (UnifiedVaultItem) -> Unit = {},
+    onAddItemClick: () -> Unit = {},
     onLockClick: () -> Unit = {},
     onLogoutClick: () -> Unit = {}
 ) {
@@ -404,12 +405,7 @@ fun VaultDashboardScreen(
                             Toast.LENGTH_SHORT
                         ).show()
                     } else {
-                        // In Phase 3, this will open ItemFormScreen
-                        Toast.makeText(
-                            context,
-                            "New item creation opens in Phase 3.",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        onAddItemClick()
                     }
                 },
                 containerColor = if (syncStatus == SyncStatus.OFFLINE_READ_ONLY) ReefPink.copy(alpha = 0.4f) else ReefPink,

@@ -11,7 +11,9 @@ metadata:
 
 ## Connection
 ```bash
-ADB="/config/Android/Sdk/platform-tools/adb -s adb-<DEVICE-ID>._adb-tls-connect._tcp"
+# Auto-disambiguate first attached device (handles duplicate mDNS TLS handles gracefully):
+DEV=$(adb devices | grep -E '\s+device\s+' | head -n 1 | awk '{print $1}')
+ADB="/config/Android/Sdk/platform-tools/adb -s $DEV"
 $ADB exec-out screencap -p > /tmp/screen.png   # screenshot for verification
 ```
 
@@ -42,8 +44,8 @@ $ADB exec-out screencap -p > /tmp/screen.png   # screenshot for verification
     # OS level night mode:
     $ADB shell cmd uimode night yes  # or 'no'
     # App-level override when persisted to SharedPreferences:
-    $ADB shell "run-as com.clawstack.shellguard.totp sed -i 's/pref_theme_mode\">LIGHT/pref_theme_mode\">DARK/' /data/data/com.clawstack.shellguard.totp/shared_prefs/shellguard_auth_prefs.xml"
-    $ADB shell am force-stop com.clawstack.shellguard.totp && $ADB shell am start -n com.clawstack.shellguard.totp/.MainActivity
+    $ADB shell "run-as com.clawstack.shellguard sed -i 's/pref_theme_mode\">LIGHT/pref_theme_mode\">DARK/' /data/data/com.clawstack.shellguard/shared_prefs/shellguard_auth_prefs.xml"
+    $ADB shell am force-stop com.clawstack.shellguard && $ADB shell am start -n com.clawstack.shellguard/.MainActivity
     ```
 
 ## Recipe: Reliable Field Entry

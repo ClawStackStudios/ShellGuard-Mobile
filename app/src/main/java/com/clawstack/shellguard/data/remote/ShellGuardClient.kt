@@ -3,7 +3,9 @@ package com.clawstack.shellguard.data.remote
 import com.clawstack.shellguard.data.remote.models.CreateNoteRequest
 import com.clawstack.shellguard.data.remote.models.CreateSshKeyRequest
 import com.clawstack.shellguard.data.remote.models.CreateVaultItemRequest
+import com.clawstack.shellguard.data.remote.models.KeyItemResponse
 import com.clawstack.shellguard.data.remote.models.KeysResponse
+import com.clawstack.shellguard.data.remote.models.NoteItemResponse
 import com.clawstack.shellguard.data.remote.models.NotesResponse
 import com.clawstack.shellguard.data.remote.models.PearlDto
 import com.clawstack.shellguard.data.remote.models.SecureNoteDto
@@ -192,4 +194,129 @@ class ShellGuardClient(
             }
         }
     }
+
+    /**
+     * 9. Create Note (POST /api/notes)
+     */
+    suspend fun createNote(sessionToken: String, request: CreateNoteRequest): Result<SecureNoteDto> = withContext(Dispatchers.IO) {
+        runCatching {
+            val response: HttpResponse = client.post("api/notes") {
+                header(HttpHeaders.Authorization, "Bearer $sessionToken")
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }
+            handleNetworkDiagnostics(response)
+
+            if (response.status == HttpStatusCode.Created || response.status == HttpStatusCode.OK) {
+                val res = response.body<NoteItemResponse>()
+                if (res.success && res.data != null) {
+                    res.data
+                } else {
+                    throw Exception(res.error ?: "Create note failed")
+                }
+            } else {
+                throw Exception("Create note failed with status: ${response.status.value}")
+            }
+        }
+    }
+
+    /**
+     * 10. Update Note (PUT /api/notes/:id)
+     */
+    suspend fun updateNote(sessionToken: String, id: String, request: CreateNoteRequest): Result<SecureNoteDto> = withContext(Dispatchers.IO) {
+        runCatching {
+            val response: HttpResponse = client.put("api/notes/$id") {
+                header(HttpHeaders.Authorization, "Bearer $sessionToken")
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }
+            handleNetworkDiagnostics(response)
+
+            if (response.status == HttpStatusCode.OK) {
+                val res = response.body<NoteItemResponse>()
+                if (res.success && res.data != null) {
+                    res.data
+                } else {
+                    throw Exception(res.error ?: "Update note failed")
+                }
+            } else {
+                throw Exception("Update note failed with status: ${response.status.value}")
+            }
+        }
+    }
+
+    /**
+     * 11. Delete Note (DELETE /api/notes/:id)
+     */
+    suspend fun deleteNote(sessionToken: String, id: String): Result<Boolean> = withContext(Dispatchers.IO) {
+        runCatching {
+            val response: HttpResponse = client.delete("api/notes/$id") {
+                header(HttpHeaders.Authorization, "Bearer $sessionToken")
+            }
+            response.status == HttpStatusCode.OK || response.status == HttpStatusCode.NoContent
+        }
+    }
+
+    /**
+     * 12. Create SSH Key (POST /api/keys)
+     */
+    suspend fun createSshKey(sessionToken: String, request: CreateSshKeyRequest): Result<SshKeyDto> = withContext(Dispatchers.IO) {
+        runCatching {
+            val response: HttpResponse = client.post("api/keys") {
+                header(HttpHeaders.Authorization, "Bearer $sessionToken")
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }
+            handleNetworkDiagnostics(response)
+
+            if (response.status == HttpStatusCode.Created || response.status == HttpStatusCode.OK) {
+                val res = response.body<KeyItemResponse>()
+                if (res.success && res.data != null) {
+                    res.data
+                } else {
+                    throw Exception(res.error ?: "Create SSH key failed")
+                }
+            } else {
+                throw Exception("Create SSH key failed with status: ${response.status.value}")
+            }
+        }
+    }
+
+    /**
+     * 13. Update SSH Key (PUT /api/keys/:id)
+     */
+    suspend fun updateSshKey(sessionToken: String, id: String, request: CreateSshKeyRequest): Result<SshKeyDto> = withContext(Dispatchers.IO) {
+        runCatching {
+            val response: HttpResponse = client.put("api/keys/$id") {
+                header(HttpHeaders.Authorization, "Bearer $sessionToken")
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }
+            handleNetworkDiagnostics(response)
+
+            if (response.status == HttpStatusCode.OK) {
+                val res = response.body<KeyItemResponse>()
+                if (res.success && res.data != null) {
+                    res.data
+                } else {
+                    throw Exception(res.error ?: "Update SSH key failed")
+                }
+            } else {
+                throw Exception("Update SSH key failed with status: ${response.status.value}")
+            }
+        }
+    }
+
+    /**
+     * 14. Delete SSH Key (DELETE /api/keys/:id)
+     */
+    suspend fun deleteSshKey(sessionToken: String, id: String): Result<Boolean> = withContext(Dispatchers.IO) {
+        runCatching {
+            val response: HttpResponse = client.delete("api/keys/$id") {
+                header(HttpHeaders.Authorization, "Bearer $sessionToken")
+            }
+            response.status == HttpStatusCode.OK || response.status == HttpStatusCode.NoContent
+        }
+    }
 }
+
