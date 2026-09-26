@@ -72,8 +72,8 @@ To avoid local machine resource exhaustion, use the cloud release pipeline:
 
 1. **Trigger via Commit Flag or Git Tag**:
    ```bash
-   # Method A: Commit flag
-   git commit -m "chore(release): release vX.Y.Z.N (Build N+1) --release vX.Y.Z.N"
+   # Method A: Commit flag on main
+   git commit -m "chore(release): release vX.Y.Z.N (Build N) --release vX.Y.Z.N"
    git push origin main
 
    # Method B: Git tag
@@ -82,7 +82,7 @@ To avoid local machine resource exhaustion, use the cloud release pipeline:
    ```
 2. **Download Signed Artifacts**:
    - Navigate to GitHub **Actions** or **Releases** on `ClawStackStudios/ShellGuard-Mobile`.
-   - Download the signed `app-release.aab` (for Google Play Console) and `app-release.apk` (for direct sideloading).
+   - Download the signed `shellguard-mobile-vX.Y.Z.N.aab` (for Google Play Console) and `shellguard-mobile-vX.Y.Z.N.apk` (for direct sideloading).
 
 ### 💻 Alternative: Local Build (Requires Local Keystore)
 If building locally, run:
@@ -92,19 +92,52 @@ If building locally, run:
 Artifacts output to:
 - `app/build/outputs/bundle/release/app-release.aab`
 - `app/build/outputs/apk/release/app-release.apk`
-> The release footer at the bottom of `SettingsScreen.kt` dynamically reads `BuildConfig.VERSION_NAME` and will automatically update to match `versionName`.
+> User-facing version labels dynamically bind to `BuildConfig.VERSION_NAME`.
 
 ---
 
-## 🔑 Step 4: Keystore & Signing Configuration
+## 🔑 Step 4: Keystore Generation & GitHub Actions Secrets Setup
 
 Google Play uses **Play App Signing**. You sign the bundle with your **Upload Key**, and Google signs the final APK delivered to user devices with the App Signing Key.
 
-Ensure CI secrets are configured:
-- `SIGNING_KEY_BASE64`: Base64 string of `my-upload-key.jks`.
-- `KEYSTORE_PASSWORD`: Keystore master password.
-- `KEY_ALIAS`: Key alias name (e.g. `upload`).
-- `KEY_PASSWORD`: Private key password.
+### A. Generate Upload Keystore (`keytool`)
+Run `keytool` (bundled with Android Studio's JBR) to generate `my-upload-key.jks`:
+
+```bash
+# 1. Generate the RSA 2048-bit JKS Keystore (valid for 25+ years)
+/config/Applications/android-studio/jbr/bin/keytool -genkeypair -v \
+  -keystore my-upload-key.jks \
+  -alias upload \
+  -keyalg RSA \
+  -keysize 2048 \
+  -validity 10000 \
+  -storetype JKS
+```
+*Prompt tips:*
+- Enter a strong keystore password and key password.
+- When prompted for "What is your first and last name?", enter `ClawStack Studios`.
+- Fill in organizational details as desired, then type `yes` to confirm.
+
+### B. Base64 Encode for GitHub Secrets
+Convert the binary `.jks` file into a single-line base64 string:
+
+```bash
+# 2. Encode to single-line base64 (no line wrapping)
+base64 -w 0 my-upload-key.jks > upload-key.base64.txt
+```
+
+> [!CAUTION]
+> **Android Secrets Safety**: `my-upload-key.jks` and `*.base64.txt` contain private signing keys and must **NEVER** be committed to Git. Both patterns are already guarded in `.gitignore`. Store the `.jks` in a secure offline location (e.g., your ShellGuard vault!).
+
+### C. Configure GitHub Repository Secrets
+In your GitHub repository (`ClawStackStudios/ShellGuard-Mobile`), navigate to **Settings** → **Secrets and variables** → **Actions** → **New repository secret**:
+
+| Secret Name | Value | Description |
+| :--- | :--- | :--- |
+| `ANDROID_SIGNING_KEY` | *(Paste entire contents of `upload-key.base64.txt`)* | Base64-encoded upload keystore |
+| `ANDROID_KEYSTORE_PASSWORD` | *(Your keystore password)* | Master password used in `keytool` |
+| `ANDROID_KEY_ALIAS` | `upload` | Alias specified during `-alias upload` |
+| `ANDROID_KEY_PASSWORD` | *(Your key password)* | Key password used in `keytool` |
 
 ---
 
@@ -126,18 +159,17 @@ The file offset must be evenly divisible by `16384` (16 KB), confirming Android 
 2. Select **ShellGuard Mobile** (`com.clawstack.shellguard`).
 3. In the left-hand sidebar, navigate to **Testing** → **Internal testing** (or **Closed testing**).
 4. Click **Create new release** (top right).
-5. **Upload Bundle**: Drag and drop `app-release.aab` into the upload zone.
+5. **Upload Bundle**: Drag and drop `shellguard-mobile-vX.Y.Z.N.aab` into the upload zone.
 6. **Release Name**: Play Console will automatically populate `X.Y.Z.N (Build N)` matching your Gradle config.
 7. **Release Notes**: Copy the formatted `<en-US>` notes directly from [`RELEASE-PLAY.md`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/RELEASE-PLAY.md) (<500 characters):
    ```xml
    <en-US>
-   • Initial release of ShellGuard Mobile Vault!
-   • Zero-Knowledge Privacy: Client-side HKDF + AES-256-GCM encryption.
-   • Full Secrets Vault: Passwords, Secure Notes, SSH Keys, Attachments & TOTP.
-   • System Autofill: Seamless autofill across apps and browsers with URI match modes.
-   • Offline Autonomy: Bitwarden-model offline caching with seamless reconnect.
-   • Dynamic Design: Modernist Reef Pink default theme + 6 custom accent palettes.
-   • Android 15+ 16 KB page-size kernel ready.
+   • Ktor Network & Sync: Direct connection to self-hosted ShellGuard servers over LAN or mesh.
+   • Vault Dashboard: Unified view of passwords, notes, and SSH keys with real-time search & pod filters.
+   • Bitwarden-Model Offline Caching: Full read, search, and copy access with zero split-brain conflicts.
+   • Base62 Key Parity: Native support for all sovereign ShellKey identity files.
+   • Soft Keyboard Polish: Smooth cursor retention with zero blackout.
+   • Hardware Security: Android KeyStore, SQLCipher AES-256, 16 KB page-aligned.
    </en-US>
    ```
 8. Click **Next** → **Save** → **Review release** → **Start rollout to Internal testing**.
