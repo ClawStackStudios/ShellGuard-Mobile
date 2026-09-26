@@ -63,6 +63,14 @@ class GatewayViewModel(
     private val _uiState = MutableStateFlow(GatewayUiState())
     val uiState: StateFlow<GatewayUiState> = _uiState.asStateFlow()
 
+    init {
+        appContainer?.deviceVault?.getServerUrl()?.let { savedUrl ->
+            if (savedUrl.isNotBlank()) {
+                parseAndSetUrl(savedUrl)
+            }
+        }
+    }
+
     fun parseAndSetUrl(input: String) {
         var raw = input.trim()
         if (raw.isEmpty()) {

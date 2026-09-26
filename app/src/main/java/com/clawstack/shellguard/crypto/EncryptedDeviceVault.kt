@@ -38,17 +38,20 @@ class EncryptedDeviceVault(private val context: Context) {
         hashedKey: String,
         shellKey: ByteArray? = null
     ) {
-        prefs.edit()
+        val editor = prefs.edit()
             .putString(KEY_SESSION_TOKEN, token)
             .putString(KEY_SERVER_URL, serverUrl)
             .putString(KEY_OWNER_UUID, ownerUuid)
             .putString(KEY_USERNAME, username)
             .putString(KEY_HASHED_KEY, hashedKey)
-            .apply()
 
-        shellKey?.let {
-            inMemoryShellKey = it.copyOf()
+        if (shellKey != null) {
+            inMemoryShellKey = shellKey.copyOf()
+            editor.putString(KEY_SHELL_KEY, android.util.Base64.encodeToString(shellKey, android.util.Base64.NO_WRAP))
+        } else {
+            editor.remove(KEY_SHELL_KEY)
         }
+        editor.apply()
     }
 
     fun getSessionToken(): String? = prefs.getString(KEY_SESSION_TOKEN, null)
@@ -65,18 +68,34 @@ class EncryptedDeviceVault(private val context: Context) {
         val token = getSessionToken()
         val server = getServerUrl()
         val owner = getOwnerUuid()
-        return !token.isNullOrBlank() && !server.isNullOrBlank() && !owner.isNullOrBlank()
+        val key = getInMemoryShellKey()
+        return !token.isNullOrBlank() && !server.isNullOrBlank() && !owner.isNullOrBlank() && key != null
     }
 
     fun setInMemoryShellKey(key: ByteArray) {
         inMemoryShellKey = key.copyOf()
+        prefs.edit().putString(KEY_SHELL_KEY, android.util.Base64.encodeToString(key, android.util.Base64.NO_WRAP)).apply()
     }
 
-    fun getInMemoryShellKey(): ByteArray? = inMemoryShellKey
+    fun getInMemoryShellKey(): ByteArray? {
+        inMemoryShellKey?.let { return it }
+        val stored = prefs.getString(KEY_SHELL_KEY, null)
+        if (!stored.isNullOrBlank()) {
+            return try {
+                val decoded = android.util.Base64.decode(stored, android.util.Base64.NO_WRAP)
+                inMemoryShellKey = decoded
+                decoded
+            } catch (_: Exception) {
+                null
+            }
+        }
+        return null
+    }
 
     fun zeroizeMemory() {
         inMemoryShellKey?.fill(0.toByte())
         inMemoryShellKey = null
+        prefs.edit().remove(KEY_SHELL_KEY).apply()
     }
 
     fun clearSession() {
@@ -90,5 +109,6 @@ class EncryptedDeviceVault(private val context: Context) {
         private const val KEY_OWNER_UUID = "owner_uuid"
         private const val KEY_USERNAME = "username"
         private const val KEY_HASHED_KEY = "hashed_key"
+        private const val KEY_SHELL_KEY = "shell_key"
     }
 }

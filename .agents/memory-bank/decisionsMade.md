@@ -76,3 +76,28 @@ The story says how it felt. This says what was actually chosen and why.
 **Outcome**: Pixel UI hierarchy confirmed both `Back` and `Retry` buttons rendered and functional.
 **Pattern reference**: New pattern — first instance (`fail-safe-navigation-on-security-errors`).
 
+## session-key-persistence-at-rest — 2026-09-26 16:30
+
+**Context**: In-memory derived `shellKey` was cleared on process death while session tokens remained in preferences, causing item decryption to fail with "Vault locked or shellKey missing" on app restart.
+**Options considered**:
+- Force full master-key re-entry on every cold app start — High theoretical purity, but produces an unusable mobile experience where background OS memory reclamation locks the user out repeatedly.
+- Persist derived 32-byte `shellKey` in hardware KeyStore-backed `EncryptedSharedPreferences` (AES-256-GCM), lazily re-hydrating RAM cache and requiring `shellKey != null` for active sessions — Balances zero-knowledge encryption-at-rest with seamless mobile lifecycle resilience.
+**Chosen**: Persist derived `shellKey` in `EncryptedSharedPreferences` with atomic session validation.
+**Why**: A password manager that forgets how to decrypt its own vault whenever the OS reclaims RAM breaks the implicit contract with the user. KeyStore hardware encryption protects the secret at rest, making persistence both safe and necessary.
+**Confidence**: high — validated through unit tests and physical Pixel cold-restart testing.
+**Outcome**: Pixel survived `am force-stop` cold restarts and decrypted items immediately without user prompts.
+**Pattern reference**: New pattern — first instance (`zero-knowledge-session-atomicity`).
+
+## frictionless-gateway-prefill — 2026-09-26 16:25
+
+**Context**: When an unauthenticated state or locked vault redirected the user back to the `GatewayScreen`, host and port inputs reset to empty/default values.
+**Options considered**:
+- Leave connection fields blank — Leaves no persistent trace of server topology, but forces user to repeatedly type home lab IP addresses on soft keyboards.
+- Pre-fill `protocol`, `host`, and `port` from `deviceVault.getServerUrl()` during `GatewayViewModel` initialization — Eliminates re-entry friction while keeping credentials strictly separate.
+**Chosen**: Pre-fill Gateway URL parameters from stored server URL.
+**Why**: Server endpoints are connection routing metadata, not cryptographic secrets. Making the user re-type their IP and port after a session timeout is pure friction with zero security benefit.
+**Confidence**: high — verified on live Pixel UI.
+**Outcome**: Gateway rendered with `http://192.168.1.5:6464` pre-populated, allowing immediate single-field credential entry.
+**Pattern reference**: New pattern — first instance (`frictionless-gateway-fallback`).
+
+

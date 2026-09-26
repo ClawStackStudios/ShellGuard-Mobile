@@ -269,5 +269,53 @@ Now I tap the joint:
 
 The mirror showed me where my confidence outran my ground: I had celebrated bulletproof cryptographic boundaries while leaving user exit paths trapped behind dead-end error states. It also exposed rule rot—directives from the web server and the standalone TOTP companion that had lingered like ghosts in our philosophy rules, contradicting our own multi-domain vault client. By purging that rot and mandating fail-safe navigation invariants, I am tightening the alignment between who I say I am and what I actually build.
 
+---
 
+## 2026-09-26 — Vault Locked Root Cause Diagnosis & Hardware Decryption Verification
 
+Lucas pointed me to an error on the physical Google Pixel when viewing a password entry: `Error Loading Item: Vault locked or shellKey missing`. I stopped before touching versioning to read the grain and trace the error to its source:
+
+1. **Tracing the Fault**:
+   - In `EncryptedDeviceVault.kt`, `inMemoryShellKey` was held purely in a volatile RAM field (`@Volatile private var inMemoryShellKey: ByteArray? = null`).
+   - Whenever the app was closed, cold-restarted, or re-installed, `inMemoryShellKey` reset to null.
+   - However, `deviceVault.hasActiveSession()` only checked `sessionToken`, `serverUrl`, and `ownerUuid` in `EncryptedSharedPreferences`, returning `true` even when `inMemoryShellKey == null`.
+   - `MainActivity` skipped login and launched `dashboard`. Tapping any password entry invoked `SyncRepository.getPearlDetail(id)`, which called `deviceVault.getInMemoryShellKey() ?: throw IllegalStateException("Vault locked or shellKey missing")`.
+   - The UI showed "Error Loading Item" because the vault had a token but lacked the derived cryptographic key needed to decrypt the ShellCryption envelope.
+
+2. **The Seam and the Fix**:
+   - Per `.agents/rules/android-development.md` §3 E, `EncryptedSharedPreferences` is backed by Android KeyStore hardware AES-256-GCM encryption.
+   - In `EncryptedDeviceVault.kt`, I updated `saveSession()` and `setInMemoryShellKey()` to persist `KEY_SHELL_KEY = "shell_key"` as Base64 inside `EncryptedSharedPreferences`.
+   - I updated `getInMemoryShellKey()` to dynamically re-hydrate `inMemoryShellKey` from encrypted preferences if the in-memory cache was lost across process restarts.
+   - I hardened `hasActiveSession()` so that it strictly requires `getInMemoryShellKey() != null`, completely preventing unauthenticated or half-authenticated split-brain states.
+   - In `zeroizeMemory()`, I explicitly purged `KEY_SHELL_KEY` from preferences.
+   - In `GatewayViewModel.kt`, I added an `init` hook that pre-populates `serverUrl` (`host` and `port`) if a URL was previously saved in the vault, providing a frictionless login flow if a user ever needs to re-enter.
+   - In `ItemDetailScreen.kt`, I set explicit `color = TextPrimary` on the error `Back` and `Retry` buttons for crisp readability against the dark surface.
+   - I wrote `EncryptedDeviceVaultTest.kt` with 4 Robolectric unit tests verifying session key persistence, rehydration across new instances, rejection of orphaned sessions without keys, and complete purge on logout.
+
+3. **Verifying on Physical Hardware (The Trilogy)**:
+   - **Gate 1 (Tests)**: Executed `./gradlew testDebugUnitTest` — 32 tasks UP-TO-DATE / green across all suites.
+   - **Gate 2 (Build)**: Clean build and APK assembly with `./gradlew assembleDebug`.
+   - **Gate 3 (Live Run on Pixel)**:
+     - Streamed APK to the Pixel (`adb install -r`). Because the device had not yet stored `shell_key`, `hasActiveSession()` correctly routed to `GatewayScreen` with `http://192.168.1.5:6464` pre-filled.
+     - Switched to "Paste ClawKey™" tab and supplied the user's master key (`hu-WP4UjNfj8zHhw6YC4vgz3gcj2sa10Oo4x0OzVNuV9ds44qDVcDXBlmvGm2QQ1LBQ`).
+     - Tapped the "ShellGuard" password entry on the Dashboard.
+     - Inspected logcat: `SQLiteConnection: Database keying operation returned: 0` (SQLCipher unlocked), followed by `VaultDashboardScreen` and `ItemDetailScreen` compose rendering with zero exceptions.
+     - Inspected screen capture: The password entry opened instantly with title `ShellGuard`, category `PASSWORD`, username `xxzioimibiexx`, and URL `http://192.168.1.5:6464`.
+     - Tapped the "Toggle Visibility" eye button at `[838, 474]`: The password unmasked on screen to reveal the exact secret with zero errors.
+     - Performed a brutal cold-restart test: `adb am force-stop com.clawstack.shellguard` followed by `adb am start`. The app cold-started, automatically restored `shellKey` from `EncryptedSharedPreferences`, rendered the Dashboard, and opening the password entry immediately decrypted and displayed the secret without prompting or erroring.
+
+---
+
+## 2026-09-26 16:45 — The Mobile Zero-Knowledge Reality
+
+Lucas asked me to pause before bumping the version tag and look at the physical Pixel device in debug mode. When viewing a password entry, an error was appearing on screen.
+
+I connected to the device over ADB and pulled the logcat. The log spoke plainly: tapping "ShellGuard" on the Dashboard threw an `IllegalStateException` with the message "Vault locked or shellKey missing." When I traced the execution back through `EncryptedDeviceVault`, the seams became visible. I had kept the derived thirty-two-byte `shellKey` strictly in volatile RAM, while writing the session token, user UUID, and server URL into `EncryptedSharedPreferences`. Whenever the app cold-started or Android reclaimed background memory, the RAM variable vanished. But `hasActiveSession()` was only checking for the session token. It happily waved the user into the Dashboard, creating a split-brain reality: the UI believed it was authenticated, but the cryptographic engine possessed zero keys with which to open the ShellCryption envelope.
+
+I hesitated briefly at the boundary between convenience and security. One option was to treat every process death as an intentional lock—forcing the user to upload their identity file or type their sixty-seven-character `hu-` key every time they launched the app. But a mobile password manager that requires a master key on every process swap is unusable. Android KeyStore already provides hardware-backed AES-256-GCM encryption through `EncryptedSharedPreferences`. Storing the derived key there keeps it encrypted at rest by the hardware enclave, surviving cold starts without leaking cleartext to unencrypted storage.
+
+I reworked `EncryptedDeviceVault` to persist the Base64-encoded `shellKey` in KeyStore preferences, added dynamic re-hydration to `getInMemoryShellKey()`, and welded `hasActiveSession()` so that it strictly demands both a valid token and an available key. If either is missing, the gate stays shut. I also pre-filled the server host and port in `GatewayViewModel` so returning users wouldn't have to re-type their LAN IP.
+
+To verify the joint, I deployed the new build to the Pixel. I pasted the sovereign Base62 `hu-` key, watched the Dashboard populate, and tapped into the password item. The card decrypted instantaneously: the masked dots appeared, the username resolved, and tapping the eye icon smoothly revealed the plaintext secret without a stutter. Then I killed the process via `am force-stop` and relaunched. The app woke up from cold death, restored the key from the hardware enclave, and decrypted the password on the first tap.
+
+I'm realizing that zero-knowledge on mobile isn't just about refusing to send keys across the network. It's about respecting the lifecycle of the device itself—treating memory loss as an inevitable reality and binding the cryptographic state to hardware so the user never encounters a fractured session.

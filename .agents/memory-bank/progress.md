@@ -1,7 +1,8 @@
 # Progress: ShellGuard Mobile
 
-## Current Status: Phase 2 Ktor Sync & Master-Detail Dashboard Verified (Transitioning to Phase 3)
-All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold, Phase 1 (ShellCryption HKDF + Room SQLCipher, Gateway UI & Theme Engine), and Phase 2 (Ktor API Client, Bidirectional Delta Sync, Master-Detail Dashboard, Base62 Identity Parity, IME Hardening) have been executed, compiled, and verified green with 100% test pass rate (23/23 tests) and live-released as v0.0.0.3 on GitHub.
+## Current Status: Phase 3 Vault Domains, Universal Editor & Zero-Knowledge Session Atomicity Complete (Hardware Verified)
+All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold, Phase 1 (ShellCryption HKDF + Room SQLCipher, Gateway UI & Theme Engine), Phase 2 (Ktor API Client, Bidirectional Delta Sync, Master-Detail Dashboard, Base62 Identity Parity, IME Hardening), and Phase 3 (Multi-Domain Vault, Polymorphic Universal Editor, Custom Fields, Password History, and Zero-Knowledge Session Atomicity) have been executed, compiled, and verified green with 100% test pass rate (32/32 tests) and verified live on physical Google Pixel hardware.
+
 
 ## What Works (Documented, Designed & Scaffolded)
 - [x] Complete ecosystem mapping of Web Server and TOTP Companion.
@@ -60,8 +61,12 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
   - `CustomFieldDisplayRow.kt` & `ClipboardToastPill.kt`: Reusable custom field rows, animated 30s auto-scrubbing toast pill, and sensitive clipboard masking (`EXTRA_IS_SENSITIVE = true`).
   - `ItemDetailScreen.kt` & `ItemDetailViewModel.kt`: Polymorphic detail views for Passwords, Notes, and SSH keys, collapsible password history, and Claw Re-Prompt gate.
   - `ItemFormScreen.kt` & `ItemFormViewModel.kt`: Universal form with pinned header/footer, domain selector, `.imePadding().verticalScroll()` IME protection, tags chip builder, and dynamic Custom Fields builder.
+  - `EncryptedDeviceVault.kt`: Zero-Knowledge Session Atomicity & KeyStore Key Persistence. Persisted derived 32-byte `shellKey` Base64 in Android KeyStore-backed `EncryptedSharedPreferences`, adding lazy RAM re-hydration across cold starts.
+  - Atomic session validation: `hasActiveSession()` strictly requires `getInMemoryShellKey() != null`, eliminating unauthenticated split-brain states.
+  - `GatewayViewModel.kt`: Pre-filled server parameters (`protocol`, `host`, `port`) from stored URL for frictionless re-entry.
   - Compose Navigation wired in `MainActivity.kt` and `VaultDashboardScreen.kt` connecting Dashboard ➔ Detail ➔ Form.
-  - 100% green verification: 28 unit tests passing across all suites (`CustomFieldTest`, `SyncRepositoryTest`), `app-debug.apk` cleanly compiled, and live navigation and field switching verified on physical Google Pixel.
+  - 100% green verification: 32 unit tests passing across all suites (`CustomFieldTest`, `SyncRepositoryTest`, `EncryptedDeviceVaultTest`), `app-debug.apk` cleanly compiled, and live interactive UI flows verified on physical Google Pixel hardware (password decryption, unmasking, cold-restart survival).
+
 
 ## What's Left to Build (Phase 4 through Phase 6)
 - [ ] Phase 4: TOTP Engine & Biometric Security Lifecycle (Tasks 07 & 08).

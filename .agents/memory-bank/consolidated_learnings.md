@@ -34,6 +34,16 @@
 - **Rule**: Never enforce `FLAG_SECURE` unconditionally in debug builds. On Adreno 5xx GPUs under Android 14, blending insecure system IME overlays over secure surfaces causes complete screen blackout.
 - **Rule**: Set `Scaffold(contentWindowInsets = WindowInsets(0, 0, 0, 0))` when child screens manage their own `.imePadding()`, preventing double keyboard height subtraction.
 
+**Pattern: Zero-Knowledge Session Atomicity & Derived Key Persistence**
+- **Rule**: In zero-knowledge architectures where records are encrypted client-side, an active session requires BOTH the authentication token and the symmetric decryption key.
+- **Anti-Pattern**: Storing `shellKey` solely in volatile memory (`@Volatile var inMemoryShellKey`) while checking only persisted server tokens in `hasActiveSession()`. On cold restarts, the app enters an unauthenticated split-brain state where the dashboard opens but items throw `IllegalStateException: Vault locked or shellKey missing`.
+- **Pattern**:
+  1. Persist the derived 32-byte `shellKey` (Base64) in `EncryptedSharedPreferences` (AES-256-GCM hardware KeyStore protected).
+  2. Implement lazy re-hydration in `getInMemoryShellKey()` to restore RAM state across process deaths.
+  3. Enforce atomic session validation: `hasActiveSession()` returns `true` ONLY IF `getInMemoryShellKey() != null`.
+  4. Pre-fill gateway parameters (`host`, `port`, `protocol`) from `deviceVault.getServerUrl()` on login fallbacks to eliminate user re-entry friction.
+  5. Purge the persisted key on explicit logout or panic zeroization.
+
 ## Autofill & Home Lab Networking
 **Pattern: Multi-Mode URI Match Detection**
 - In self-hosted home labs (Unraid/Docker), multiple services run on the same IP across different ports (`192.168.1.100:8080` vs `192.168.1.100:9000`).

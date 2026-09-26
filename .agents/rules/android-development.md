@@ -104,7 +104,13 @@ All cryptographic operations use HKDF-SHA-256 + AES-GCM-256 with domain-bound Ad
 Hardware biometric keys configured with `setInvalidatedByBiometricEnrollment(true)` are permanently invalidated when the user adds or modifies fingerprints/face data in system settings. `Cipher.init()` throws `KeyPermanentlyInvalidatedException`. The app implements an automated recovery state machine routing to Master Password/PIN fallback, regenerating the hardware key, and re-sealing the master secret without user lockout or data loss.
 
 ### E. EncryptedSharedPreferences (Android KeyStore)
-Master identity keys, session tokens, and PIN hashes are stored exclusively in `EncryptedSharedPreferences`. Never store raw identity keys or unencrypted master secrets in Room.
+Master identity keys, session tokens, derived symmetric keys (`shellKey`), and PIN hashes are stored exclusively in `EncryptedSharedPreferences` (backed by Android KeyStore AES-256-GCM hardware encryption). Never store raw identity keys or unencrypted master secrets in Room.
+
+### F. Zero-Knowledge Session Atomicity & Cold-Restart Key Persistence
+- **The Atomic Session Invariant**: An active session requires BOTH transport authorization (`sessionToken`) and cryptographic capability (`shellKey`). `hasActiveSession()` must strictly verify `getInMemoryShellKey() != null` (either cached in memory or re-hydrated from `EncryptedSharedPreferences`). A session with a valid network token but a missing decryption key is an invalid split-brain state and is strictly prohibited.
+- **Key Re-Hydration Across Lifecycles**: Derived symmetric keys (`shellKey`) must be stored at rest in `EncryptedSharedPreferences` so they survive Android process terminations and cold restarts without prompting the user on every app launch. `getInMemoryShellKey()` must dynamically re-hydrate the in-memory cache from encrypted preferences if the RAM reference was cleared.
+- **Frictionless Gateway Fallback**: If an invalid session or missing key forces a redirect to the `GatewayScreen`, the client must preserve and pre-fill server connection parameters (`protocol`, `host`, `port`) so the user only needs to supply their key/file to restore access.
+- **Session Zeroization**: On explicit user lock or logout, both volatile RAM references AND persisted KeyStore preferences (`KEY_SHELL_KEY`, `KEY_SESSION_TOKEN`) must be actively zeroized.
 
 ---
 

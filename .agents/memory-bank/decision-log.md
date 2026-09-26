@@ -60,5 +60,10 @@ Encountered UnsupportedOperationException from DefaultSdkProvider during headles
 ## 2026-09-26 — polymorphic item editor & encrypted custom fields
 Architected universal `ItemFormScreen` and polymorphic `ItemDetailScreen` supporting Passwords, Notes, and SSH Keys. Wrapped custom fields (`TEXT`, `HIDDEN`, `BOOLEAN`, `LINKED`) and password history into domain-specific HKDF AAD encryption (`vault_*_custom`, `vault_pearls_history`) with sensitive clipboard auto-scrubbing and offline mutation guards.
 
+## 2026-09-26 — session key persistence & zero-knowledge active session invariant
+Diagnosed "Error Loading Item: Vault locked or shellKey missing" on physical Pixel when opening vault items across app restarts. Traced to `inMemoryShellKey` living exclusively in volatile RAM while `hasActiveSession()` checked only persisted tokens, allowing the dashboard to open without the decryption key. Persisted the derived `shellKey` in hardware KeyStore-backed `EncryptedSharedPreferences` (see `android-development.md` §3 E), hardened `hasActiveSession()` to strictly require a valid shellKey, and verified seamless decryption and cold-restart persistence on hardware.
+
+
+
 
 

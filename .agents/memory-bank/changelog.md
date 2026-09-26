@@ -82,4 +82,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - GitHub Actions automated release pipeline (`.github/workflows/release.yml`) with Python 3 keystore decoding and dual artifact packaging (`.aab` and `.apk`).
   - Pre-flight test suite expanded to 23 tests, passing 100% green. Published live GitHub Release `v0.0.0.3`.
 
+## [Unreleased] (Phase 3 Complete)
+
+### Added
+- Phase 3: Vault Domains & Universal Item Editor (Tasks 05 & 06):
+  - `CustomField.kt` & `CustomFieldSerializer`: Bitwarden-style custom fields (`TEXT`, `HIDDEN`, `BOOLEAN`, `LINKED`), `@Serializable CustomField`, `@Serializable PasswordHistoryEntry`, resilient JSON parsing.
+  - `VaultDomainModels.kt`: Decrypted multi-domain models (`PearlDetail`, `SecureNoteDetail`, `SshKeyDetail`).
+  - Remote CRUD APIs in `ShellGuardClient.kt` & `ShellResponse.kt` (`createNote`, `updateNote`, `deleteNote`, `createSshKey`, `updateSshKey`, `deleteSshKey`).
+  - `SyncRepository.kt`: Multi-domain getters, encrypted savers with domain AAD namespaces (`vault_*_custom`, `vault_pearls_history`), automatic password history versioning on edits, and `deleteItem`.
+  - `CustomFieldDisplayRow.kt` & `ClipboardToastPill.kt`: Reusable custom field rows, animated 30s auto-scrubbing toast pill, and sensitive clipboard masking (`EXTRA_IS_SENSITIVE = true`).
+  - `ItemDetailScreen.kt` & `ItemDetailViewModel.kt`: Polymorphic detail views for Passwords, Notes, and SSH keys, collapsible password history, and Claw Re-Prompt gate.
+  - `ItemFormScreen.kt` & `ItemFormViewModel.kt`: Universal form with pinned header/footer, domain selector, `.imePadding().verticalScroll()` IME protection, tags chip builder, and dynamic Custom Fields builder.
+  - Robolectric test suites `CustomFieldTest` and `SyncRepositoryTest`.
+- Zero-Knowledge Session Atomicity & Hardware KeyStore Persistence:
+  - `EncryptedDeviceVault.kt`: Persisted derived 32-byte `shellKey` Base64 in Android KeyStore-backed `EncryptedSharedPreferences`, adding lazy key re-hydration across cold starts/process terminations.
+  - Atomic session validation: `hasActiveSession()` strictly requires `getInMemoryShellKey() != null`, eliminating unauthenticated split-brain states.
+  - `GatewayViewModel.kt`: Added `init` hook pre-filling server connection parameters (`protocol`, `host`, `port`) from stored server URL for frictionless re-entry.
+  - `EncryptedDeviceVaultTest.kt`: Added 4 Robolectric unit tests for session key persistence, rehydration, and zeroization.
+  - Pre-flight test suite expanded to 32 tests, passing 100% green. Verified on physical Google Pixel hardware with password unmasking and cold-restart survival.
+
+
 

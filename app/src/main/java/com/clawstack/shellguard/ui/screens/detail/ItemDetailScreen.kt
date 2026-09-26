@@ -191,13 +191,13 @@ fun ItemDetailScreen(
                         Text(text = state.message, color = TextMuted, fontSize = 13.sp)
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             OutlinedButton(onClick = onBackClick) {
-                                Text("Back")
+                                Text("Back", color = TextPrimary)
                             }
                             Button(
                                 onClick = { viewModel.loadItem() },
                                 colors = ButtonDefaults.buttonColors(containerColor = ReefPink)
                             ) {
-                                Text("Retry")
+                                Text("Retry", color = TextPrimary)
                             }
                         }
                     }
