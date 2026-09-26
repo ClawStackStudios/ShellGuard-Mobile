@@ -136,3 +136,9 @@ All Android development, architecture standards, MVI boundaries, storage rules, 
 👉 **[`.agents/rules/android-development.md`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/rules/android-development.md)**
 
 Refer directly to `android-development.md` for all native Android implementation rules and invariants.
+
+## Lucas's Preferences for development 
+
+👉 **[`.agents/USER.md`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/USER.md)**
+
+Refer directly to `USER.md` for all preferences.
