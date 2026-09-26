@@ -15,6 +15,9 @@ class ShellGuardApp : Application() {
         DefaultAppContainer(this)
     }
 
+    val appContainer: AppContainer
+        get() = container
+
     override fun onCreate() {
         super.onCreate()
         initializeSecurityFoundation()

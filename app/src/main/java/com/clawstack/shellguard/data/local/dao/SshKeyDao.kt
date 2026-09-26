@@ -38,4 +38,7 @@ interface SshKeyDao {
 
     @Query("SELECT COUNT(*) FROM vault_ssh_keys WHERE owner_uuid = :ownerUuid AND sync_state != 'PENDING_DELETE'")
     fun observeItemCount(ownerUuid: String): Flow<Int>
+
+    @Query("DELETE FROM vault_ssh_keys WHERE owner_uuid = :ownerUuid AND id NOT IN (:activeRemoteIds)")
+    suspend fun pruneDeletedRemoteItems(ownerUuid: String, activeRemoteIds: List<String>)
 }

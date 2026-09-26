@@ -26,6 +26,14 @@
 **Pattern: Claw Re-Prompt Guardrail**
 - For high-privilege credentials (root keys, bank logins), enforce a localized biometric/PIN gate before revealing hidden text or copying, even if the vault itself is currently unlocked.
 
+**Pattern: Base62 Sovereign Identity Key Parity**
+- **Rule**: ShellGuard master identity keys (`hu-`) and agent keys (`lb-`) are 67 characters total: 3-character prefix followed by 64 Base62 characters (`[0-9a-zA-Z]`).
+- **Anti-Pattern**: Enforcing `[0-9a-f]` hex regex causes false-negative rejections of genuine web-generated identity files and disables login forms.
+
+**Pattern: IME Surface Composition & Double-Inset Hardening**
+- **Rule**: Never enforce `FLAG_SECURE` unconditionally in debug builds. On Adreno 5xx GPUs under Android 14, blending insecure system IME overlays over secure surfaces causes complete screen blackout.
+- **Rule**: Set `Scaffold(contentWindowInsets = WindowInsets(0, 0, 0, 0))` when child screens manage their own `.imePadding()`, preventing double keyboard height subtraction.
+
 ## Autofill & Home Lab Networking
 **Pattern: Multi-Mode URI Match Detection**
 - In self-hosted home labs (Unraid/Docker), multiple services run on the same IP across different ports (`192.168.1.100:8080` vs `192.168.1.100:9000`).

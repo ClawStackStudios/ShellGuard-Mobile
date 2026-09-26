@@ -20,6 +20,10 @@ class ClawCryptoTest {
         val validKey = "hu-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
         assertTrue(ClawCrypto.isValidClawKey(validKey))
 
+        // Valid: Base62 uppercase and mixed-case alphanumeric
+        val validBase62Key = "hu-WP0123456789abcdef0123456789ABCDEF0123456789abcdef0123456789wxyz"
+        assertTrue(ClawCrypto.isValidClawKey(validBase62Key))
+
         // Invalid: missing prefix
         assertFalse(ClawCrypto.isValidClawKey("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"))
 
@@ -32,8 +36,9 @@ class ClawCryptoTest {
         // Invalid: too long
         assertFalse(ClawCrypto.isValidClawKey("hu-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef00"))
 
-        // Invalid: non-hex characters
-        assertFalse(ClawCrypto.isValidClawKey("hu-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdeg"))
+        // Invalid: non-alphanumeric characters (symbols, whitespace)
+        assertFalse(ClawCrypto.isValidClawKey("hu-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcde!"))
+        assertFalse(ClawCrypto.isValidClawKey("hu-0123456789abcdef 123456789abcdef0123456789abcdef0123456789abcdef"))
     }
 
     @Test

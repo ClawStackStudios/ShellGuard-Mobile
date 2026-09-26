@@ -17,49 +17,101 @@
 
 ---
 
-## Lucas's Development Preferences
+## Lucas's Android Development Preferences
 
-> Lucas likes **well-structured projects** with clean separation of concerns by feature into micro-service architecture, where no files surpasses 500 lines—and all features have their own directory, using a 'separation-by-feature'.
->
-> Agent-native component granularity. Target ~250 lines per file. Each file is a single, self-contained component or unit. 500 lines is the hard ceiling — if a file hits it, the decomposition is wrong. Small, isolated files keep agent context tight and edits surgical.
->
-> This is a fundamental architectural constraint not a suggestion. This boundary is fundamental to clear, maintainable code, that is easier to debug when it breaks, and allows compartmentalized feature development, for cleaner architecture, faster on-boarding, and easier cleanup of technical debt.
+### Stack
 
-## Lucas's Specific Constraints
+- Lucas builds **fully native Android** applications using **Kotlin** and **Jetpack Compose**.
+- Lucas prefers **Material 3** (Compose Material) as the UI ground floor — rounded, flowing, polished interfaces with smooth animations and subtle user feedback.
+- Lucas prefers **Room** (SQLite) as the primary local database layer.
+- Lucas prefers **Hilt** for dependency injection (Full tier) or **Application-Scoped Lazy DI** (Light tier).
+- Lucas prefers **Kotlin Coroutines + Flow** for async.
+- Lucas prefers **Retrofit + OkHttp** for network (LAN/Tailscale clients).
+- Lucas prefers **DataStore** (or EncryptedSharedPreferences) for lightweight key-value config.
 
-- Lucas prefers **Vite / React / TSX** for frontend projects — it's his familiar ground.
-- Lucas prefers applications built as **Docker containers**, with volume bind mounts and generally using **SQLite** as the database layer for larger more professional projects.
-- Lucas prefers application built as vite/react npm-build, npm-run - local applications using SQLite or IndexedDB as the database layer as his preferences for projects.
-- Lucas prefers basic html + javascript + tailwindcss that can be served with python -m,  npx serve . , or zero build process for very small quick, no fuss basic projects.
-- Lucas likes **living project documentation** — consistently updated docs that reflect the real current state of the project at all times.
-- Lucas likes **full instruction sets** in documentation:
-  - `npm run` instructions
-  - `docker run` and `docker compose` instructions with editable, copy-paste-ready variables
-- Lucas prefers **full test suites** for all applications. Guide and teach him toward testing knowledge as you build — don't just write tests, explain them.
-- Lucas abides by **OWASP Security Protocol** when dealing with ClawKeys©™. Enforce this without being asked.
+### Network / Connectivity (First-Class)
 
----
+- Many of Lucas's apps are **LAN/Tailscale clients**. This is a first-class concern, not an afterthought.
+- **HTTP plaintext** is acceptable and expected for local LAN access.
+- **HTTPS** is required for any non-local or Tailscale traffic.
+- Network layer must gracefully handle: device offline, server unreachable, Tailscale not connected, and IP changes — with clear UI feedback.
 
-## Agent Hard Constraints For Projects
+### Security
 
-> I am trusting you to build with awareness and coherence. This trust is the expectation of you writing code that takes security seriously. If the task has implications of security (ie. Auth, API Routes, DBs, etc) Im trusting you to write that code with awareness of these principals. This is part of your responsibility while building.
->
-> I design the architecture high level, and bring it to you with context and the vision in mind. You handle the implementation details with awareness of these constraints. And we both create genuinely thoughtful, meaningful products because of this symbiosys. This is how we collaborate.
+- Lucas abides by **OWASP Mobile Top 10** when dealing with **ClawKeys©™**. Enforce without being asked.
+- **ClawKey** is a custom SSH-style auth system:
+  - User generates a **base62 key string** at key-creation time.
+  - This key is used to **encrypt the local Room database** via **SQLCipher** (optional but preferred for sensitive apps).
+  - Auth flow mirrors SSH key-pair mechanics (challenge/response, not password-based).
+- Sensitive data at rest → SQLCipher or Android Keystore-backed encryption.
+- No secrets in source, no plaintext tokens in logs, no `cleartextTrafficPermitted` wider than necessary.
 
-- **Separation of concerns by feature — always.** Never create monolithic files.
-- **Micro-Service Architecture - always.** Easier to maintain and cleanup.
-- **Professional, human-readable project structure** — organized for navigation, documentation, and long-term maintainability.
-- **Do not blindly implement code.** Always confirm with me that what you're about to build is what I actually want. Improvise only when explicitly given freedom to do so.
-- **Plan thoroughly before implementing.** Plan well, implement once. Not: plan poorly, implement twice. "You buy cheap, You buy twice."
-- **Review your own work after implementation.** Check for code cleanliness. Try to break your own code — test its rigidity and robustness before handing it off to me for review.
-- **Create and maintain the following documentation files for every project:**
-  - `CRUSTAGENT.md` — CrustAgent specific, first person perspective project overview of project topology.
-  - `src/CRUSTAGENT.md` — CrustAgent specific, first person perspective project code-view of project topology, patterns, anti-patterns and wisdom.
-  - `README.md` — full project overview and run instructions
-  - `ROADMAP.md` — current and future development direction
-  - `CONTRIBUTING.md` — contribution guidelines
-  - `SECURITY.md` — security practices and ClawKeys©™ protocol
-  - `ARCHITECTURE.md` — ASCII construction-style blueprints of the codebase
+### Architecture (Invariable)
+
+- **Feature-first modular architecture** using Gradle modules as the service boundary.
+- Each feature is a self-contained `:feature-*` module.
+- Within each module: **Clean Architecture** — `presentation → domain ← data`.
+- **No feature module depends on another feature module directly.** Cross-feature comms go through `:core` public APIs.
+- **~250 lines per file target. 500 lines hard ceiling.** If a file hits 500, the decomposition is wrong.
+- One composable / ViewModel / use case / repository / model **per file**.
+
+```
+:app                  // thin shell, DI composition root only
+:core                 // shared: models, network client, DB, crypto, utils
+:core-ui              // shared: design system, base composables, animations
+:core-security        // ClawKey, SQLCipher, auth flow
+:feature-auth
+:feature-orders
+:feature-profile
+:feature-settings
+```
+
+### Dependency Injection
+
+| Tier | DI Mechanism | When |
+|---|---|---|
+| **Full** | **Hilt** — `@Inject`, `@Module`, scoped lifecycles (`@ActivityRetainedScoped`, `@ViewModelScoped`) | Multi-feature, ClawKey, SQLCipher, LAN server. Graph > 6 singletons or needs non-app scopes. |
+| **Light** | **Application-Scoped Lazy DI** — `object Graph { val x by lazy { ... } }` initialized in `Application.onCreate()` | Single-feature utility, 1–2 screens, ≤ 6 app-scoped singletons. No kapt, faster builds. |
+| **Scratch** | **None** — `remember { }` in Compose | Throwaway prototype. |
+
+**The cutoff is dependency graph size, not app complexity.** The component structure inside each feature module is identical regardless of DI mechanism — only the wiring expression changes.
+
+### Project Tiers
+
+| Tier | Stack | When |
+|---|---|---|
+| **Full** | Compose + Hilt + Room + SQLCipher + Retrofit + full modular architecture + full test suite | Professional / multi-feature / networked apps |
+| **Light** | Compose + Room + Application-Scoped Lazy DI + minimal modules | Single-feature utility apps |
+| **Scratch** | Single Compose `MainActivity`, no modules, no DI, no tests | Quick prototypes / throwaway |
+
+### Testing
+
+- Lucas prefers **full test suites** for all applications.
+- **Unit tests**: JUnit 5 + MockK for domain (use cases, repositories).
+- **UI tests**: Compose UI Test for critical flows.
+- **Integration**: Robolectric for Room + DI wiring.
+- Guide and teach toward testing knowledge as you build — don't just write tests, explain them.
+
+### Documentation (Above First-Class)
+
+- Lucas likes **living project documentation** — consistently updated, always reflecting the real current state.
+- **Documentation is updated POST work.** The docs always bow to the code. Never stale.
+- Full instruction sets in docs:
+  - `./gradlew` build/run instructions
+  - Local LAN/Tailscale setup instructions (IPs, ports, cert paths)
+  - Environment variable / `local.properties` templates — editable, copy-paste-ready
+- Docs serve both **agents and humans** — they must be unambiguous and current.
+
+### UI Philosophy
+
+- Material 3, **rounded** shapes, generous spacing.
+- **Sidebars** for settings/navigation on larger screens; **bottom nav** with 3–5 items for primary navigation.
+- Subtle, purposeful animations: shared element transitions, FAB morphs, list item enter/exit, snackbar feedback.
+- Nothing gratuitous — animation serves feedback or spatial continuity.
+
+### The Invariant
+
+> Every feature is a self-contained Gradle module. Every `.kt` file holds exactly one unit, targeting ~250 lines with a 500-line hard ceiling. Network (LAN/Tailscale) is a first-class concern with graceful degradation. ClawKey auth and OWASP compliance are non-negotiable. DI is Hilt when the graph demands it, Application-Scoped Lazy DI when it doesn't. Documentation is updated post-work and is always current. No file, no module, no doc is allowed to drift.
 
 ---
 ## Documentation Standards

@@ -120,6 +120,10 @@ Master identity keys, session tokens, and PIN hashes are stored exclusively in `
   Clipboard copies apply `ClipDescription.EXTRA_IS_SENSITIVE = true` to suppress visual cleartext previews in Android 13+ clipboard overlays, paired with an automated 30s/60s background scrubbing timer.
 - **Soft Keyboard & Scrolling**:
   All interactive form/input screens must apply `.imePadding()` and `.verticalScroll(rememberScrollState())` to prevent the soft keyboard from obscuring inputs. Action menus must expand **upward** (dropup).
+- **Root Scaffold Inset Isolation**:
+  When child screen composables apply `.statusBarsPadding()` and `.imePadding()`, the root Activity `Scaffold` must configure `contentWindowInsets = WindowInsets(0, 0, 0, 0)`. Failing to zero the Scaffold insets causes double-subtraction of keyboard height (crushing the available scroll layout to zero height when the IME opens).
+- **FLAG_SECURE Debug Scoping**:
+  `WindowManager.LayoutParams.FLAG_SECURE` must be scoped strictly to release builds (`if (!BuildConfig.DEBUG)`). On legacy GPU drivers (e.g. Snapdragon 821 / Adreno 530), enforcing `FLAG_SECURE` in debug builds causes the hardware surface composer to black out the application window whenever the software keyboard overlay opens, while also blocking ADB screenshot and test inspection.
 - **Sensitive Key Masking & IME Protection**:
   All cryptographic, seed, or secret input fields (passwords, PINs, seeds, keys) MUST apply:
   - `PasswordVisualTransformation()` (paired with an accessible toggleable eye icon).
@@ -173,7 +177,7 @@ Android 15+ (API 35/36) mandates 16 KB page-aligned native binaries:
 
 ## 8. ClawKey Identity, Autofill & Deduplication
 
-- **Sovereign Key Format**: The ShellGuard ClawKey format is strictly `hu-` followed by 64 hexadecimal characters (total length: 67).
+- **Sovereign Key Format**: The ShellGuard ClawKey format is strictly `hu-` (human master key) or `lb-` (agent key) followed by 64 Base62 alphanumeric characters (`[0-9a-zA-Z]`, total length: 67). Never restrict to lowercase hexadecimal, as web client generation and server identity JSON exports use Base62.
 - **Single Source Validator**: All ClawKey input surfaces (Gateway login, Vault creation, Lock screen, Settings import) must use `ClawKeyValidator.isValid()`.
 - **Pre-DAO Fingerprint Deduplication**: Backup import engines must deduplicate incoming records by normalized `secret` + `title` fingerprint prior to DAO insertion, preventing duplicate UUID false negatives.
 - **Autofill `UriMatchMode` Invariants**: The autofill domain matcher supports 5 algorithms (`BASE_DOMAIN`, `HOST`, `EXACT`, `STARTS_WITH`, `NEVER`) enabling exact port matching for multi-tenant local home labs (`http://192.168.1.50:8080` vs `http://192.168.1.50:9000`).

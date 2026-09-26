@@ -1,0 +1,47 @@
+ShellGuard Mobile is a sovereign, privacy-first secrets vault native Android client engineered for high-security digital identity protection. Paired with your self-hosted ShellGuard web server or operating in complete offline autonomy, ShellGuard Mobile provides zero-knowledge, hardware-secured storage and bidirectional synchronization across all secrets domains: passwords, secure notes, SSH keypairs, encrypted attachments, and integrated two-factor authentication (TOTP).
+
+Whether managing infrastructure credentials, developer keys, personal logins, or sensitive encrypted notes, ShellGuard Mobile keeps your secrets sealed behind Android KeyStore hardware isolation and SQLCipher AES-256 whole-database encryption.
+
+
+KEY FEATURES & CAPABILITIES
+
+ZERO-KNOWLEDGE HARDWARE ENCRYPTION
+• Hardware-Backed Protection: Master keys are generated and isolated using the Android KeyStore (StrongBox / TEE) with AES-256-GCM.
+• Encrypted At Rest: All vault records, indexes, and queries are encrypted at rest with whole-database SQLCipher (AES-256).
+• Zero-Knowledge Identity: Root keys (hu- human root, lb- agent keys) never leave client volatile memory. Authenticates via client-side SHA-256 key digest.
+• Biometric Cold Lock & Recovery: Biometric unlock with an automated recovery state machine preventing lockout if system biometrics are altered.
+• Claw Re-Prompt Gate: Localized biometric/PIN challenge required before revealing or copying high-privilege credentials.
+• Emergency Panic Purge: Irreversible broadcast wipe (ACTION_PANIC_WIPE) destroying encryption keys, databases, and cached sessions.
+
+UNIFIED SECRETS VAULT DOMAINS
+• Vault Pearls (Logins): Usernames, passwords, multi-URI matching, password history, custom fields, and integrated TOTP seeds.
+• Secure Notes: Markdown formatting, attachments, encrypted tags, and custom metadata fields.
+• SSH Keys: Public/private keypairs, passphrases, server associations, and fingerprint badges.
+• Secure Attachments: Hybrid File-System vault streaming multi-megabyte files directly to disk via 64KB bounded buffers, preventing SQLite memory crashes.
+• Integrated TOTP Tickers: Real-time RFC 6238 token generator with animated circular countdown rings, split-digit formatting, and auto-copy on autofill.
+
+BITWARDEN-MODEL OFFLINE AUTONOMY
+• 100% Offline Access: View, search, copy credentials with sensitive masking, and run TOTP countdown tickers without any network connection.
+• Split-Brain Protection: Mutation actions (create/edit/delete) are guarded while offline to eliminate data divergence.
+• Seamless Reconnection: Automatic network monitoring and health probing instantly restores synchronization when back online.
+
+HIGH-PERFORMANCE ERGONOMICS & AUTOFILL
+• Debounced Instant Search: Sub-16ms filtering across account titles, usernames, URLs, and notes.
+• Pod Filter Chips: Rapidly filter items by domain (All, Passwords, Notes, SSH Keys) with live item counters.
+• Adaptive Master-Detail Ergonomics: Single-column on phones; 3-pane layout on tablets and foldables for 100% parity with the web client.
+• Android Autofill & Inline Suggestions: Suggestion chips directly above keyboards (Gboard, SwiftKey) and system popup autofill.
+• Multi-Mode URI Match Detection: 5 matching algorithms supporting multi-service home lab setups sharing identical IPs across different ports.
+
+REEF MODERNIST DESIGN SYSTEM
+• Bioluminescent Marine Accents: 6 curated palette themes (Reef Pink default, Electric Cyan, Imperial Gold, Emerald, Solar, Minimalist).
+• Abyssal Dark & High-Contrast Light: Optimized contrast ratios for OLED battery conservation and high-glare daylight environments.
+• Exoskeletal Shells: Flat Material 3 cards with 1dp borders, zero elevation shadows, and fluid touch physics.
+
+
+YOUR PRIVACY IS ABSOLUTE
+• No cloud subscription or mandatory third-party accounts.
+• Zero telemetry, advertising, or crash reporting SDKs.
+• Full support for local LAN IPs (Unraid, TrueNAS) and Tailscale/WireGuard mesh networks.
+• 16 KB memory page-size aligned for Android 15/16 kernel standards.
+
+Your reef. Your keys. Your vault. In your pocket.

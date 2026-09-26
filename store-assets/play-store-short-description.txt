@@ -1,0 +1,1 @@
+Sovereign, offline-first secrets vault with hardware-encrypted storage & sync.

@@ -3,6 +3,7 @@ package com.clawstack.shellguard.ui.screens.gateway
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.clawstack.shellguard.crypto.ClawCrypto
+import com.clawstack.shellguard.di.AppContainer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,6 +22,7 @@ data class GatewayUiState(
     val clawKey: String = "",
     val uploadedKey: String? = null,
     val uploadedFileName: String? = null,
+    val uploadedUuid: String? = null,
     val isKeyVisible: Boolean = false,
     val inputMode: KeyInputMode = KeyInputMode.FILE,
     val isLoading: Boolean = false,
@@ -54,7 +56,9 @@ data class GatewayUiState(
         get() = host.isNotBlank() && isKeyValid
 }
 
-class GatewayViewModel : ViewModel() {
+class GatewayViewModel(
+    private val appContainer: AppContainer? = null
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(GatewayUiState())
     val uiState: StateFlow<GatewayUiState> = _uiState.asStateFlow()
@@ -123,12 +127,14 @@ class GatewayViewModel : ViewModel() {
     }
 
     fun handleUploadedFile(fileName: String, content: String) {
-        val extracted = cleanAndExtractKey(content)
-        if (extracted.isNotBlank()) {
+        val extractedKey = cleanAndExtractKey(content)
+        val extractedUuid = extractUuid(content)
+        if (extractedKey.isNotBlank()) {
             _uiState.update {
                 it.copy(
-                    uploadedKey = extracted,
+                    uploadedKey = extractedKey,
                     uploadedFileName = fileName,
+                    uploadedUuid = extractedUuid,
                     errorMessage = null
                 )
             }
@@ -141,9 +147,15 @@ class GatewayViewModel : ViewModel() {
         }
     }
 
+    fun extractUuid(rawInput: String): String? {
+        val uuidMatch = """"uuid"\s*:\s*"([^"]+)"""".toRegex().find(rawInput)
+            ?: """"id"\s*:\s*"([^"]+)"""".toRegex().find(rawInput)
+        return uuidMatch?.groupValues?.get(1)?.trim()
+    }
+
     fun clearUploadedFile() {
         _uiState.update {
-            it.copy(uploadedKey = null, uploadedFileName = null, errorMessage = null)
+            it.copy(uploadedKey = null, uploadedFileName = null, uploadedUuid = null, errorMessage = null)
         }
     }
 
@@ -212,13 +224,52 @@ class GatewayViewModel : ViewModel() {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
                 val hashedKey = ClawCrypto.hashHumanKey(keyToUse)
-                _uiState.update { it.copy(isLoading = false, isConnectionSuccess = true) }
-                onSuccess(state.serverUrl, hashedKey)
+                val targetUrl = state.serverUrl
+
+                if (appContainer != null) {
+                    val client = appContainer.getClient(targetUrl)
+                    val authResult = client.authenticate(keyHash = hashedKey, uuid = state.uploadedUuid)
+
+                    if (authResult.isSuccess) {
+                        val sessionData = authResult.getOrThrow()
+                        val derivedShellKey = appContainer.cryptoEngine.deriveShellKey(
+                            huKey = keyToUse,
+                            userUuid = sessionData.user.uuid
+                        )
+                        appContainer.deviceVault.saveSession(
+                            token = sessionData.token,
+                            serverUrl = targetUrl,
+                            ownerUuid = sessionData.user.uuid,
+                            username = sessionData.user.username,
+                            hashedKey = hashedKey,
+                            shellKey = derivedShellKey
+                        )
+
+                        // Trigger initial sync in background
+                        try {
+                            appContainer.syncRepository.syncAll(sessionData.user.uuid)
+                        } catch (_: Exception) {}
+
+                        _uiState.update { it.copy(isLoading = false, isConnectionSuccess = true) }
+                        onSuccess(targetUrl, hashedKey)
+                    } else {
+                        val errorMsg = authResult.exceptionOrNull()?.message ?: "Authentication rejected by server"
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = errorMsg
+                            )
+                        }
+                    }
+                } else {
+                    _uiState.update { it.copy(isLoading = false, isConnectionSuccess = true) }
+                    onSuccess(targetUrl, hashedKey)
+                }
             } catch (e: Throwable) {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Connection error: ${e.message ?: "Failed to validate credentials"}"
+                        errorMessage = "Connection error: ${e.message ?: "Failed to connect to server"}"
                     )
                 }
             }

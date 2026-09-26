@@ -11,11 +11,11 @@ import javax.crypto.spec.SecretKeySpec
  */
 object ClawCrypto {
 
-    private val CLAW_KEY_REGEX = Regex("^hu-[0-9a-f]{64}$")
+    private val CLAW_KEY_REGEX = Regex("^hu-[0-9a-zA-Z]{64}$")
     private val secureRandom = SecureRandom()
 
     /**
-     * Validates whether a given key matches the sovereign ClawKey format (hu- followed by 64 hex characters).
+     * Validates whether a given key matches the sovereign ClawKey format (hu- followed by 64 Base62/hex characters).
      */
     fun isValidClawKey(key: String): Boolean {
         return CLAW_KEY_REGEX.matches(key.trim())
@@ -32,13 +32,16 @@ object ClawCrypto {
     }
 
     /**
-     * Generates a new cryptographically secure ClawKey (`hu-` + 64 random hex characters).
+     * Generates a new cryptographically secure ClawKey (`hu-` + 64 random Base62 alphanumeric characters).
      */
     fun generateClawKey(): String {
-        val randomBytes = ByteArray(32)
-        secureRandom.nextBytes(randomBytes)
-        val hex = randomBytes.joinToString("") { "%02x".format(it) }
-        return "hu-$hex"
+        val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+        val sb = StringBuilder("hu-")
+        for (i in 0 until 64) {
+            val idx = secureRandom.nextInt(chars.length)
+            sb.append(chars[idx])
+        }
+        return sb.toString()
     }
 
     /**

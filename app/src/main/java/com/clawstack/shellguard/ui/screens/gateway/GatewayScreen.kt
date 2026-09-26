@@ -64,6 +64,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -122,6 +123,12 @@ fun GatewayScreen(
     var isProtocolDropdownExpanded by remember { mutableStateOf(false) }
     var isHostFocused by remember { mutableStateOf(false) }
     var isPortFocused by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isHostFocused, isPortFocused) {
+        if (isHostFocused || isPortFocused) {
+            scrollState.animateScrollTo(180)
+        }
+    }
 
     // JSON Identity File Picker
     val fileLauncher = rememberLauncherForActivityResult(

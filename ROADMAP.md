@@ -1,10 +1,10 @@
 ---
 roadmap_version: 1.0.0
 last_updated: 2026-09-26
-current_position: "Phase 1 Complete (Tasks 01 & 02) — Cryptographic Engine & SQLCipher Room Architecture verified green; ready for commit and Phase 2 execution"
+current_position: "Phase 2 Complete (Tasks 03 & 04) — Ktor API Client, Bidirectional Sync & Vault Dashboard verified green; ready for commit and Phase 3 execution"
 statistics:
   description: "Deterministic build roadmap for ShellGuard Mobile (Full Vault Android Client). Engineered strictly in synergistic 2-task phases where Task A delivers core functionality and Task B delivers the corresponding UI/UX component."
-  features_completed: "███░░░░░░░ 25%"
+  features_completed: "████░░░░░░ 33%"
   features_in_progress: "░░░░░░░░░░ 0%"
 ---
 
@@ -52,14 +52,14 @@ statistics:
 > Phase Feature Set Overview:
 > Establishes the network layer using Ktor Client with OkHttp engine and cleartext LAN support, paired immediately with the Master-Detail Vault Dashboard, Pod filter chips, and search engine.
 
-- [ ] **Task 03: [Functionality] Ktor API Client & Bidirectional Delta Sync Engine**
+- [x] **Task 03: [Functionality] Ktor API Client & Bidirectional Delta Sync Engine**
   - Implement `ShellGuardClient.kt` supporting `/api/auth/token`, `/api/vault`, `/api/notes`, `/api/keys`, and `/api/attachments`.
   - Implement `SyncRepository.kt` managing two-way synchronization: upstream push of `PENDING_SYNC` items, downstream pull of server records, conflict resolution, and pruning.
   - Schedule periodic background sync via `VaultSyncWorker` (`AndroidX WorkManager`).
   - Configure `network_security_config.xml` permitting cleartext HTTP on local LAN and VPN subnets.
   - *Success Criteria*: Client synchronizes items bidirectionally with a running Express 5 server; offline modifications queue and push automatically on reconnection.
 
-- [ ] **Task 04: [UI Component] Master-Detail Vault Dashboard & Pod Filters**
+- [x] **Task 04: [UI Component] Master-Detail Vault Dashboard & Pod Filters**
   - Implement `VaultDashboardScreen.kt` with master-detail layout (phone collapsible sheet / tablet dual-pane).
   - Search bar with instant unified search across Pearls, Notes, and SSH Keys.
   - Horizontal Pod category filter chips (`[All]`, `[Passwords]`, `[Notes]`, `[SSH Keys]`, dynamic pods).

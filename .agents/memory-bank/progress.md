@@ -45,9 +45,15 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
   - Hybrid File-System Vault architecture protecting against CWE-400 CursorWindow limits.
   - `GatewayScreen.kt` & `GatewayViewModel.kt`: Full 1:1 brand parity port with signature segmented URL bar, animated port input, JSON identity file dropzone (`Upload File` vs `Paste ClawKey©™` toggles), amber warning box, Zero-Knowledge security card, and CWE-359 IME hardening.
   - 100% green verification: 16/16 unit tests passing, `app-debug.apk` cleanly generated, and live verified on physical Google Pixel (ARM64 LineageOS, FLAG_SECURE active, UI hierarchy confirmed).
+- [x] **Phase 2: Ktor API Client & Bidirectional Sync (Tasks 03 & 04)**:
+  - `ShellGuardClient.kt` & `KtorClientProvider.kt`: Network layer with cleartext HTTP (LAN / Tailscale) and self-signed TLS support. Complete API methods for `/api/auth/token`, `/api/vault`, `/api/notes`, `/api/keys`, and `/api/health`.
+  - `EncryptedDeviceVault.kt`: Hardware-backed EncryptedSharedPreferences storage for tokens, server URL, owner UUID, and in-memory shell key zeroization.
+  - `SyncRepository.kt` & `ConnectivityMonitor.kt`: Automated health probes on reconnect, timestamp conflict reconciliation, remote deletion pruning, and Bitwarden-model Read-Only offline caching.
+  - `VaultDashboardScreen.kt` & `VaultDashboardViewModel.kt`: Interactive Master-Detail Dashboard with real-time search, Pod category filter chips (`[All]`, `[Passwords]`, `[Notes]`, `[SSH Keys]`), item cards, offline status badge, and mutation-guarded FAB.
+  - `MainActivity.kt`: Upgraded with Compose Navigation routing between Gateway and Dashboard with session persistence.
+  - 100% green verification: 23/23 unit tests passing, `app-debug.apk` cleanly generated, and verified live on Google Pixel hardware.
 
-## What's Left to Build (Phase 2 through Phase 6)
-- [ ] Phase 2: Ktor API Client & Bidirectional Sync (Tasks 03 & 04).
+## What's Left to Build (Phase 3 through Phase 6)
 - [ ] Phase 3: Vault Domains & Universal Item Editor (Tasks 05 & 06).
 - [ ] Phase 4: TOTP Engine & Biometric Security Lifecycle (Tasks 07 & 08).
 - [ ] Phase 5: Android Autofill & Credential Provider (Tasks 09 & 10).

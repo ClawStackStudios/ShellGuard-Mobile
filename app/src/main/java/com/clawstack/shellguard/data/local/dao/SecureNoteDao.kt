@@ -38,4 +38,7 @@ interface SecureNoteDao {
 
     @Query("SELECT COUNT(*) FROM vault_secure_notes WHERE owner_uuid = :ownerUuid AND sync_state != 'PENDING_DELETE'")
     fun observeItemCount(ownerUuid: String): Flow<Int>
+
+    @Query("DELETE FROM vault_secure_notes WHERE owner_uuid = :ownerUuid AND id NOT IN (:activeRemoteIds)")
+    suspend fun pruneDeletedRemoteItems(ownerUuid: String, activeRemoteIds: List<String>)
 }

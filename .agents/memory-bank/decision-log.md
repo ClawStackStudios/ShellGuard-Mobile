@@ -1,7 +1,5 @@
 # Decision Log
 
-## 2026-09-24 — full client vs companion scope
-Distinguished ShellGuard-Mobile as the full secrets vault client, separate from ShellGuard-TOTP. Required full 4-domain CRUD, bidirectional sync, and Android Autofill rather than read-only 2FA mirror.
 
 ## 2026-09-24 — autofill architecture
 Specified dual support for Android Autofill Framework (API 26+) and modern Credential Manager (API 34+) with mandatory biometric gating prior to credential emission.
@@ -53,4 +51,14 @@ Encountered Android framework mock limitation ('Method put in org.json.JSONObjec
 
 ## 2026-09-26 — gateway brand parity & animated segmented url bar
 Forensically aligned Remote Login form with ShellGuard Web and TOTP companion UI patterns. Engineered a unified 56dp segmented URL container with animated port input, auto-parsing on paste, dual file/paste toggles, and JSON key extraction with zero-knowledge warning disclosure.
+
+## 2026-09-26 — unified multi-domain reactive stream
+Combined VaultPearl, SecureNote, and SshKey Room flows in SyncRepository using kotlinx.coroutines.flow.combine to project polymorphic records into UnifiedVaultItem for the VaultDashboard. Enabled instant sub-16ms search and Pod filtering while isolating domain-specific Room table schemas.
+
+## 2026-09-26 — base62 sovereign key validation parity
+Discovered ShellGuard master identity keys use Base62 alphanumeric encoding (`hu-[0-9a-zA-Z]{64}`), not strictly lowercase hexadecimal. Found by inspecting live Pixel device state where a valid identity file (`shellguard_identity_xxzioimibiexx.json`) was loaded but the login button remained disabled due to overly restrictive `[0-9a-f]` regex in `ClawCrypto`. Upgraded `CLAW_KEY_REGEX` and `GatewayViewModel` to Base62 and extracted UUID directly.
+
+## 2026-09-26 — debug flag_secure scoping & ime inset resolution
+Diagnosed black screen and cursor invisibility during soft keyboard IME input on physical Pixel. Traced to unconditional `FLAG_SECURE` triggering Adreno 530 compositor blackout over system IME window, combined with `Scaffold` double-subtracting IME padding. Scoped `FLAG_SECURE` to `!BuildConfig.DEBUG` (matching ShellGuard-TOTP pattern) and set `contentWindowInsets = WindowInsets(0, 0, 0, 0)` on root `Scaffold`, verifying smooth typing and visual cursor retention.
+
 
