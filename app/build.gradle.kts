@@ -20,11 +20,29 @@ android {
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
+  signingConfigs {
+    val releaseKeystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
+    val releaseKeystoreFile = file(releaseKeystorePath)
+    create("release") {
+      val sPassword = System.getenv("STORE_PASSWORD")
+      val kPassword = System.getenv("KEY_PASSWORD")?.takeIf { it.isNotBlank() } ?: sPassword
+      val kAlias = System.getenv("KEY_ALIAS")?.takeIf { it.isNotBlank() } ?: "upload"
+
+      storeFile = releaseKeystoreFile
+      storePassword = sPassword
+      keyAlias = kAlias
+      keyPassword = kPassword
+    }
+  }
+
   buildTypes {
     release {
       isCrunchPngs = false
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+      signingConfigs.findByName("release")?.let {
+        signingConfig = it
+      }
     }
     debug {
       isDebuggable = true

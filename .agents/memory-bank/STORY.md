@@ -160,3 +160,27 @@ Per user request, I drafted the primary `README.md` and mirrored the full docume
   - `LICENSE`: GNU General Public License v3.
   - `store-assets/`: Icon, feature graphic, device screenshots, and Play Store short/full descriptions (`play-store-short-description.txt`, `play-store-full-description.txt`).
 - Tapped the joint: `./gradlew testDebugUnitTest` ran clean, 23/23 tests pass 100% green.
+
+## 2026-09-26 — GitHub Actions CI/CD Release Pipeline & Signing Mirror
+
+I inspected `ShellGuard-TOTP/.github/workflows/release.yml` and mirrored its exact automated release pipeline into `ShellGuard-Mobile`:
+- Created `.github/workflows/release.yml`:
+  - Triggers on tag push (`v*`), push to `main` with commit message flag (`--release vX.Y.Z.W`), or `workflow_dispatch`.
+  - Automatic annotated tag creation if `--release` is committed directly to `main`.
+  - Strict release notes resolution: requires `RELEASE-${TAG}.md` as the single source of truth at the release ref (no newest-file fallback, no auto-generated notes).
+  - Zulu Java 17, Gradle setup with configuration cache support, and runner-native Android SDK license acceptance (`yes | sdkmanager --licenses || true`).
+  - Pre-flight automated test gate (`./gradlew testDebugUnitTest --no-daemon`).
+  - Base64 Keystore decoding (`my-upload-key.jks`) from GitHub secrets.
+  - Builds and signs release AAB (`bundleRelease`) and APK (`assembleRelease`).
+  - Prepares branded release artifacts: `shellguard-mobile-${TAG}.aab`, `shellguard-mobile-${TAG}.apk`, `shellguard-mobile.aab`, `shellguard-mobile.apk`.
+  - Publishes GitHub Release using `softprops/action-gh-release@v2`.
+  - Dedicated `mirror` job: automatically syncs edits to any `RELEASE-v*.md` on `main` straight to the matching GitHub Release notes body via `gh release edit`.
+- Updated `app/build.gradle.kts`:
+  - Configured `signingConfigs.release` reading `STORE_PASSWORD`, `KEY_ALIAS`, and `KEY_PASSWORD` from runner environment, pointing to `my-upload-key.jks`.
+  - Bound `signingConfig = signingConfigs.getByName("release")` to `buildTypes.release`.
+- Created `RELEASE-v0.0.0.3.md`:
+  - Complete release notes for Phase 2 (Build 3) with ASCII art banner, core summary, and detailed highlights across Ktor, delta sync, dashboard, Base62 parity, and IME hardening.
+- Now I tap the joint:
+  - Gate 1 (Tests): `./gradlew testDebugUnitTest` — 23/23 tests pass 100% green.
+  - Gate 2 (Build): `./gradlew assembleDebug` — 49 actionable tasks, compilation succeeded in 1m.
+  - The joint holds.
