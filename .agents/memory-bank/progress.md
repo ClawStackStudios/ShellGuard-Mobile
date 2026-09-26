@@ -1,7 +1,7 @@
 # Progress: ShellGuard Mobile
 
-## Current Status: Stage 0 Scaffold Verified & Operational (Transitioning to Phase 1)
-All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold has been executed, compiled, and verified green with 100% test pass rate and clean APK packaging.
+## Current Status: Phase 1 Cryptographic Engine & Room Database Verified (Transitioning to Phase 2)
+All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold and Phase 1 (ShellCryption HKDF + Room SQLCipher, Gateway UI & Theme Engine) have been executed, compiled, and verified green with 100% test pass rate (16/16 tests) and clean APK packaging.
 
 ## What Works (Documented, Designed & Scaffolded)
 - [x] Complete ecosystem mapping of Web Server and TOTP Companion.
@@ -38,10 +38,15 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
   - `ShellGuardApp.kt` with SQLCipher native loader and `DefaultAppContainer` lazy DI.
   - `MainActivity.kt` with `FLAG_SECURE` window memory shielding and Stage 0 baseline UI.
   - `ClawCrypto.kt` & `AndroidKeyStoreHelper.kt` with SHA-256, ClawKey format validation, and HMAC tests.
-  - Verification gates passing 100%: `./gradlew testDebugUnitTest` (32 tasks executed) and `./gradlew assembleDebug` (`app-debug.apk` 64MB generated).
+  - Verification gates passing 100%: `./gradlew testDebugUnitTest` and `./gradlew assembleDebug`.
+- [x] **Phase 1: Cryptographic Engine & Local Cache (Tasks 01 & 02)**:
+  - `ShellCryptionEngine.kt`: HKDF-SHA-256 key derivation (`info = "clawchives-shellcryption-v1"`), AES-GCM-256 with 10 AAD namespaces, and `@Serializable ShellCryptionEnvelope`.
+  - Room 2.7+ SQLCipher Database (`ShellGuardDatabase.kt`) with all 7 entities (`VaultPearl`, `SecureNote`, `SshKey`, `SecureAttachment`, `SyncMetadata`, `AuditLog`, `AgentKey`) and reactive DAOs.
+  - Hybrid File-System Vault architecture protecting against CWE-400 CursorWindow limits.
+  - `GatewayScreen.kt` & `GatewayViewModel.kt`: Full 1:1 brand parity port with signature segmented URL bar, animated port input, JSON identity file dropzone (`Upload File` vs `Paste ClawKey©™` toggles), amber warning box, Zero-Knowledge security card, and CWE-359 IME hardening.
+  - 100% green verification: 16/16 unit tests passing, `app-debug.apk` cleanly generated, and live verified on physical Google Pixel (ARM64 LineageOS, FLAG_SECURE active, UI hierarchy confirmed).
 
-## What's Left to Build (Phase 1 through Phase 6)
-- [ ] Phase 1: Cryptographic Engine & Local Cache (Tasks 01 & 02).
+## What's Left to Build (Phase 2 through Phase 6)
 - [ ] Phase 2: Ktor API Client & Bidirectional Sync (Tasks 03 & 04).
 - [ ] Phase 3: Vault Domains & Universal Item Editor (Tasks 05 & 06).
 - [ ] Phase 4: TOTP Engine & Biometric Security Lifecycle (Tasks 07 & 08).

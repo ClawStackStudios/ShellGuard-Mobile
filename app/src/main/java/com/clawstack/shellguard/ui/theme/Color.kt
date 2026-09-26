@@ -26,6 +26,11 @@ val StatusWarning = Color(0xFFF59E0B)
 val StatusError = Color(0xFFEF4444)
 val StatusInfo = Color(0xFF3B82F6)
 
+// Canonical ShellGuard Brand Accents & Warning Badges
+val BrandClawCyan = Color(0xFF06B6D4)
+val WarningBoxBg = Color(0x26F97316)
+val WarningText = Color(0xFFFDBA74)
+
 // Curated Theme Accents
 enum class ThemeAccent(val displayName: String, val primaryColor: Color) {
     REEF_DEFAULT("Reef Pink", ReefPink),

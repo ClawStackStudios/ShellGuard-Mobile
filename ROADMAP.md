@@ -1,10 +1,10 @@
 ---
 roadmap_version: 1.0.0
-last_updated: 2026-09-25
-current_position: "v0.0.0.2 (Build 2) — Stage 0 Scaffold & Security Baseline verified green; ready for Phase 1 execution"
+last_updated: 2026-09-26
+current_position: "Phase 1 Complete (Tasks 01 & 02) — Cryptographic Engine & SQLCipher Room Architecture verified green; ready for commit and Phase 2 execution"
 statistics:
   description: "Deterministic build roadmap for ShellGuard Mobile (Full Vault Android Client). Engineered strictly in synergistic 2-task phases where Task A delivers core functionality and Task B delivers the corresponding UI/UX component."
-  features_completed: "█░░░░░░░░░ 10%"
+  features_completed: "███░░░░░░░ 25%"
   features_in_progress: "░░░░░░░░░░ 0%"
 ---
 
@@ -31,7 +31,7 @@ statistics:
 > Phase Feature Set Overview:
 > Delivers mathematical parity with ShellGuard's ShellCryption (HKDF-SHA256 + AES-GCM-256 with all 10 AAD namespaces) and the SQLCipher-encrypted Room database, paired immediately with the Reef Modernist theme engine and the ClawStack Gateway Login screen.
 
-- [ ] **Task 01: [Functionality] ShellCryption HKDF Engine & SQLCipher Room Architecture**
+- [x] **Task 01: [Functionality] ShellCryption HKDF Engine & SQLCipher Room Architecture**
   - Implement `ShellCryptionEngine` providing HKDF-SHA256 key derivation (`info = "clawchives-shellcryption-v1"`) and AES-GCM-256 encryption/decryption across all AAD namespaces.
   - Set up AndroidX Room with SQLCipher (`net.zetetic:sqlcipher-android:4.6.1`) initialized in the Application class.
   - Define local Room entities: `VaultPearlEntity`, `SecureNoteEntity`, `SshKeyEntity`, `SecureAttachmentEntity`, `SyncMetadataEntity`, `AuditLogEntity`, and `AgentKeyEntity`.
@@ -39,7 +39,7 @@ statistics:
   - Add unit test suite (`ShellCryptionEngineTest.kt` & `RoomDatabaseTest.kt`) proving 100% cryptographic parity and zero plaintext leaks.
   - *Success Criteria*: Unit tests pass 100% green; Room opens with KeyStore passphrase; ShellCryption decrypts sample web client payloads without error.
 
-- [ ] **Task 02: [UI Component] Standardized Gateway Login & Dynamic Theme Engine**
+- [x] **Task 02: [UI Component] Standardized Gateway Login & Dynamic Theme Engine**
   - Implement `ui/theme/Color.kt`, `Theme.kt`, and `Type.kt` matching the **Reef Modernist** design system.
   - Implement `ThemeAccent` enum with 6 curated palettes (`REEF_DEFAULT`, `CYAN_VENT`, `PURPLE_SHELL`, `EMERALD_TRENCH`, `AMBER_FLARE`, `MONOCHROME`) and `LocalShellGuardColors`.
   - Implement `GatewayScreen.kt` & `GatewayViewModel.kt`: faithful 1:1 port of the ClawStack Gateway with protocol/host/port segment bar, key paste / upload file dual mode, and warning card.

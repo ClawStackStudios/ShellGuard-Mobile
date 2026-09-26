@@ -48,3 +48,9 @@ Audited ShellGuard Mobile straight up against Bitwarden Android; expanded ui-ux-
 ## 2026-09-25 — stage 0 scaffold and appcontainer lazy di
 Scaffolded foundational Android application baseline in chore/stage-0-initial-scaffold; adopted frameworkless AppContainer lazy DI from ShellGuard ecosystem (avoiding KSP annotation processor churn with Kotlin 2.2+ and enabling deterministic RAM zeroization), passing testDebugUnitTest and assembleDebug 100% green.
 
+## 2026-09-26 — kotlinx.serialization for cryptographic envelopes
+Encountered Android framework mock limitation ('Method put in org.json.JSONObject not mocked') during host JVM test execution for ShellCryptionEngine. Switched envelope schema to pure Kotlin @Serializable data class ShellCryptionEnvelope, eliminating mock friction and achieving faster, portable serialization across both Android runtime and headless JVM tests.
+
+## 2026-09-26 — gateway brand parity & animated segmented url bar
+Forensically aligned Remote Login form with ShellGuard Web and TOTP companion UI patterns. Engineered a unified 56dp segmented URL container with animated port input, auto-parsing on paste, dual file/paste toggles, and JSON key extraction with zero-knowledge warning disclosure.
+
