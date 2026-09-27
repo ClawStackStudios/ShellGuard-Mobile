@@ -149,3 +149,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Password Generator**: Cryptographic random generator supporting length, character sets, and passphrases.
   - **KeyStore Biometric Lifecycle**: Background auto-lock timeout and hardware biometric authentication challenge.
   - **Splash Theme Parity**: Pre-`super.onCreate()` splash install and ActionBar suppression.
+
+## [Unreleased] - Phase 5
+
+### Added
+- **System Autofill Framework & Architecture**:
+  - `ShellGuardAutofillService`: System-level AutofillService binding `android.permission.BIND_AUTOFILL_SERVICE` and configuration XML.
+  - `AutofillStructureParser`: Resilient 4-tier ranked heuristic parsing of `AssistStructure` with 64-level recursion depth protection.
+  - `DomainMatcher` & `UriMatchMode`: eTLD+1 multi-part ccTLD extraction, automatic IP/port home lab isolation, and `androidapp://` package support.
+  - `AutofillAuthActivity`: Transparent biometric gate with `BiometricPrompt` and PIN fallback for locked vaults and Claw Re-Prompt items.
+  - RemoteViews dropdown suggestions (`autofill_suggestion_item.xml`) and Android 11+ keyboard inline helper (`AutofillInlineHelper.kt`).
+  - Bitwarden-parity TOTP auto-copy to sensitive clipboard with 30s background scrubbing timer.
+  - Test suites: `DomainMatcherTest` and `AutofillStructureParserTest`.

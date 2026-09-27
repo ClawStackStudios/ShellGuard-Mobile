@@ -18,6 +18,9 @@ interface VaultPearlDao {
     @Query("SELECT * FROM vault_pearls WHERE owner_uuid = :ownerUuid AND sync_state != 'PENDING_DELETE' AND (title LIKE '%' || :query || '%' OR username LIKE '%' || :query || '%' OR url LIKE '%' || :query || '%')")
     fun search(ownerUuid: String, query: String): Flow<List<VaultPearlEntity>>
 
+    @Query("SELECT * FROM vault_pearls WHERE owner_uuid = :ownerUuid AND sync_state != 'PENDING_DELETE'")
+    suspend fun getAllActivePearls(ownerUuid: String): List<VaultPearlEntity>
+
     @Query("SELECT * FROM vault_pearls WHERE owner_uuid = :ownerUuid AND sync_state = 'PENDING_SYNC'")
     suspend fun getPendingSyncItems(ownerUuid: String): List<VaultPearlEntity>
 

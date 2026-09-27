@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ShellGuard</string>
+    <string name="autofill_service_label">ShellGuard Autofill</string>
 </resources>

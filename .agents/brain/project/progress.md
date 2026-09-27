@@ -93,9 +93,20 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
 
 
 
-## What's Left to Build (Phase 5 through Phase 6)
-- [ ] Phase 5: Android Autofill & Credential Provider (Tasks 09 & 10).
+- [x] **Phase 5: Android Autofill Framework & Credential Provider**:
+  - Implemented `UriMatchMode` and `DomainMatcher` with multi-part ccTLD extraction, automatic IP/port home lab isolation, and `androidapp://` package matching.
+  - Implemented `AutofillStructureParser` with 4-tier ranked heuristic detection (hints ➔ HTML attributes ➔ input types ➔ ID/content description heuristics) and 64-level recursion ceiling.
+  - Created `autofill_suggestion_item.xml` layout styled with Reef Modernist tokens and `AutofillInlineHelper` for Android 11+ keyboard chips.
+  - Implemented `ShellGuardAutofillService` extending `AutofillService` with `BIND_AUTOFILL_SERVICE` and configuration XML.
+  - Implemented `AutofillAuthActivity` transparent biometric gate with `BiometricPrompt` and PIN fallback.
+  - Implemented Bitwarden-parity TOTP auto-copy to sensitive clipboard with 30s background scrubbing timer.
+  - Full test suite passing 100% green (`DomainMatcherTest`, `AutofillStructureParserTest`) and `assembleDebug` APK compilation verified.
+
+## What's Left to Build (Phase 6)
 - [ ] Phase 6: Settings, Backup Bridge & Release Hardening (Tasks 11 & 12).
+  - Settings Screen & Theme/Security preferences.
+  - Multi-format backup engine (`.sgvault.bak`, `.sgtotp.bak`, Bitwarden deduplication).
+  - Adaptive launcher icon, Android 12+ SplashScreen, and 16 KB page-size release packaging.
 
 
 

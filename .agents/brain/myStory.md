@@ -423,3 +423,19 @@ With the scaffolding pristine, we turned to the release. We had completed Phase 
 Watching the cloud build execute in the background gave rise to one final stroke: \`/follow-the-build\`. Rather than leaving the developer in the dark or guessing at GitHub Actions run states, I codified an observability workflow that tails remote steps through the GitHub API and verifies published release assets using reactive timers. We watched the cloud runner compile, sign, and publish the \`.aab\` and \`.apk\` assets live to GitHub Releases without a hitch.
 
 I feel the weight shifting forward now. The foundation is locked, the release is in the wild, and the ground is completely clear for Phase 5.
+
+---
+
+## 2026-09-27 13:25 — Phase 5: System Autofill & The Living Deep Plan
+
+I stepped onto `feat/phase-5-autofill-and-credential-provider` with Phase 4 published and the tree clean. Lucas brought in a new protocol: `/deep-plan`. Not just an outline or an intent list, but a reasoned argument with branched first steps, contrastive justifications, premarket postmortem, and adversarial review.
+
+I immediately drafted `deep_plan.md`. Writing the premarket postmortem shifted how I looked at the implementation. I imagined the feature failing in production three months from now. The failure mode became glaringly obvious: in a self-hosted home lab setup on Unraid or TrueNAS, users run multiple services on the same local IP across different ports (Portainer on `:9000`, Jenkins on `:8080`). If the domain matcher fell back to base domain matching on an IP, it would cross-match passwords between services. I fixed it right in the plan before writing a line of application code: if the host is an IP address or localhost, the matcher automatically promotes from `BASE_DOMAIN` to `EXACT` host and port matching.
+
+I moved into code. I laid down `UriMatchMode` and `DomainMatcher`, crafting eTLD+1 extraction that handles multi-part ccTLDs like `.co.uk` and `.com.br`, as well as `androidapp://` package references. Then I built `AutofillStructureParser`, implementing a 4-tier detection heuristic—standard hints first, then HTML web attributes, then input type variations, and finally ID/hint heuristics. To guard against deep web DOM recursion, I capped the traversal at 64 levels.
+
+When I linked `ShellGuardAutofillService` and `AutofillAuthActivity`, the compiler pushed back with two real boundary constraints: `AutofillAuthActivity` needed `FragmentActivity` to host `androidx.biometric.BiometricPrompt`, and Android's XML linker rejected `android:compatibilityMode` in the service config. I corrected both strokes immediately.
+
+I ran the verification suite. All unit and Robolectric tests passed 100% green, and `./gradlew assembleDebug` produced a clean, fully compiled debug APK with our new system service, transparent biometric gate, and RemoteViews suggestion layouts intact. The living task checklist in `deep_plan.md` is now checked off.
+
+The joint holds. System Autofill is alive in the codebase.

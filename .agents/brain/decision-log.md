@@ -60,6 +60,9 @@ Resolved rogue native ActionBar overlapping Compose TopAppBar by invoking `insta
 ## 2026-09-27 — specialized sub-agent fleet and opsec rebase scrub
 Converted Google Jules templates to native Android specialists (Bolt, Palette, Sentinel, Scribe), codified dynamic orchestration topologies, exempted markdown docs from test runs (mandating builds for VitePress docs), and rebase-scrubbed local TOOLS.md to eliminate physical hardware serial leakage while preserving the file locally.
 
+## 2026-09-27 — system autofill framework and home lab port isolation
+Delivered system-level Android AutofillService and transparent AutofillAuthActivity biometric gate with Bitwarden-parity TOTP clipboard auto-copy. Addressed home lab port cross-talk by automatically promoting BASE_DOMAIN matching to EXACT host+port matching whenever the target is an IP or localhost (see `deep_plan.md`), and guarded AssistStructure traversal against deep DOM recursion with a 64-level depth ceiling.
+
 
 
 

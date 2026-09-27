@@ -246,3 +246,15 @@ The story says how it felt. This says what was actually chosen and why.
 **Confidence**: high — verified live as `v0.0.0.5` progressed from SDK setup to APK/AAB publication.
 **Outcome**: Created `.agents/workflows/follow-the-build.md` and verified live run.
 **Pattern reference**: New pattern — first instance (`remote-release-observability`).
+
+## home-lab-port-isolation-and-deep-planning — 2026-09-27 13:25
+
+**Context**: Drafting the `/deep-plan` for Android Autofill surfaced the risk of port cross-talk on multi-tenant home lab servers (e.g. Unraid with Portainer on `:9000` and Jenkins on `:8080`).
+**Options considered**:
+- Rely on manual user configuration to set `EXACT` mode per URL entry.
+- Automatically promote default matching from `BASE_DOMAIN` to `EXACT` (host + port) whenever the target host is an IP address or localhost.
+**Chosen**: Automatically promote to `EXACT` host + port matching for IP addresses and localhost.
+**Why**: Defaulting to base domain on an IP address leaks credentials across completely unrelated services running on the same hardware. The premarket postmortem caught this before a single line was written.
+**Confidence**: high — verified in unit tests (`DomainMatcherTest`).
+**Outcome**: Implemented in `DomainMatcher.kt` and tested against differing ports on `192.168.1.50`.
+**Pattern reference**: New pattern — first instance (`home-lab-port-isolation`).

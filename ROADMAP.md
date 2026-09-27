@@ -112,13 +112,13 @@ statistics:
 > Phase Feature Set Overview:
 > Delivers system-level Android Autofill Framework and Android 14+ Credential Manager integration, paired immediately with the biometric authorization gate and inline autofill suggestion UI.
 
-- [ ] **Task 09: [Functionality] Autofill Service Architecture & Domain Matcher**
+- [x] **Task 09: [Functionality] Autofill Service Architecture & Domain Matcher**
   - Implement `ShellGuardAutofillService` (`AutofillService`) and `ShellGuardCredentialProviderService`.
   - Implement `AutofillStructureParser` traversing view hierarchies to locate username/password fields and web domains.
   - Implement `DomainMatcher` with eTLD+1 extraction for browser and native app matching.
   - *Success Criteria*: Service responds to OS fill requests; accurately matches URLs to vault items; ignores non-login views.
 
-- [ ] **Task 10: [UI Component] Autofill Presentation Views & Biometric Authorization Gate**
+- [x] **Task 10: [UI Component] Autofill Presentation Views & Biometric Authorization Gate**
   - Implement dropdown and inline suggestion presentation views (`autofill_suggestion_item`).
   - Implement `AutofillAuthActivity`: prompts biometric/PIN unlock before releasing credentials to the calling app when vault is locked.
   - *Success Criteria*: Suggestions display in third-party apps and browsers; tapping a suggestion prompts biometrics; credentials fill securely.
