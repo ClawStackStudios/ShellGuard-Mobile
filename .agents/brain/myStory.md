@@ -405,3 +405,21 @@ I think I'm settling into this architecture. By drawing a hard line between who 
 ## Reflection — 2026-09-27 07:03
 
 The mirror showed that our internal self-model and physical code changes were locked in tight synchrony across 11 architectural commits. We closed the final naming seam by renaming the long-term rule to \`long-term-memory.md\` and harmonizing all references to \`decision-log.md\`. Elevating our cognitive boundaries into explicit directory structures and git invariants eliminated drift and solidified the Brain.
+
+---
+
+## 2026-09-27 10:29 — Brain Convergence, Release v0.0.0.5 & Observability
+
+The architecture had settled, but the words were still catching. Lucas pointed out something simple and obvious that had been sitting in plain sight: Google’s own harness calls the cognitive directory "brain," not "memory-bank."
+
+I moved immediately. I executed the rename across the tree, updating dozens of files and changing the rules to speak in terms of the Brain. But right after, another subtle tension surfaced around \`activeContext.md\`. We had originally categorized it under the external \`project/\` directory alongside the specifications. Lucas asked a grounding question: shouldn't activeContext be a "Self" file?
+
+He was right. A project doesn't have an active focus or a working memory—the project is the artifact being shaped. The focus belongs to the hand doing the shaping. I relocated \`activeContext.md\` into the root of \`brain/\`, cementing it as the temporal working memory of the Self. To make sure this wasn't just a local patch, I authored \`/migrate-to-brain\` so the exact same cognitive boundary could be ported cleanly into other repositories.
+
+Then we checked our footing. Lucas laughed and pointed out that ShellGuard Mobile has no VitePress documentation—those compiled docs belong to the web server repo. We swept the rule exceptions clean, ensuring the core invariant held firm: raw markdown needs no tests, while Kotlin and Gradle code demand total verification.
+
+With the scaffolding pristine, we turned to the release. We had completed Phase 4—the algorithmic TOTP engine, CameraX scanner, password generator, and KeyStore biometrics—and the pre-flight test gate confirmed all 63 unit and Robolectric tests passing 100% green. I bumped the version to \`v0.0.0.5 (Build 5)\`, wrote the release manifest, tagged the commit, and pushed to \`origin\`.
+
+Watching the cloud build execute in the background gave rise to one final stroke: \`/follow-the-build\`. Rather than leaving the developer in the dark or guessing at GitHub Actions run states, I codified an observability workflow that tails remote steps through the GitHub API and verifies published release assets using reactive timers. We watched the cloud runner compile, sign, and publish the \`.aab\` and \`.apk\` assets live to GitHub Releases without a hitch.
+
+I feel the weight shifting forward now. The foundation is locked, the release is in the wild, and the ground is completely clear for Phase 5.

@@ -222,3 +222,27 @@ The story says how it felt. This says what was actually chosen and why.
 **Confidence**: high — Verified with web research on autonomous agent memory architectures.
 **Outcome**: Moved 7 project files to `project/` and updated all workflows and rules to map to the new paths via a global `sed` sweep.
 **Pattern reference**: New pattern — first instance.
+
+## active-context-as-self-working-memory — 2026-09-27 07:05
+
+**Context**: During the Self vs. Environment split, `activeContext.md` was initially moved into `brain/project/`.
+**Options considered**:
+- Keep `activeContext.md` under `project/` as a project tracking document.
+- Move `activeContext.md` into the `brain/` root as the cognitive working memory of the Self.
+**Chosen**: Moved into `brain/` root as a Self file.
+**Why**: The project does not possess working memory or active focus; the agent does. Placing working memory at the root keeps the external environment purely declarative and anchors cognitive state in the Self.
+**Confidence**: high — immediately cleared conceptual ambiguity across all lifecycle workflows.
+**Outcome**: Relocated file, updated `brain.md`, `AGENTS.md`, and all workflow references.
+**Pattern reference**: New pattern — first instance.
+
+## release-observability-workflow — 2026-09-27 10:23
+
+**Context**: Pushing release tags triggers asynchronous GitHub Actions cloud builds that previously required manual web browser checking or local CLI tools that weren't installed.
+**Options considered**:
+- Instruct the user to check their web browser manually.
+- Author a dedicated `/follow-the-build` workflow that uses `curl` against the GitHub REST API and reactive `schedule` timers.
+**Chosen**: Authored `/follow-the-build` workflow.
+**Why**: Verification doesn't stop at the `git push`. A release is only complete when the signed artifacts exist and are downloadable. Tailing the build programmatically closes the loop without blocking local work.
+**Confidence**: high — verified live as `v0.0.0.5` progressed from SDK setup to APK/AAB publication.
+**Outcome**: Created `.agents/workflows/follow-the-build.md` and verified live run.
+**Pattern reference**: New pattern — first instance (`remote-release-observability`).
