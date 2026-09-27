@@ -18,8 +18,7 @@ You MUST proactively update the corresponding `.agents/memory-bank/` files or `p
 - Preserve existing comments that explain *why* code exists, unless the *why* has fundamentally changed.
 
 ## 4. The "Same Commit" Mandate
-Documentation updates should not be isolated to a separate "chore: update docs" commit if they belong to a feature. They should be bundled into the specific `AI:` layer of the commit that introduced the feature/fix, proving that the code and its explanation evolved together.
-- **Testing Exemption**: If editing documentation, **NO TESTING** is required. Test **ONLY** when editing application files, or after stages/strokes of work.
+- **Testing & Build Exemption**: Markdown doc files are excluded from requiring a build or test run (**NO TESTING** is required). Test **ONLY** when editing application files, or after stages/strokes of work. *Exception: VitePress docs are excluded from this exemption and require a build if edited since these are user-facing docs.*
 
 ## 5. Release Documentation & Template Protocol
 When preparing a version increment, phase completion, or release, you MUST execute the `.agents/workflows/walk-the-docs.md` workflow to systematically verify that the documentation bows to the code with structural precision.
