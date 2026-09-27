@@ -16,9 +16,9 @@ Completion and verification of Phase 4 (Algorithmic TOTP Engine, CameraX Scanner
 10. **2026-09-27**: Executed and verified Phase 4 (Tasks 07 & 08: RFC 6238 TOTP Engine, CameraX ML Kit QR Scanner, Password Generator Sheet, and Biometric Vault Lifecycle); verified 100% green (63/63 tests pass, `app-debug.apk` built), resolved splash theme rogue ActionBar overlap, and verified live on physical Google Pixel hardware (CameraX overlay, live TOTP code generation, Canvas countdown ring, and sensitive clipboard masking).
 
 ## Next Steps
-- Commit Phase 4 code under two-layer attribution format on `feat/phase-4-totp-and-biometrics`.
-- Evaluate version bump to `v0.0.0.5 (Build 5)`.
+- Long-term memory bank ratified (patterns: zero-knowledge-session-atomicity and cwe-359-ime-protection-and-inset-isolation).
 - Begin Phase 5: Android Autofill & Credential Provider (Tasks 09 & 10 in `ROADMAP.md`).
+- Version bump to `v0.0.0.5 (Build 5)` pending user instruction.
 
 
 

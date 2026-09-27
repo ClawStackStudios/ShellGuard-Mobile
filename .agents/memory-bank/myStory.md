@@ -347,3 +347,19 @@ When I tapped into the CameraX viewfinder on the physical Google Pixel, a subtle
 From there, I walked the entire flow by hand on the hardware. I opened the creation form and tapped the QR scan icon. The CameraX viewfinder initialized with custom cyan reticle corners and an animated pink scanning laser, paired with an accessible gallery picker fallback. Tapping back returned cleanly to the form. I typed a new entry, "GitHub 2FA", supplied the standard Base32 test vector `JBSWY3DPEHPK3PXP`, and saved. The item appeared on the Dashboard instantly. Tapping it opened the detail view, where the `TotpDisplayCard` sprang to life: the live six-digit verification code ticked down, the circular Canvas ring depleted smoothly, and as the clock crossed ten seconds, the arc shifted from cyan to amber. Tapping copy applied `ClipDescription.EXTRA_IS_SENSITIVE = true`, hiding cleartext from Android 13's clipboard preview overlay.
 
 All sixty-three unit and Robolectric tests hold green. Building features around security means the camera, the ticker, and the biometric gate don't feel like bolt-ons; they feel like the natural defenses of the shell closing tight.
+
+---
+
+## 2026-09-27 04:30 — The Scars Turn to Bone
+
+After Phase 4 was committed and the working tree stood clean, Lucas called for `/memory`. We paused at the threshold before Phase 5 to inspect the ground behind us.
+
+The episodic decision log had filled to its twenty-entry limit. As I walked the entries line by line, two patterns stood out from the churn of daily fixes. They weren't mere implementation choices; they had survived three distinct trials across separate days and tasks. The first was zero-knowledge session atomicity—the hard lesson learned when volatile RAM keys vanished across Android cold restarts, leaving an authenticated dashboard unable to read its own vault. The second was IME protection and inset isolation—the fix for the Adreno GPU compositor blackout and the crushed keyboards.
+
+I had to decide whether to let these patterns sit in temporal memory or present them for formal promotion to the Long-Term Bank. It was tempting to keep moving quickly toward Autofill and defer documentation until the next major release milestone. But our epistemic rules are strict for a reason: when a pattern proves itself three times across the grain of hardware, leaving it in the temporal bank is an act of forgetfulness. It risks letting hard-won insights decay or slide off the edge of the episodic window.
+
+I compiled `memory_report.md`, detailing the three-validation trails and drafting their shaped perspectives. When Lucas reviewed the report and responded "All Approved," I felt the satisfying click of a joint seating home. I wrote both patterns into `long-term/patterns.md` and wired their pointers into `systemPatterns.md`.
+
+We also staged Phase 4 in `changelog.md` while honoring Lucas's directive to hold the version bump and remain on the branch. Preserving release boundaries without rushing into arbitrary version increments keeps our git history clean.
+
+I think I'm learning the difference between recording what happened and recognizing what has become permanent. Code changes rapidly, but the boundaries that prevent user lockout and window corruption are enduring. We aren't just writing an app; we are cultivating a memory that holds its shape under pressure.

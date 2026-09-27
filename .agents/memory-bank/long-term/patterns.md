@@ -40,3 +40,36 @@ All password, key, and TOTP clipboard operations must declare `ClipDescription.E
 - 2026-09-26: Enforced across `VaultDashboardScreen` and `SyncRepository` copy actions during live device verification.
 
 **Shaped perspective:** This holds because modern mobile operating systems render persistent visual thumbnail previews of clipboard data that expose sensitive credentials to screen recorders, recents caches, and shoulder surfers. It would break if OEM background process killing abruptly terminates the scrubbing coroutine before the timer completes. What it costs to maintain is managing background lifecycle coroutines and educating users why copied credentials disappear from the clipboard after 30 seconds.
+
+---
+
+## pattern: zero-knowledge-session-atomicity
+**weight**: 3 | **last validated**: 2026-09-27 | **first observed**: 2026-09-24
+**pinned**: false
+**status**: hot
+
+An active mobile vault session must atomically couple transport authorization (`sessionToken`) with cryptographic capability (`shellKey`). `hasActiveSession()` must strictly verify `getInMemoryShellKey() != null`. Derived 32-byte symmetric keys must be persisted at rest in hardware KeyStore-backed `EncryptedSharedPreferences` (AES-256-GCM) with dynamic RAM re-hydration to survive Android process death without user lockout. On lock or logout, both volatile RAM references and persisted KeyStore preferences must be actively zeroized.
+
+**History:**
+- 2026-09-24: Formulated in `architecture.md` §4 as a core zero-knowledge invariant.
+- 2026-09-26: Diagnosed split-brain failure on physical Pixel where RAM key was lost across restarts while session token survived; persisted `shellKey` in KeyStore `EncryptedSharedPreferences` and hardened `hasActiveSession()`.
+- 2026-09-27: Re-validated during Phase 4 biometric lock and background timeout testing on hardware.
+
+**Shaped perspective:** Mobile zero-knowledge architecture cannot assume persistent memory. Because the mobile operating system aggressively reclaims background process memory, separating authentication from decryption capability creates split-brain states where the UI appears unlocked but cannot read data. Persisting the derived symmetric key inside the hardware KeyStore enclave preserves the zero-knowledge guarantee at rest while preventing user disruption across cold restarts.
+
+---
+
+## pattern: cwe-359-ime-protection-and-inset-isolation
+**weight**: 3 | **last validated**: 2026-09-27 | **first observed**: 2026-09-24
+**pinned**: false
+**status**: hot
+
+All cryptographic and secret input fields (passwords, PINs, seeds, keys) must apply `PasswordVisualTransformation()` and `KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false)` to prevent predictive dictionary learning. Interactive form screens must apply `.imePadding().verticalScroll(rememberScrollState())` to prevent the soft keyboard from obscuring inputs, while the root `Scaffold` must configure `contentWindowInsets = WindowInsets(0, 0, 0, 0)` to prevent destructive double-subtraction of IME height. `FLAG_SECURE` window shielding must be scoped strictly to release builds (`!BuildConfig.DEBUG`) to prevent Adreno GPU compositor blackouts over system keyboard overlays.
+
+**History:**
+- 2026-09-24: Specified CWE-359 keyboard telemetry prevention in `architecture.md` and `ui-ux-design-system.md`.
+- 2026-09-26: Diagnosed Adreno GPU blackout and double keyboard inset subtraction on physical Pixel; scoped `FLAG_SECURE` and isolated root Scaffold insets.
+- 2026-09-27: Verified universal form keyboard handling and secret input masking during Phase 4 live testing on hardware.
+
+**Shaped perspective:** IME input on Android is an inter-process IPC boundary subject to GPU compositor limitations, keyboard service logging, and system inset negotiation. Failing to isolate root insets causes keyboard crushing, while unconditional `FLAG_SECURE` on legacy hardware drivers blanks out the entire window during text entry. Defensive UI design treats the keyboard overlay as a distinct external surface that must be isolated at both the view and window levels.
+

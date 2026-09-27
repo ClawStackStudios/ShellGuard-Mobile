@@ -101,5 +101,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `EncryptedDeviceVaultTest.kt`: Added 4 Robolectric unit tests for session key persistence, rehydration, and zeroization.
   - Pre-flight test suite expanded to 32 tests, passing 100% green. Verified on physical Google Pixel hardware with password unmasking and cold-restart survival.
 
+## [Unreleased] — Phase 4: Algorithmic TOTP Engine, CameraX Scanner, Password Generator & Biometrics
+
+### Added
+- RFC 6238 TOTP Engine & Pure Kotlin RFC 4648 Base32 Decoder:
+  - `Base32Decoder.kt`: RFC 4648 Base32 decoding with whitespace, hyphens, and padding sanitization.
+  - `TotpEngine.kt`: RFC 6238 TOTP computation supporting HMAC-SHA1/256/512, 6/8 digits, dynamic truncation (RFC 4226 §5.4), and Steam Guard 5-character token generation.
+  - `TotpTicker.kt`: Sub-second coroutine Flow emitting `TotpTick(remainingSeconds, progress)` for 60fps countdown animations.
+  - `TotpUriParser.kt`: Parser for `otpauth://totp/...` URIs and raw Base32 secret keys.
+- CameraX & ML Kit Barcode Scanning:
+  - `QrCodeAnalyzer.kt`: ImageAnalysis analyzer binding ML Kit BarcodeScanning to CameraX image proxy with coordinate normalizers.
+  - `QrScannerScreen.kt`: Viewfinder with animated pink laser bar, cyan reticle corners, torch toggle, and gallery image picker fallback.
+- Password Generator Modal Sheet:
+  - `PasswordGenerator.kt`: Cryptographically secure random password generator (sliders for length, character set toggles, ambiguous character exclusion) and Diceware passphrase generator with entropy scoring.
+  - `PasswordGeneratorSheet.kt`: ModalBottomSheet with slider controls, regenerate action, and direct injection into `ItemFormScreen`.
+- TOTP UI & Sensitive Clipboard Masking:
+  - `TotpDisplayCard.kt`: Formatted code display with one-tap copy declaring `ClipDescription.EXTRA_IS_SENSITIVE = true`.
+  - `TotpCountdownRing.kt`: Depleting Canvas arc with Cyan -> Amber -> Red color interpolation.
+- Biometric Security Lifecycle & Auto-Lock:
+  - `BiometricAuthManager.kt`: KeyStore hardware biometric authentication via `BiometricPrompt`.
+  - `VaultLockManager.kt`: Background auto-lock timeout manager tracking user inactivity and lifecycle backgrounding.
+  - `LockScreen.kt`: Biometric challenge with PIN/Password fallback.
+- Splash Theme ActionBar Suppression:
+  - Resolved rogue platform ActionBar overlap in `MainActivity.onCreate()` via `installSplashScreen()` and `themes.xml` title suppression.
+- Test Coverage:
+  - 63 unit and Robolectric tests passing 100% green across all suites. Verified live on physical Google Pixel hardware.
+
 
 

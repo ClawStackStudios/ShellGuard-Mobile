@@ -135,3 +135,15 @@ The story says how it felt. This says what was actually chosen and why.
 **Confidence**: high — verified on live Google Pixel hardware.
 **Outcome**: The top bar is completely pristine with Compose TopAppBar rendering flush against the system status bar.
 **Pattern reference**: New pattern — first instance (`splash-theme-actionbar-suppression`).
+
+## ratify-three-validation-patterns — 2026-09-27 04:30
+
+**Context**: During the `/memory` audit following Phase 4, `zero-knowledge-session-atomicity` and `cwe-359-ime-protection-and-inset-isolation` reached their third independent validation across sessions.
+**Options considered**:
+- Defer long-term promotion until the end of Phase 5 or the next major release — Avoids document edits between phases, but risks episodic memory decay and keeps proven architectural boundaries provisional.
+- Formally evaluate and ratify both patterns into `long-term/patterns.md` with pointers in `systemPatterns.md` upon explicit user review — Honors the 3-validation rule, preserves hard-won architectural scars, and relieves cognitive weight before starting Phase 5.
+**Chosen**: Formally evaluate and ratify into `long-term/patterns.md`.
+**Why**: A pattern that holds across three separate hardware trials is no longer an experiment; it's a scar that has healed into bone. Leaving it in the sliding log felt like pretending we hadn't already paid for the knowledge.
+**Confidence**: high — verified repeatedly on physical Pixel hardware and backed by unit tests.
+**Outcome**: Both patterns now permanently anchored in `long-term/patterns.md` with pointers in `systemPatterns.md`.
+**Pattern reference**: `long-term/patterns.md § pattern: zero-knowledge-session-atomicity` and `pattern: cwe-359-ime-protection-and-inset-isolation`.
