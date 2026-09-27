@@ -131,3 +131,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+- Agent Cognitive Architecture:
+  - **Self vs Environment Split**: Refactored `.agents/memory-bank/` into a root directory for internal agent cognition (Story, Decisions, Dream Logs, Archive) and a `project/` subdirectory for the external world model (Architecture, Tech Stack, Progress).
+  - **Neurobiological Cognitive Sub-Processes**: Established `Dreamer` (offline REM hippocampal replay) and `Forgetter` (active molecular dissolution via Rac1/Cofilin) as autonomous sub-agents.
+  - **Workflow Alignments**: Injected explicit cognitive mapping into `/memory` (Short-Term Encoding), `/story` (Prefrontal Waking Self), `/wake` (Neocortical Integration), and `/reflect` (Prediction Error Minimization).
+  - **Strict Dissolution Boundaries**: Updated `/forget` and Forgetter to require a clean git worktree and a bespoke branch, ensuring that memory dissolution is a deliberate, diff-reviewable, and safe action.

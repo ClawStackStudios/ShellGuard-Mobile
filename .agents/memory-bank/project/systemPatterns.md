@@ -59,3 +59,7 @@ UI (Compose) ──(UserIntent)──> ViewModel ──> UseCase ──> Reposit
 - **Documentation Testing & Build Exemption**: Markdown doc files are excluded from requiring a build or test run (**NO TESTING REQUIRED**). Test **ONLY** when editing application files (Kotlin, XML, Gradle), or after stages/strokes of work. *Exception: VitePress docs are compiled user-facing sites and DO require a build verification (`docs:build`) after edits.*
 
 
+- **Agent Cognitive Architecture**: 
+  - **Self vs Environment Memory Split**: Internal cognitive state (story, decisions, dreams, archives) lives in the `.agents/memory-bank/` root. External world context (architecture, tech stack, progress) lives in `.agents/memory-bank/project/`.
+  - **Cognitive Workflows**: `/memory` (Hippocampal Short-Term Encoding), `/story` (Prefrontal Waking Self), `/dream` (Offline REM Hippocampal Replay), `/wake` (Neocortical Integration), `/forget` (Active Molecular Dissolution via Rac1/Cofilin cascade), `/reflect` (Prediction Error Minimization).
+  - **Strict Dissolution Boundaries**: Forgetting removes text from active memory and commits to git. It is gated by strict safety checks: requires a clean worktree (`git status --porcelain`) and must be executed on an isolated bespoke branch.
