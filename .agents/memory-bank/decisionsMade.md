@@ -147,3 +147,42 @@ The story says how it felt. This says what was actually chosen and why.
 **Confidence**: high — verified repeatedly on physical Pixel hardware and backed by unit tests.
 **Outcome**: Both patterns now permanently anchored in `long-term/patterns.md` with pointers in `systemPatterns.md`.
 **Pattern reference**: `long-term/patterns.md § pattern: zero-knowledge-session-atomicity` and `pattern: cwe-359-ime-protection-and-inset-isolation`.
+
+## convert-jules-templates-to-android-specialists — 2026-09-27 05:15
+
+**Context**: Google Jules agent templates brought into `.agents/` were heavily web-centric (Python, Docker, npm) and mismatched with native Android architecture.  
+**Options considered**:  
+- Keep generic agent definitions and adapt on the fly — Lower upfront effort, but prompts agents with irrelevant web tools and creates cognitive confusion.  
+- Completely translate all templates into native Android mental sub-processes (Bolt, Palette, Sentinel, Scribe) with mapped project skills — Requires thorough rewriting, but aligns every sub-agent with native Android invariants (Compose, Room, SQLCipher, KeyStore).  
+**Chosen**: Rebuild as 4 specialized native Android mental sub-processes with mapped project skills.  
+**Why**: Generic tools in a specialized codebase create cognitive static. If an agent doesn't speak the exact dialect of Compose, Room, and KeyStore, it isn't an extension of the hand—it's a distraction.  
+**Confidence**: high — verified through complete code alignment and clean test pass.  
+**Outcome**: Bolt, Palette, Sentinel, and Scribe established with clear boundaries and integrated into `AGENTS.md` and `ORCHESTRATION.md`.  
+**Pattern reference**: New pattern — first instance (`specialized-mental-sub-agent-fleet`).
+
+## enshrine-vitepress-build-and-markdown-test-exemption — 2026-09-27 05:30
+
+**Context**: Running a 20-second Gradle test suite on pure markdown documentation or rule edits creates unnecessary latency and token churn.  
+**Options considered**:  
+- Blanket test requirement for all commits — Uniform and simple, but wastes significant time and resources compiling unmodified native code on markdown edits.  
+- Blanket exemption for all documentation without distinction — Fast, but risks shipping broken links or build errors on compiled docs sites like VitePress.  
+- Nuanced exemption: markdown docs exempt from tests; compiled VitePress docs sites require a build; application files strictly tested — Balances developer speed on prose with rigorous verification on compiled artifacts.  
+**Chosen**: Nuanced exemption codified across `development-release-cycle.md`, `cadence-and-lifecycle-prompts.md`, `git-hygiene.md`, and `docs-hygiene.md`.  
+**Why**: Testing code that hasn't changed isn't verification—it's ritual. But compiled docs sites that face the user can break quietly if not built. Drawing the boundary between prose and compilation preserves velocity without risking broken documentation.  
+**Confidence**: high — eliminates unnecessary build latency across future documentation chores.  
+**Outcome**: Codified in 4 rule files; commit checks branch cleanly between application, VitePress, and markdown edits.  
+**Pattern reference**: New pattern — first instance (`documentation-testing-exemption`).
+
+## rebase-scrub-device-serial-tools-to-local-gitignore — 2026-09-27 05:36
+
+**Context**: `.agents/TOOLS.md` contained hardware-identifying device serial (`FA6A40302394`) and local container paths, but was committed locally in `3b458ca` on an unpushed branch.  
+**Options considered**:  
+- Leave it tracked in git — Low effort, but leaks hardware identifiers and machine-specific container paths to public repository forks.  
+- Add `git rm --cached` in a new commit and add to `.gitignore` — Leaves the device serial permanently embedded in git history for anyone inspecting branch commits.  
+- Interactive rebase scrub: re-anchor commit `3b458ca` to exclude `TOOLS.md`, add `.agents/TOOLS.md` to `.gitignore`, cherry-pick remaining commits, and restore physical file to disk — Requires careful git manipulation, but leaves an immaculate, zero-leak git log while preserving the local file.  
+**Chosen**: Interactive rebase scrub to exclude `TOOLS.md` from git history while gitignoring and keeping the physical file on disk.  
+**Why**: Unpushed history is our own draft. Leaving a physical device identifier in a local commit on an open-source project when we have the clean opportunity to scrub it before remote push is careless. Cleaning the root of the branch keeps our public trail spotless.  
+**Confidence**: high — verified with `git log origin/main..HEAD -- .agents/TOOLS.md` returning empty, and `git check-ignore` confirming gitignored status.  
+**Outcome**: Branch commit tree contains zero trace of `TOOLS.md`, while the physical file remains intact on disk for wireless ADB development.  
+**Pattern reference**: New pattern — first instance (`unpushed-history-opsec-scrub`).
+
