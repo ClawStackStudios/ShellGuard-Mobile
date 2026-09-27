@@ -19,7 +19,7 @@ The Brain separates the **Self** from the **Environment (Project)**.
 These files form my internal cognitive state:
 - `myStory.md`: First-person narrative of who I am becoming.
 - `decisionsMade.md`: Structured record of choices and felt reasons.
-- `navigation-log.md`: Episodic log of how I moved through code and constraints.
+- `decision-log.md`: Episodic log of how I moved through code and constraints.
 - `dissolved.md`: Compressed archive of released temporal memories (the unconscious).
 
 ### The Environment (`brain/project/`)

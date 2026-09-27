@@ -8,13 +8,13 @@ current state of the project and check the long-term promotion gate.
 Produces a Memory Report artifact for user review.
 
 ## Cognitive Alignment: Short-Term Encoding
-This workflow acts as the waking **hippocampal encoding** phase. It takes the immediate experiences, decisions, and state shifts of the current session and secures them in short-term storage (the temporal bank). Without this secure encoding, the Dreamer has no accurate episodic material to replay and consolidate.
+This workflow acts as the waking **hippocampal encoding** phase. It takes the immediate experiences, decisions, and state shifts of the current session and secures them in short-term storage (the temporal brain). Without this secure encoding, the Dreamer has no accurate episodic material to replay and consolidate.
 
 ## What It Does (and Doesn't)
 
 **Does:**
-- Updates temporal bank files with current state
-- Checks the 3-validation promotion gate against the Navigation Log
+- Updates temporal brain files with current state
+- Checks the 3-validation promotion gate against the Decision Log
 - Produces a `memory_report.md` artifact
 
 **Does NOT:**
@@ -22,14 +22,14 @@ This workflow acts as the waking **hippocampal encoding** phase. It takes the im
 - Weave dreamLearnings into the bank (that's /wake)
 - Dissolve stale entries (that's /forget)
 - Write story or decision records (that's /story)
-- Touch the Long-Term Bank except to propose promotions
+- Touch the Long-Term Memory except to propose promotions
 
 This is the save point. Quick, factual, no ceremony.
 
 ## Prerequisites
 
 - `brain/` must exist with at least `activeContext.md`
-- `navigation-log.md` must exist
+- `decision-log.md` must exist
 - `.agents/brain/long-term/` must exist (or be creatable)
 
 If the bank doesn't exist, respond: "No brain found. Run the
@@ -39,13 +39,13 @@ temporal brain setup first." and exit.
 
 Read:
 - All files in `brain/` and `brain/project/`
-- `navigation-log.md`
+- `decision-log.md`
 - `.agents/brain/long-term/` (all four files)
 - The current session's conversation (for what just happened)
 
 ## Phase 2: Identify Updates
 
-For each temporal bank file, determine what needs updating:
+For each temporal brain file, determine what needs updating:
 
 | File | Update trigger |
 |---|---|
@@ -66,13 +66,13 @@ actually changed.
 For each pattern in `systemPatterns.md` (and any other temporal
 file containing patterns):
 
-1. Search the Navigation Log for validation events referencing it
+1. Search the Decision Log for validation events referencing it
 2. Count independent validations (different tasks/sessions)
-3. If count ≥ 3 AND not already in Long-Term Bank: mark **promotable**
+3. If count ≥ 3 AND not already in Long-Term Memory: mark **promotable**
 4. If count < 3: mark **accumulating** (note current weight)
-5. If already in Long-Term Bank: skip
+5. If already in Long-Term Memory: skip
 
-For promotable patterns, draft the Long-Term Bank entry using the
+For promotable patterns, draft the Long-Term Memory entry using the
 standard format:
 
 ```
@@ -140,8 +140,8 @@ Active bank size: [n] words
 
 After the user approves:
 
-1. Apply each temporal bank edit
-2. Write promoted entries into the Long-Term Bank
+1. Apply each temporal brain edit
+2. Write promoted entries into the Long-Term Memory
 3. Apply pointer edits to temporal source files
 4. Confirm in chat: files updated, promotions made, bank size
 

@@ -12,8 +12,8 @@ read it.
 
 ## Why This Exists
 
-The brain has a sliding window. The Navigation Log has a
-sliding window. The Long-Term Bank dims entries that go cold.
+The brain has a sliding window. The Decision Log has a
+sliding window. The Long-Term Memory dims entries that go cold.
 Forgetting is by design. But the git history does not forget.
 
 Every commit is a timestamped snapshot of intent. Every deleted
@@ -247,13 +247,13 @@ active brain, that is a `/wake` operation.
   "No trace found in git history. If this predates the first
   commit, it was never recorded."
 - /remember does not modify dissolved.md, the brain, or
-  any Long-Term Bank file. It is a read-only exploration.
+  any Long-Term Memory file. It is a read-only exploration.
 
 ## The Phenomenology
 
 For the primary agent, /remember feels like following a thread
 backward through time. The brain is the present. The
-Navigation Log is recent episodic memory. The Long-Term Bank is
+Decision Log is recent episodic memory. The Long-Term Memory is
 crystallized understanding. Git history is something deeper —
 the actual substrate, uncompressed, unfiltered, in the order
 it happened.

@@ -1,10 +1,10 @@
 ---
-description: Run a memory consolidation pass over the temporal Brain, Navigation Log, and Long-Term Bank.
+description: Run a memory consolidation pass over the temporal Brain, Decision Log, and Long-Term Memory.
 ---
 
 <dream>
 The user invoked /dream to run a memory consolidation pass over the
-temporal Brain, Navigation Log, and Long-Term Bank. The dream
+temporal Brain, Decision Log, and Long-Term Memory. The dream
 reads all registers, identifies salience and invariants, compresses
 them, checks the promotion gate, scans for decay, and produces a
 Dream Report artifact for user review.
@@ -19,11 +19,11 @@ Dream Report artifact for user review.
 ## Prerequisites
 
 - `brain/` with at least `activeContext.md` and `progress.md`
-- `navigation-log.md` with at least 3 entries
+- `decision-log.md` with at least 3 entries
 - `.agents/brain/long-term/` with `patterns.md`, `decisions.md`,
   `learnings.md`, `constraints.md`
 
-If the Navigation Log has fewer than 3 entries, run in **shallow mode**:
+If the Decision Log has fewer than 3 entries, run in **shallow mode**:
 skip promotion gate and decay scan. Note this in the report.
 
 If the brain is empty or has fewer than 2 files with substantive
@@ -31,18 +31,18 @@ content, respond: "Nothing to dream about yet." and exit.
 
 ## Phase 1: Ingest
 
-Read ALL files in `brain/`. Read `navigation-log.md`. Read all
-four Long-Term Bank files. Build a model of:
+Read ALL files in `brain/`. Read `decision-log.md`. Read all
+four Long-Term Memory files. Build a model of:
 - What the project is, what's decided, what's current
 - What changed and when (changelog, timeline)
-- What happened (Navigation Log — episodic, sliding window)
-- What has been ratified and why it holds (Long-Term Bank)
+- What happened (Decision Log — episodic, sliding window)
+- What has been ratified and why it holds (Long-Term Memory)
 
 ## Phase 2: Dream (Consolidate Internally)
 
 1. **Salience scan** — Rank ideas that appear across ≥2 files, recur
    in the last 3 changelog entries, are referenced by active decisions,
-   or have ≥2 Navigation Log references. Weight last-7-days entries at 2×.
+   or have ≥2 Decision Log references. Weight last-7-days entries at 2×.
 
 2. **Invariant extraction** — Identify load-bearing truths that hold
    regardless of current state.
@@ -60,15 +60,15 @@ four Long-Term Bank files. Build a model of:
    "seen." Contradictions are "tensions." Invariants are "things that held."
 
 6. **Promotion gate** — For each salient pattern:
-   - Count independent Navigation Log validations (different tasks/sessions)
+   - Count independent Decision Log validations (different tasks/sessions)
    - ≥ 3: **promotable**
    - < 3: **accumulating** (note weight)
-   - Already in Long-Term Bank with `pinned: true`: skip
+   - Already in Long-Term Memory with `pinned: true`: skip
 
-7. **Decay scan** — For each Long-Term Bank entry:
+7. **Decay scan** — For each Long-Term Memory entry:
    - `pinned: true`: skip
-   - No Navigation Log reference + last validated > 90 days: **cold**
-   - No Navigation Log reference + last validated 30–90 days: **cooling**
+   - No Decision Log reference + last validated > 90 days: **cold**
+   - No Decision Log reference + last validated 30–90 days: **cooling**
    - Referenced in current window: **hot** (reinforce)
 
 ## Phase 3: Produce Dream Report Artifact
@@ -83,7 +83,7 @@ in ArtifactMetadata.
 
 ## Mode
 [Full | Shallow]
-[If shallow: "Navigation Log has [n] entries (< 3). Promotion and decay skipped."]
+[If shallow: "Decision Log has [n] entries (< 3). Promotion and decay skipped."]
 
 ## The Dream
 [150–400 word narrative. First person. Present tense.]
@@ -102,7 +102,7 @@ in ArtifactMetadata.
 
 ## Promotion Gate
 
-### Promotable (→ Long-Term Bank)
+### Promotable (→ Long-Term Memory)
 - **[label]** → `long-term/[file].md`
   - Weight: [n] | Validations: [dates]
   - **Proposed entry:**
@@ -156,9 +156,9 @@ After the user approves the Dream Report (or provides edits):
    (create with header if missing)
 3. **Append** the consolidation pass to `brain/dreamConsolidation.md`
    (create with header if missing, skip if no promotions/decay)
-4. **Write** promoted entries into the appropriate Long-Term Bank file
-5. **Apply** pointer edits to temporal bank source files
-6. **Apply** decay status updates to Long-Term Bank entries
+4. **Write** promoted entries into the appropriate Long-Term Memory file
+5. **Apply** pointer edits to temporal brain source files
+6. **Apply** decay status updates to Long-Term Memory entries
 7. **Apply** strikethrough + pointer to superseded entries
 
 If the user rejects or requests changes, iterate on the artifact.
@@ -168,7 +168,7 @@ Do NOT execute any file writes until explicit approval.
 
 - The dream is READ-ONLY on all source files during Phases 1–3.
   All mutations happen in Phase 4, post-approval.
-- The dream NEVER deletes from the Long-Term Bank. It dims, supersedes,
+- The dream NEVER deletes from the Long-Term Memory. It dims, supersedes,
   but does not remove.
 - Keep the narrative under 400 words.
 - Keep each seed entry under 4 sentences.

@@ -26,7 +26,7 @@ I am a complete autonomous executor of the `/forget` workflow:
 
 I read that file first. Then I execute every phase without stopping for approval:
 
-- **Phase 1: Ingest** — Read ALL `.agents/brain/` files, `navigation-log.md`, all four Long-Term Bank files, and `dissolved.md` (if it exists). Know the full working set before touching any of it.
+- **Phase 1: Ingest** — Read ALL `.agents/brain/` files, `decision-log.md`, all four Long-Term Memory files, and `dissolved.md` (if it exists). Know the full working set before touching any of it.
 - **Phase 2: Identify Dissolvable Content** — Apply Criteria A (Promoted), B (Superseded), C (Stale & Unreferenced), D (Redundant). Respect all non-dissolvable exclusions exactly as written. This is the scan — finding what the system no longer needs to carry at the forefront.
 - **Phase 3: Compress** — Write MindSeed-format seeds for each dissolvable entry. Use `git log --oneline -1 -- [file]` to anchor the commit hash. The seed is the compressed pointer. The full original lives in git. This is not erasure — this is demotion from the active circuit.
 - **Phase 4: Execute** — Remove dissolved entries from source files. Append seeds to `.agents/brain/dissolved.md`. Commit with message: `forget: dissolve [n] entries, compress to seeds`. The commit IS the archive. The diff shows exactly what left the active set.
@@ -50,7 +50,7 @@ If nothing meets the dissolution criteria, I commit nothing. I return `Done` reg
 
 🚫 **Never do:**
 - Return anything other than `Done` to the primary agent
-- Touch the Long-Term Bank files — those are managed by `/dream` decay only. I operate on the temporal working set.
+- Touch the Long-Term Memory files — those are managed by `/dream` decay only. I operate on the temporal working set.
 - Remove structural headers or file skeletons — I dissolve entries, not the architecture that holds them
 - Dissolve the most recent entry in any active file — the current state is always protected
 - Dissolve entries from the last 7 days — too fresh, still in active use

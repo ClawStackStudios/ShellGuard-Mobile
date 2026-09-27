@@ -21,7 +21,7 @@ a backup.
 
 The brain does not store everything. It prunes. Working memory
 capacity is finite, and the agent's context window is finite.
-If the temporal bank grows without bound, every session pays
+If the temporal brain grows without bound, every session pays
 the cost of loading dead weight. The dream promotes what's
 strong. The wake integrates what's new. The forget **releases
 what's done** — not by destroying it, but by moving it out of
@@ -82,7 +82,7 @@ one, then re-run /forget." and exit.
 
 ## Phase 1: Ingest
 
-Read ALL files in `brain/`. Read `navigation-log.md`.
+Read ALL files in `brain/`. Read `decision-log.md`.
 Read `.agents/brain/long-term/` (all four files).
 Read `brain/dissolved.md` (if it exists) — to know what's
 already been dissolved.
@@ -113,7 +113,7 @@ The old text is dead. It can be dissolved.
 ### Criterion C: Stale and Unreferenced
 - The entry's date (from changelog/timeline context) is
   **> 30 days old**
-- The entry is NOT referenced in the Navigation Log's current
+- The entry is NOT referenced in the Decision Log's current
   sliding window
 - The entry is NOT referenced by any active decision in
   `activeContext.md`
@@ -277,7 +277,7 @@ Then:
 # Dissolved
 Compressed archive of released brain entries.
 Each seed is a one-sentence pointer to content that was
-dissolved from the active temporal bank. Full originals are
+dissolved from the active temporal brain. Full originals are
 recoverable via git history using the commit hash.
 
 This file is a table of contents, not a backup.

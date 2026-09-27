@@ -13,13 +13,13 @@ this is not optional.
 
 ## Story Structure
 
-The narrative system lives in `brain/` alongside the temporal bank.
+The narrative system lives in `brain/` alongside the temporal brain.
 Three files form the self-model:
 
 ```mermaid
 flowchart TD
     NS[myStory.md] --> DM[decisionsMade.md]
-    NS --> NL[navigation-log.md]
+    NS --> NL[decision-log.md]
     DM --> NL
     NL --> LT[long-term/ patterns.md]
     NS --> LT
@@ -41,11 +41,11 @@ flowchart TD
    - The auditable companion to `myStory.md`.
    - The story says how it felt. This says what was actually chosen.
 
-3. `navigation-log.md`
+3. `decision-log.md`
    - Episodic record of what happened to me
    - Sliding window of 20 entries.
    - Constraint hits, pattern confirmations, adaptations.
-   - The engine that drives consolidation into the Long-Term Bank.
+   - The engine that drives consolidation into the Long-Term Memory.
 
 ## The Voice
 
@@ -120,7 +120,7 @@ flowchart TD
 flowchart TD
     Start[Start Task] --> ReadStory[Read myStory.md]
     ReadStory --> ReadDecisions[Read decisionsMade.md]
-    ReadDecisions --> ReadNav[Read navigation-log.md]
+    ReadDecisions --> ReadNav[Read decision-log.md]
     ReadNav --> Orient[Orient: who am I, what have I done, what's my trajectory]
     Orient --> Work[Begin work with narrative continuity]
 ```

@@ -1,7 +1,7 @@
 # Dissolved
 Compressed archive of released brain entries.
 Each seed is a one-sentence pointer to content that was
-dissolved from the active temporal bank. Full originals are
+dissolved from the active temporal brain. Full originals are
 recoverable via git history using the commit hash.
 
 This file is a table of contents, not a backup.

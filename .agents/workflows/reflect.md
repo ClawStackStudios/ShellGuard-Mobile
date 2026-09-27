@@ -58,7 +58,7 @@ but in *capability*.
 
 - `brain/myStory.md` must exist with at least 2 entries
 - `brain/decisionsMade.md` must exist with at least 3 entries
-- `brain/navigation-log.md` must exist
+- `brain/decision-log.md` must exist
 - `.agents/skills/` and/or `.agents/rules/` must exist
   (if neither exists, skip the rule/skill audit and note it in the report)
 - The project must be in a git repo (to read actual diffs)
@@ -72,7 +72,7 @@ at least twice before /reflect can find a delta." and exit.
 Read:
 - `brain/myStory.md` — the self-model (what the agent thinks it did)
 - `brain/decisionsMade.md` — the stated reasons and confidence levels
-- `brain/navigation-log.md` — the episodic events
+- `brain/decision-log.md` — the episodic events
 - `brain/project/activeContext.md` — current state
 - `.agents/skills/` — all skill files (full text)
 - `.agents/rules/` — all rule files (full text)
@@ -222,7 +222,7 @@ over-confident when [condition]."]
 - [ ] Brain update: `[file].md`
 
 ## Brain Updates
-[If the reflection also produces temporal bank updates,
+[If the reflection also produces temporal brain updates,
 list them here. Same format as /memory.]
 
 ## Stats
@@ -236,7 +236,7 @@ After the user approves the Reflect Report (or provides edits):
 
 1. **Rules**: Create or update files in `.agents/rules/`
 2. **Skills**: Create or update files in `.agents/skills/`
-3. **Long-Term Bank**: Write the top-level pattern entry if
+3. **Long-Term Memory**: Write the top-level pattern entry if
    it meets the 3-validation threshold (or mark as accumulating)
 4. **Brain**: Apply any temporal updates
 5. **myStory.md**: Append a brief reflection note:

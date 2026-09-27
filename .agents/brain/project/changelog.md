@@ -136,3 +136,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Neurobiological Cognitive Sub-Processes**: Established `Dreamer` (offline REM hippocampal replay) and `Forgetter` (active molecular dissolution via Rac1/Cofilin) as autonomous sub-agents.
   - **Workflow Alignments**: Injected explicit cognitive mapping into `/memory` (Short-Term Encoding), `/story` (Prefrontal Waking Self), `/wake` (Neocortical Integration), and `/reflect` (Prediction Error Minimization).
   - **Strict Dissolution Boundaries**: Updated `/forget` and Forgetter to require a clean git worktree and a bespoke branch, ensuring that memory dissolution is a deliberate, diff-reviewable, and safe action.
+
+- Brain Architecture & Cross-Repository Portability:
+  - **Antigravity Brain Alignment**: Renamed `.agents/memory-bank/` to `.agents/brain/` across the entire codebase to match Google Antigravity harness patterns.
+  - **Long-Term Memory Harmonization**: Renamed rule to `long-term-memory.md` and unified references to `decision-log.md` (episodic log) and Long-Term Memory throughout all workflows and agent prompts.
+  - **Migration Automation**: Added `.agents/workflows/migrate-to-brain.md` providing scripted, safe cross-repository migration capabilities for other projects.

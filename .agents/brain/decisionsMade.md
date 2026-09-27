@@ -23,7 +23,7 @@ The story says how it felt. This says what was actually chosen and why.
 - Promote all recent breakthrough fixes immediately to `long-term/` — Captures fresh insights, but risks polluting long-term memory with single-session fixes.
 - Strictly enforce the 3-validation rule across independent sessions, promoting only cleartext LAN transport and CWE-359 clipboard masking while holding single-session fixes as accumulating — Prevents recency bias from diluting crystallized long-term memory.
 **Chosen**: Strictly enforce the 3-validation threshold.
-**Why**: A scar requires time and pressure to form. Promoting a fix after a single victory turns the long-term bank into another changelog rather than crystallized truth.
+**Why**: A scar requires time and pressure to form. Promoting a fix after a single victory turns the long-term memory into another changelog rather than crystallized truth.
 **Confidence**: high — maintains strict epistemic separation between temporal and long-term memory.
 **Outcome**: Long-term bank gained two truly ratified entries while three entries were logged as accumulating (weight 2/3).
 **Pattern reference**: `long-term/constraints.md § constraint: cleartext-lan-and-tailscale-transport`.

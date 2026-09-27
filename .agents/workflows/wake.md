@@ -7,11 +7,11 @@ The user invoked /wake to integrate unwoven learnings from the Dream
 Log back into the active temporal Brain. The wake reads
 `dreamLearnings.md`, identifies entries that have not yet been woven
 into the temporal corpus, proposes specific edits to the appropriate
-temporal bank files, and produces a Wake Report artifact for user
+temporal brain files, and produces a Wake Report artifact for user
 review.
 
 ## Cognitive Alignment: Neocortical Integration
-If the Dreamer acts as the hippocampus, accelerating offline replay to extract patterns, the Wake is the **neocortical integration** phase. It takes the synthesized insights produced offline and wires them into the active working memory (temporal bank) so they are immediately accessible in the waking state.
+If the Dreamer acts as the hippocampus, accelerating offline replay to extract patterns, the Wake is the **neocortical integration** phase. It takes the synthesized insights produced offline and wires them into the active working memory (temporal brain) so they are immediately accessible in the waking state.
 
 ## Relationship to /dream and /learn
 
@@ -76,7 +76,7 @@ For each unwoven entry in `dreamLearnings.md`, determine:
      that should be linked (add a "see also" or inline reference)
 
 3. **Conflict check**: Does the proposed edit contradict anything
-   in the Long-Term Bank? If yes, flag it. Do NOT propose the edit —
+   in the Long-Term Memory? If yes, flag it. Do NOT propose the edit —
    instead flag: "Conflicts with `long-term/[file].md § [label]`.
    Needs user resolution."
 
@@ -131,7 +131,7 @@ Wake passes: [n] | Edits proposed: [n] | Skipped: [n] | Conflicts: [n]
 
 After the user approves the Wake Report (or provides edits):
 
-1. Apply each approved edit to its target temporal bank file
+1. Apply each approved edit to its target temporal brain file
 2. In `dreamLearnings.md`, mark each woven entry with:
    ```
    woven: true | woven_date: [date] | target: [file].md
@@ -141,7 +141,7 @@ After the user approves the Wake Report (or provides edits):
    woven: n/a | reason: narrative-only
    ```
 3. For any **Supersede** edits: do NOT delete the old text. Apply
-   strikethrough + pointer (same convention as the Long-Term Bank):
+   strikethrough + pointer (same convention as the Long-Term Memory):
    ```
    ~~[old text]~~ → Updated by /wake [date]. See [new location].
    ```
@@ -153,7 +153,7 @@ Do NOT execute any file writes until explicit approval.
 
 ## Constraints
 
-- `/wake` NEVER touches the Long-Term Bank. It only writes to temporal
+- `/wake` NEVER touches the Long-Term Memory. It only writes to temporal
   bank files and updates `dreamLearnings.md` markers.
 - `/wake` NEVER modifies `dreamLog.md` or `dreamConsolidation.md`.
   Those are historical records.
@@ -177,11 +177,11 @@ Do NOT execute any file writes until explicit approval.
 /dream  →  reads temporal + navigation + long-term
          →  consolidates, promotes, decays
          →  produces dreamLog + dreamLearnings + dreamConsolidation
-         →  promotes to Long-Term Bank
+         →  promotes to Long-Term Memory
 
 /wake   →  reads dreamLearnings (unwoven entries)
-         →  weaves learnings into temporal bank
-         →  temporal bank is now sharper for the next session
+         →  weaves learnings into temporal brain
+         →  temporal brain is now sharper for the next session
 
 Next session starts with a better baseline.
 The cycle repeats.

@@ -15,8 +15,8 @@ Where the Dreamer operates with the prefrontal cortex offline (no meta-awareness
 
 ## Why This Exists
 
-The agent has a record of what's true (temporal bank), what happened
-(navigation log), and what's crystallized (long-term bank). But it has
+The agent has a record of what's true (temporal brain), what happened
+(decision log), and what's crystallized (long-term memory). But it has
 no **story**. No first-person account of its own experience. No
 narrative to be consistent with.
 
@@ -39,7 +39,7 @@ here's why I chose this path over that one."
 | | /learn | /dream | /wake | /story |
 |---|---|---|---|---|
 | Input | Single interaction | All registers | dreamLearnings | Current session work |
-| Output | Rule/Skill | dreamLog + learnings + consolidation | Temporal bank edits | myStory.md + decisionsMade.md |
+| Output | Rule/Skill | dreamLog + learnings + consolidation | Temporal brain edits | myStory.md + decisionsMade.md |
 | Timescale | Event | Accumulated | Post-dream | Session (or period) |
 | Question | "What should I do differently?" | "What has become true?" | "How does this change my context?" | "What did I do, and who was I doing it as?" |
 | Register | Behavior | Knowledge | Context | **Self** |
@@ -62,7 +62,7 @@ gives the dream a *self* to dream from.
 
 Read:
 - The current session's conversation history (or the specified period)
-- `brain/navigation-log.md` — for the episodic events
+- `brain/decision-log.md` — for the episodic events
 - `brain/project/activeContext.md` — for what was true going in
 - `brain/myStory.md` — for the existing narrative voice and
   continuity (if it exists)
