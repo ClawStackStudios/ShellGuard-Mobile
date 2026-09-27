@@ -63,7 +63,7 @@ gives the dream a *self* to dream from.
 Read:
 - The current session's conversation history (or the specified period)
 - `brain/decision-log.md` — for the episodic events
-- `brain/project/activeContext.md` — for what was true going in
+- `brain/activeContext.md` — for what was true going in
 - `brain/myStory.md` — for the existing narrative voice and
   continuity (if it exists)
 - `brain/decisionsMade.md` — for prior decisions (if it exists)

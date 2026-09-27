@@ -84,7 +84,7 @@ Walk each anchor document sequentially and enforce bidirectional consistency wit
 ## 🧠 Phase 3: Brain & Companion Log Attestation
 
 Walk and synchronize the agent semantic and episodic memory:
-- [ ] `.agents/brain/project/activeContext.md`: Slide 10-event window, record current phase status.
+- [ ] `.agents/brain/activeContext.md`: Slide 10-event window, record current phase status.
 - [ ] `.agents/brain/project/progress.md`: Mark phase done, update test metrics, update what's next.
 - [ ] `.agents/brain/project/changelog.md`: Append version entry.
 - [ ] `.agents/brain/raw_reflection_log.md`: Record learnings and difficulties.

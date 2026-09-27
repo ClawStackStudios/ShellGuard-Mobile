@@ -53,7 +53,7 @@ Update all version anchors across the codebase:
 
 ## 🧠 Step 4: Brain & Active Context Sync
 
-1. Update `.agents/brain/project/activeContext.md`:
+1. Update `.agents/brain/activeContext.md`:
    - Slide recent changes window (maintain top 10).
 2. Update `.agents/brain/raw_reflection_log.md`:
    - Record version update details and verification results per continuous improvement protocol.

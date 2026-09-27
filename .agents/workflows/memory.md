@@ -49,7 +49,7 @@ For each temporal brain file, determine what needs updating:
 
 | File | Update trigger |
 |---|---|
-| `project/activeContext.md` | Current state changed (new decisions, phase shifts, active work items) |
+| `activeContext.md` | Current state changed (new decisions, phase shifts, active work items) |
 | `project/progress.md` | Phase or milestone status changed |
 | `project/changelog.md` | New changes since last entry |
 | `project/systemPatterns.md` | New pattern observed or existing pattern refined |

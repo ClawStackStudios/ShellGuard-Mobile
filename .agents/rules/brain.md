@@ -17,6 +17,7 @@ The Brain separates the **Self** from the **Environment (Project)**.
 
 ### The Self (Root Directory)
 These files form my internal cognitive state:
+- `activeContext.md`: Working memory of current focus, active decisions, and recent changes (sliding window of 10 events).
 - `myStory.md`: First-person narrative of who I am becoming.
 - `decisionsMade.md`: Structured record of choices and felt reasons.
 - `decision-log.md`: Episodic log of how I moved through code and constraints.
@@ -31,7 +32,7 @@ flowchart TD
     PB --> SP[systemPatterns.md]
     PB --> TC[techContext.md]
 
-    PC --> AC[activeContext.md]
+    PC --> AC[activeContext.md (Working Memory)]
     SP --> AC
     TC --> AC
 
@@ -41,11 +42,10 @@ flowchart TD
 
 1. `projectBrief.md` — Source of truth for core requirements and goals.
 2. `productContext.md` — Why the project exists and user experience goals.
-3. `activeContext.md` — Current work focus, recent changes, active decisions. Maintain a sliding window of the **10 most recent events** (date + summary). When the 11th is added, drop the oldest.
-4. `systemPatterns.md` — System architecture, design patterns, component relationships.
-5. `techContext.md` — Technologies used, constraints, setup, tool usage.
-6. `progress.md` — What works, what's left, current status, known issues.
-7. `changelog.md` — Chronological log of key changes/versions.
+3. `systemPatterns.md` — System architecture, design patterns, component relationships.
+4. `techContext.md` — Technologies used, constraints, setup, tool usage.
+5. `progress.md` — What works, what's left, current status, known issues.
+6. `changelog.md` — Chronological log of key changes/versions.
 
 ---
 

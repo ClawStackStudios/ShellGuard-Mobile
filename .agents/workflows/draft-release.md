@@ -204,4 +204,4 @@ git push origin v0.0.0.1
 
 ### Update Brain:
 1. Append details to [`.agents/brain/project/changelog.md`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/brain/project/changelog.md).
-2. Record the rollout event in [`.agents/brain/project/activeContext.md`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/brain/project/activeContext.md).
+2. Record the rollout event in [`.agents/brain/activeContext.md`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/brain/activeContext.md).

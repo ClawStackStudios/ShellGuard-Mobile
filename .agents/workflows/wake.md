@@ -40,7 +40,7 @@ learnings are already integrated." and exit.
 Read:
 - `brain/dreamLearnings.md` — identify all entries WITHOUT
   `woven: true`
-- `brain/project/activeContext.md`
+- `brain/activeContext.md`
 - `brain/project/systemPatterns.md` (if exists)
 - `brain/project/progress.md`
 - `brain/project/techContext.md` (if exists)

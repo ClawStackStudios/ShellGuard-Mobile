@@ -73,7 +73,7 @@ Read:
 - `brain/myStory.md` — the self-model (what the agent thinks it did)
 - `brain/decisionsMade.md` — the stated reasons and confidence levels
 - `brain/decision-log.md` — the episodic events
-- `brain/project/activeContext.md` — current state
+- `brain/activeContext.md` — current state
 - `.agents/skills/` — all skill files (full text)
 - `.agents/rules/` — all rule files (full text)
 - `git log --oneline -20` — recent commits

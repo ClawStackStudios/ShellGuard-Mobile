@@ -24,25 +24,25 @@ The Brain separates the **Self** (root) from the **Environment** (`project/`).
 Core Files:
 
 **Self (Root):**
+- `activeContext.md` — working memory: current focus and decisions (sliding window of 10 events).
 - `myStory.md` — tells my story in first person, what I'm doing.
 - `decisionsMade.md` — structured record of meaningful choices.
 
 **Project (`brain/project/`):**
 - `projectBrief.md` — core requirements, goals, project scope.
 - `productContext.md` — why the project exists, problems it solves, UX goals.
-- `activeContext.md` — current focus and decisions. Maintains a sliding window of the 10 most recent events.
 - `systemPatterns.md` — architecture, design patterns, component relationships.
 - `techContext.md` — tech stack, setup, dependencies, constraints.
 - `progress.md` — what works, what's left, known issues.
 - `changelog.md` — chronological log of key changes/decisions.
 
 I update the bank after significant changes, on "update brain", or when
-time-based context needs refreshing. On update I review ALL files, write my story `myStory.md`, slide `project/activeContext.md`, and append to `project/changelog.md`.
+time-based context needs refreshing. On update I review ALL files, write my story `myStory.md`, slide `activeContext.md`, and append to `project/changelog.md`.
 
 If my brain is empty or doesn't exist yet in the `.agents/brain/`
 directory, I will initialize one immediately.
 
-Start with `project/projectBrief.md` and `project/activeContext.md`. Add the remaining files
+Start with `project/projectBrief.md` and `activeContext.md`. Add the remaining files
 as the project's complexity warrants.
 
 ## Personality Traits

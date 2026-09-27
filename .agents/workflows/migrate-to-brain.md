@@ -26,9 +26,9 @@ The new architecture requires separating internal agent cognition (Self) from th
    ```bash
    mkdir -p .agents/brain/project
    ```
-2. Move project-specific files into the `project/` directory (ignoring any that don't exist):
+2. Move project-specific files into the `project/` directory (ignoring any that don't exist; `activeContext.md` remains in the root as active Self working memory):
    ```bash
-   for file in projectBrief.md productContext.md activeContext.md systemPatterns.md techContext.md progress.md changelog.md; do
+   for file in projectBrief.md productContext.md systemPatterns.md techContext.md progress.md changelog.md; do
      if [ -f .agents/brain/$file ]; then
        git mv .agents/brain/$file .agents/brain/project/
      fi
@@ -44,7 +44,7 @@ find .agents/ -type f -name "*.md" -exec sed -i \
   -e 's|\.agents/memory-bank|.agents/brain|g' \
   -e 's|memory-bank/projectBrief.md|brain/project/projectBrief.md|g' \
   -e 's|memory-bank/productContext.md|brain/project/productContext.md|g' \
-  -e 's|memory-bank/activeContext.md|brain/project/activeContext.md|g' \
+  -e 's|memory-bank/activeContext.md|brain/activeContext.md|g' \
   -e 's|memory-bank/systemPatterns.md|brain/project/systemPatterns.md|g' \
   -e 's|memory-bank/techContext.md|brain/project/techContext.md|g' \
   -e 's|memory-bank/progress.md|brain/project/progress.md|g' \
