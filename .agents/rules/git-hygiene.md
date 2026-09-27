@@ -23,12 +23,27 @@ trigger: always_on
 - **NEVER Commit Local Machine Configs & API Credentials**:
   - `local.properties` (contains local machine Android SDK paths).
   - `.env`, `.env.*`, `google-services.json`, `secrets/**`.
+  - `.agents/TOOLS.md`, `.agents/*tools*`, `*.local.*` (contains machine filesystem paths, local IPs, and hardware serials).
+- **NEVER Commit Physical Hardware Identifiers**:
+  - Device serial numbers from `adb devices` (e.g. `FA6A40302394`), MAC addresses, or local network mesh IP mappings.
 - **NEVER Commit Build Outputs & Binaries**:
   - `build/`, `**/build/`, `*.apk`, `*.aab`, `*.apks`, `*.obb`, `*.dex`, `*.class`.
 - **NEVER Commit IDE Caches**:
   - `.idea/`, `.gradle/`, `.kotlin/`, `captures/`, `.externalNativeBuild/`, `.cxx/`.
 - **NEVER Commit Internal Agent Scratchpads & Visual Design Assets**:
   - `.agents/internal/`, `.agents/scratch/`, `**/scratch/**`. Always ensure these directories are declared in `.gitignore` and excluded from git staging.
+
+### Unpushed Rebase Scrub Protocol
+If local machine configurations, hardware serial numbers, or environment secrets are accidentally committed on a local branch:
+1. **Forensic Check**: Verify the commit has NEVER been pushed to remote (`git log origin/<branch>..HEAD`).
+2. **No Lazy Fixes**: Never use a trailing `git rm --cached` in a subsequent commit, which permanently preserves the sensitive identifier in the git log history.
+3. **Execute Rebase Scrub**:
+   - Back up the local file to a safe scratch directory outside git.
+   - Re-anchor the commit that introduced the leak, removing the file from git staging (`git rm -f <file>`) and staging its `.gitignore` rule.
+   - Replay/cherry-pick downstream commits cleanly.
+   - Restore the physical file so local tooling/device testing remains active without disruption.
+   - Verify with `git log origin/<branch>..HEAD -- <file>` returning empty.
+
 
 ## Destructive Operations — NEVER Without Explicit Confirmation
 - `git push --force` / `--force-with-lease`

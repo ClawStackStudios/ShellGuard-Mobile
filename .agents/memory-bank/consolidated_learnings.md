@@ -91,3 +91,18 @@
 **Pattern: Auto-Copy TOTP on Autofill Selection**
 - Upon autofilling a login with an active TOTP secret, automatically calculate the current 6-digit TOTP code and copy it to the Android clipboard with `ClipDescription.EXTRA_IS_SENSITIVE = true` and a 30-second coroutine scrub timer. This enables instantaneous 2-step verification paste on two-factor challenge screens without app switching.
 
+## Git & Environment Hygiene
+**Pattern: Hardware Identifier Opsec & Unpushed Rebase Scrub**
+- **Principle**: Physical device serial numbers (e.g. `adb devices` serials) and local machine filesystem paths must never leak into public git repositories.
+- **Protocol**:
+  - Keep machine-specific tooling in gitignored files (e.g. `.agents/TOOLS.md`, `local.properties`).
+  - If committed locally on an unpushed branch, do not rely on subsequent `git rm --cached` commits (which leaves the serial in git history).
+  - Use interactive rebase or clean branch re-anchoring to rewrite the introducing commit, add to `.gitignore`, and restore the physical file locally.
+- *Rationale*: Protects physical device identity and keeps the public git log pristine without losing local developer tooling.
+
+**Pattern: Compiled Documentation vs. Markdown Testing Exemption**
+- **Principle**: Differentiate between raw documentation prose and compiled user-facing documentation sites.
+- **Rule**: Standard markdown doc edits (`.md`, Memory Bank, specs) are exempt from Gradle build and test suites. Compiled documentation sites (VitePress/Docusaurus) require a mandatory build verification (`docs:build`) to catch broken page routes and component render errors.
+- *Rationale*: Eliminates 20-30s test execution tax on documentation while preventing broken links and syntax regressions on user-facing documentation websites.
+
+
