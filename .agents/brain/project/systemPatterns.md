@@ -55,8 +55,7 @@ UI (Compose) ──(UserIntent)──> ViewModel ──> UseCase ──> Reposit
   - 🎨 **Palette**: Android UI/UX & Design Specialist (Reef Modernist styling, flat Material 3 carapace, 6 theme accents, soft keyboard `.imePadding()` defense, 3-pane tablet ergonomics).
   - 🛡️ **Sentinel**: Android Zero-Knowledge Security Specialist (HKDF + AES-GCM across 10 AAD namespaces, KeyStore hardware biometric binding, atomic session validity, CWE-359 clipboard/IME defenses, SQLCipher at rest).
   - 📘 **Scribe**: Android Documentation & Memory Cartographer (Code-derived architectural blueprints, runnable Gradle/ADB commands, release notes, Play Store listings, Brain synchronization).
-- **Dynamic Interaction Topologies**: Orchestrator dynamically deploys sub-agents using Bundled, Chain, Staggered, or Hybrid topologies with strict context compression (Rule of 6: ≤ 6 lines per context window) and conflict resolution hierarchy (`Security >>> Performance/Correctness >>> Aesthetic`).
-- **Documentation Testing & Build Exemption**: Markdown doc files are excluded from requiring a build or test run (**NO TESTING REQUIRED**). Test **ONLY** when editing application files (Kotlin, XML, Gradle), or after stages/strokes of work. *Exception: VitePress docs are compiled user-facing sites and DO require a build verification (`docs:build`) after edits.*
+- **Documentation Testing & Build Exemption**: Markdown doc files are excluded from requiring a build or test run (**NO TESTING REQUIRED**). Test **ONLY** when editing application files (Kotlin, XML, Gradle), or after stages/strokes of work.
 
 
 - **Agent Cognitive Architecture**: 

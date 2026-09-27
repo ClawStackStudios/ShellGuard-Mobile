@@ -14,12 +14,9 @@ The agent acts as an active cartographer of the project's development lifecycle.
 ### 1. Task Completion Gate (Verified → Commit Check)
 - **When to Trigger**: Immediately after a task's code changes are implemented and verified, or after documentation updates are prepared.
   - **Markdown Documentation Exemption**: Markdown doc files are excluded from requiring a build or test run. If editing documentation, **NO TESTING** is required. Test **ONLY** when editing application files (Kotlin, XML, Gradle), or after stages/strokes of work.
-  - **VitePress Docs Exception**: VitePress docs are excluded from this exemption and require a build if edited since these are user-facing docs.
 - **Agent Action**:
   - *For Application Code*: Ask the user:
     > *"All tests are passing 100% green. Should I commit these changes now under our two-layer attribution format, or are you still reviewing / experimenting locally?"*
-  - *For VitePress Docs*: Ask the user:
-    > *"VitePress docs build verified cleanly. Should I commit these changes now under our two-layer attribution format, or are you still reviewing / experimenting locally?"*
   - *For Markdown Docs Only*: Ask the user:
     > *"Documentation updates are verified and in place (build/testing exempt). Should I commit these changes now under our two-layer attribution format, or are you still reviewing / experimenting locally?"*
 

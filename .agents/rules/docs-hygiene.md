@@ -18,7 +18,7 @@ You MUST proactively update the corresponding `.agents/brain/` files or `project
 - Preserve existing comments that explain *why* code exists, unless the *why* has fundamentally changed.
 
 ## 4. The "Same Commit" Mandate
-- **Testing & Build Exemption**: Markdown doc files are excluded from requiring a build or test run (**NO TESTING** is required). Test **ONLY** when editing application files, or after stages/strokes of work. *Exception: VitePress docs are excluded from this exemption and require a build if edited since these are user-facing docs.*
+- **Testing & Build Exemption**: Markdown doc files are excluded from requiring a build or test run (**NO TESTING** is required). Test **ONLY** when editing application files, or after stages/strokes of work.
 
 ## 5. Release Documentation & Template Protocol
 When preparing a version increment, phase completion, or release, you MUST execute the `.agents/workflows/walk-the-docs.md` workflow to systematically verify that the documentation bows to the code with structural precision.

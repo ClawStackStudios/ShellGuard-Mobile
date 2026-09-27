@@ -55,7 +55,7 @@ If local machine configurations, hardware serial numbers, or environment secrets
 ## Android Pre-Commit Verification Gate
 - Run unit and UI tests before committing: `./gradlew testDebugUnitTest`.
 - Ensure clean build verification: `./gradlew assembleDebug`.
-- **Documentation Exemption**: Markdown doc files are excluded from requiring a build or test run (**NO TESTING** is required). Test **ONLY** when editing application files (Kotlin, XML, Gradle), or after stages/strokes of work. *Exception: VitePress docs are excluded from this exemption and require a build if edited since these are user-facing docs.*
+- **Documentation Exemption**: Markdown doc files are excluded from requiring a build or test run (**NO TESTING** is required). Test **ONLY** when editing application files (Kotlin, XML, Gradle), or after stages/strokes of work.
 
 ## Attribution & Commit Message Format
 - Commit under the human's configured identity (`git config user.name` / `user.email`). No separate agent identity, no AI co-author line.
