@@ -37,8 +37,16 @@ class AutofillStructureParserTest {
         val fields = ParsedAutofillFields()
         fields.webDomain = "accounts.google.com"
         fields.packageName = "com.android.chrome"
+        fields.isFromWebView = true
 
         assertEquals("accounts.google.com", fields.webDomain)
         assertEquals("com.android.chrome", fields.packageName)
+        assertEquals(true, fields.isFromWebView)
+    }
+
+    @Test
+    fun testParsedAutofillFields_defaultWebViewStateIsFalse() {
+        val fields = ParsedAutofillFields()
+        assertEquals(false, fields.isFromWebView)
     }
 }

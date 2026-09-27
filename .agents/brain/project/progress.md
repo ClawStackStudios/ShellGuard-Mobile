@@ -100,6 +100,8 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
   - Implemented `ShellGuardAutofillService` extending `AutofillService` with `BIND_AUTOFILL_SERVICE` and configuration XML.
   - Implemented `AutofillAuthActivity` transparent biometric gate with `BiometricPrompt` and PIN fallback.
   - Implemented Bitwarden-parity TOTP auto-copy to sensitive clipboard with 30s background scrubbing timer.
+  - **Phase 5.1 Smoothing**: `AutofillManagerHelper` (OS support & enabled state checks, direct `Settings.ACTION_REQUEST_SET_AUTOFILL_SERVICE` deep-link) and `AutofillSettingsDialog` with lifecycle `ON_RESUME` status refresh, accessible via dashboard overflow menu.
+  - **Phase 5.2 Hardening & AutoSpill Defense**: Web domain hierarchy propagation in `AutofillStructureParser` isolating WebView forms from hostile native wrappers; responsive `CancellationSignal` checks preventing ANRs/battery waste; defensive `SaveInfo` generation for credential capture.
   - Full test suite passing 100% green (`DomainMatcherTest`, `AutofillStructureParserTest`) and `assembleDebug` APK compilation verified.
 
 ## What's Left to Build (Phase 6)

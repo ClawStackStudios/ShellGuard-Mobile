@@ -150,10 +150,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **KeyStore Biometric Lifecycle**: Background auto-lock timeout and hardware biometric authentication challenge.
   - **Splash Theme Parity**: Pre-`super.onCreate()` splash install and ActionBar suppression.
 
-## [Unreleased] - Phase 5
+## [Unreleased] - Phase 5, 5.1 & 5.2
 
 ### Added
-- **System Autofill Framework & Architecture**:
+- **System Autofill Framework & Architecture (Phase 5)**:
   - `ShellGuardAutofillService`: System-level AutofillService binding `android.permission.BIND_AUTOFILL_SERVICE` and configuration XML.
   - `AutofillStructureParser`: Resilient 4-tier ranked heuristic parsing of `AssistStructure` with 64-level recursion depth protection.
   - `DomainMatcher` & `UriMatchMode`: eTLD+1 multi-part ccTLD extraction, automatic IP/port home lab isolation, and `androidapp://` package support.
@@ -161,3 +161,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - RemoteViews dropdown suggestions (`autofill_suggestion_item.xml`) and Android 11+ keyboard inline helper (`AutofillInlineHelper.kt`).
   - Bitwarden-parity TOTP auto-copy to sensitive clipboard with 30s background scrubbing timer.
   - Test suites: `DomainMatcherTest` and `AutofillStructureParserTest`.
+- **Autofill System Settings Guidance & Smoothing (Phase 5.1)**:
+  - `AutofillManagerHelper`: OS-level status queries (`hasEnabledAutofillServices()`) and one-tap deep-link intent generation (`Settings.ACTION_REQUEST_SET_AUTOFILL_SERVICE`).
+  - `AutofillSettingsDialog`: Reef Modernist dialog with real-time provider status banner and lifecycle observer (`ON_RESUME`) for instant re-checks.
+  - Integrated Autofill Settings trigger into `VaultDashboardScreen` top overflow menu.
+- **Autofill Security Hardening & AutoSpill Defense (Phase 5.2)**:
+  - AutoSpill Defense in `AutofillStructureParser`: Web domain context isolation preventing credential spill from embedded WebViews into hostile native host fields.
+  - Multi-stage `CancellationSignal.isCanceled` evaluations across async coroutine boundaries in `ShellGuardAutofillService`.
+  - Configured defensive `SaveInfo` generation (`SAVE_DATA_TYPE_PASSWORD`) enabling native form saving prompts on login/registration.
+  - Expanded unit tests in `AutofillStructureParserTest` verifying WebView state tracking.

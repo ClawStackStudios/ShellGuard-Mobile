@@ -114,10 +114,16 @@ object DomainMatcher {
         if (vUrl.isBlank() || rTarget.isBlank()) return false
 
         // Check for Android App Package matching (e.g. androidapp://com.github.android)
-        if (vUrl.startsWith("androidapp://") || rTarget.startsWith("androidapp://")) {
-            val vPkg = vUrl.removePrefix("androidapp://").trimEnd('/')
-            val rPkg = rTarget.removePrefix("androidapp://").trimEnd('/')
-            return vPkg.equals(rPkg, ignoreCase = true)
+        val vIsApp = vUrl.startsWith("androidapp://")
+        val rIsApp = rTarget.startsWith("androidapp://")
+        if (vIsApp || rIsApp) {
+            if (vIsApp && rIsApp) {
+                val vPkg = vUrl.removePrefix("androidapp://").trimEnd('/')
+                val rPkg = rTarget.removePrefix("androidapp://").trimEnd('/')
+                return vPkg.equals(rPkg, ignoreCase = true)
+            }
+            // One is an Android app and the other is a web URL - strictly reject cross-matching
+            return false
         }
 
         val requestedHost = getHost(rTarget)

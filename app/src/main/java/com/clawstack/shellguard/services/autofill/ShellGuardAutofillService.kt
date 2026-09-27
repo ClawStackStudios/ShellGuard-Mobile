@@ -6,6 +6,7 @@ import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.CancellationSignal
 import android.os.Handler
@@ -16,6 +17,7 @@ import android.service.autofill.FillCallback
 import android.service.autofill.FillRequest
 import android.service.autofill.FillResponse
 import android.service.autofill.SaveCallback
+import android.service.autofill.SaveInfo
 import android.service.autofill.SaveRequest
 import android.util.Log
 import android.view.autofill.AutofillValue
@@ -95,22 +97,43 @@ class ShellGuardAutofillService : AutofillService() {
             }
 
             val allPearls = database.vaultPearlDao().getAllActivePearls(ownerUuid)
+            if (cancellationSignal.isCanceled) return@launch
+
             val matchedPearls = allPearls.filter { pearl ->
                 val primaryMatch = pearl.url.isNotBlank() && DomainMatcher.isMatch(pearl.url, target)
                 val packageMatch = targetPackage != null && DomainMatcher.isMatch(pearl.url, "androidapp://$targetPackage")
                 primaryMatch || packageMatch
             }.take(5) // Limit to top 5 candidates
 
+            if (cancellationSignal.isCanceled) return@launch
+
+            val responseBuilder = FillResponse.Builder()
+            val packageName = applicationContext.packageName
+
+            // Configure defensive SaveInfo for password/username saving when passwordId is present
+            parsedFields.passwordId?.let { passId ->
+                val saveType = SaveInfo.SAVE_DATA_TYPE_PASSWORD
+                val requiredIds = arrayOf(passId)
+                val saveInfoBuilder = SaveInfo.Builder(saveType, requiredIds)
+                parsedFields.usernameId?.let { userId ->
+                    saveInfoBuilder.setOptionalIds(arrayOf(userId))
+                }
+                responseBuilder.setSaveInfo(saveInfoBuilder.build())
+            }
+
             if (matchedPearls.isEmpty()) {
-                callback.onSuccess(null)
+                // If fields were detected but no stored pearls matched, provide the SaveInfo
+                // response so the user can save newly created credentials after login/registration.
+                if (parsedFields.passwordId != null) {
+                    callback.onSuccess(responseBuilder.build())
+                } else {
+                    callback.onSuccess(null)
+                }
                 return@launch
             }
 
             val shellKey = deviceVault.getInMemoryShellKey()
             val isVaultLocked = (shellKey == null)
-
-            val responseBuilder = FillResponse.Builder()
-            val packageName = applicationContext.packageName
 
             val inlineRequest = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 request.inlineSuggestionsRequest
@@ -140,6 +163,7 @@ class ShellGuardAutofillService : AutofillService() {
                 // If vault is locked or Claw Re-Prompt is enabled, wrap with authentication
                 if (isVaultLocked || pearl.reprompt) {
                     val authIntent = Intent(applicationContext, AutofillAuthActivity::class.java).apply {
+                        data = Uri.parse("shellguard://autofill/pearl/${pearl.id}")
                         putExtra(AutofillAuthActivity.EXTRA_PEARL_ID, pearl.id)
                         putExtra(AutofillAuthActivity.EXTRA_USERNAME_ID, parsedFields.usernameId)
                         putExtra(AutofillAuthActivity.EXTRA_PASSWORD_ID, parsedFields.passwordId)
@@ -148,12 +172,12 @@ class ShellGuardAutofillService : AutofillService() {
                         applicationContext,
                         pearl.id.hashCode(),
                         authIntent,
-                        PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                     ).intentSender
 
                     datasetBuilder.setAuthentication(intentSender)
                 } else {
-                    // Decrypt credentials directly in memory
+                    // Decrypt credentials directly in memory (Fail CLOSED on decryption error)
                     val decryptedPassword = try {
                         cryptoEngine.decryptField(
                             pearl.secret,
@@ -161,7 +185,13 @@ class ShellGuardAutofillService : AutofillService() {
                             ShellCryptionEngine.AadNamespace.pearlSecret(pearl.id)
                         )
                     } catch (e: Exception) {
-                        pearl.secret
+                        Log.e("AutofillService", "Decryption failed for pearl ${pearl.id}; failing closed", e)
+                        null
+                    }
+
+                    if (decryptedPassword == null) {
+                        // Fail closed: Do NOT emit raw ciphertext to third-party forms
+                        continue
                     }
 
                     // Auto-copy TOTP if present (Bitwarden parity)

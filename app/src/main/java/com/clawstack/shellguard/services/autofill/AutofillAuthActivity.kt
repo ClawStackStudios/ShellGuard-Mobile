@@ -161,8 +161,16 @@ class AutofillAuthActivity : FragmentActivity() {
                         ShellCryptionEngine.AadNamespace.pearlSecret(pearlId)
                     )
                 } catch (e: Exception) {
-                    pearl.secret
+                    Log.e("AutofillAuthActivity", "Decryption failed for pearl $pearlId; failing closed", e)
+                    null
                 }
+            }
+
+            if (decryptedPassword == null) {
+                // Fail CLOSED: Do NOT emit raw ciphertext into user form
+                setResult(Activity.RESULT_CANCELED)
+                finish()
+                return@launch
             }
 
             // Bitwarden Parity: Auto-Copy TOTP to Sensitive Clipboard if present

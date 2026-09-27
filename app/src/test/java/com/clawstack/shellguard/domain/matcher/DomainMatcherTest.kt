@@ -65,6 +65,18 @@ class DomainMatcherTest {
     }
 
     @Test
+    fun testPackageMatching_rejectsAsymmetricCrossMatching() {
+        // Adversarial vector: An app target trying to match a web vault item
+        val webVaultUrl = "https://example.com"
+        val spoofedAppTarget = "androidapp://https://example.com"
+        val legitimateAppTarget = "androidapp://com.example.app"
+
+        assertFalse(DomainMatcher.isMatch(webVaultUrl, spoofedAppTarget))
+        assertFalse(DomainMatcher.isMatch(webVaultUrl, legitimateAppTarget))
+        assertFalse(DomainMatcher.isMatch("androidapp://com.example.app", "https://example.com"))
+    }
+
+    @Test
     fun testMatchMode_never() {
         val vaultUrl = "https://secure.bank.com"
         val reqUrl = "https://secure.bank.com/login"

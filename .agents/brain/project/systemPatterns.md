@@ -37,7 +37,10 @@ UI (Compose) ──(UserIntent)──> ViewModel ──> UseCase ──> Reposit
 
 ## Autofill & System Integration Patterns
 - **Configurable URI Match Detection (`UriMatchMode`)**: 5 matching algorithms (`BASE_DOMAIN`, `HOST`, `EXACT`, `STARTS_WITH`, `NEVER`) supporting multi-tenant subdomains and exact port matching for local home labs.
+- **AutoSpill & WebView Isolation Defense**: When parsing `AssistStructure`, web domain context is propagated down the node hierarchy. Credential fields inside a WebView are strictly quarantined; native host fields are prohibited from binding web credentials, mitigating CWE-200 / CWE-1021 exfiltration attacks.
 - **Android 11+ Inline Presentation**: Supports keyboard suggestion chips above Gboard/SwiftKey via `InlineSuggestionsRequest` alongside standard popup dropdowns.
+- **Lifecycle & Cancellation Invariants**: All database queries and cryptographic derivations in `AutofillService` run on `Dispatchers.IO` and continuously evaluate `cancellationSignal.isCanceled` to prevent ANRs and orphan processing.
+- **Defensive SaveInfo Form Intake**: Login and registration forms emit `SaveInfo` targeting explicit username and password IDs without leaking presentation labels.
 - **Quick Settings Tile**: `TileService` for instant search and password generation from the notifications shade.
 - **Glance AppWidgets**: Modern Jetpack Compose Glance 2x2 and 4x2 widgets for pinned logins and live TOTP codes.
 

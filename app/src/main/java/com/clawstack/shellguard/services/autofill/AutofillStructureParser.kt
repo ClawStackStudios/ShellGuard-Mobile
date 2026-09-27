@@ -12,7 +12,8 @@ data class ParsedAutofillFields(
     var usernameId: AutofillId? = null,
     var passwordId: AutofillId? = null,
     var webDomain: String? = null,
-    var packageName: String? = null
+    var packageName: String? = null,
+    var isFromWebView: Boolean = false
 )
 
 /**
@@ -25,8 +26,10 @@ data class ParsedAutofillFields(
  * 3. Android Input Type Variations (TYPE_TEXT_VARIATION_PASSWORD, etc.)
  * 4. Resource ID, Hint & Content Description Heuristics
  *
- * Enforces a maximum recursion depth limit (64) to prevent StackOverflowError
- * on deeply nested web DOMs.
+ * Enforces:
+ * - A maximum recursion depth limit (64) to prevent StackOverflowError on deeply nested DOMs.
+ * - AutoSpill Defense: When webDomain is discovered inside a WebView/HTML branch, credentials
+ *   are strictly bound to that web branch and cannot be spilled or mixed into outer native host fields.
  */
 @RequiresApi(Build.VERSION_CODES.O)
 object AutofillStructureParser {
@@ -39,7 +42,7 @@ object AutofillStructureParser {
 
         for (i in 0 until nodeCount) {
             val windowNode = structure.getWindowNodeAt(i)
-            traverseNode(windowNode.rootViewNode, result, 0)
+            traverseNode(windowNode.rootViewNode, result, 0, activeWebDomain = null)
         }
 
         return result
@@ -48,16 +51,16 @@ object AutofillStructureParser {
     private fun traverseNode(
         node: AssistStructure.ViewNode?,
         result: ParsedAutofillFields,
-        depth: Int
+        depth: Int,
+        activeWebDomain: String?
     ) {
         if (node == null || depth > MAX_DEPTH) return
         if (node.visibility != View.VISIBLE) return
 
-        // Extract target web domain from browser view node
-        node.webDomain?.let { domain ->
-            if (result.webDomain == null && domain.isNotBlank()) {
-                result.webDomain = domain
-            }
+        // Check if this node or an ancestor defines a webDomain (WebView or browser tab)
+        val currentWebDomain = node.webDomain?.ifBlank { null } ?: activeWebDomain
+        if (currentWebDomain != null && result.webDomain == null) {
+            result.webDomain = currentWebDomain
         }
 
         // Extract package name from view node
@@ -68,80 +71,106 @@ object AutofillStructureParser {
         }
 
         val autofillId = node.autofillId
+        val isWebNode = (currentWebDomain != null || node.htmlInfo != null)
 
         if (autofillId != null) {
-            // Rank 1: Standard Android Autofill Hints
-            val hints = node.autofillHints
-            if (hints != null) {
-                for (hint in hints) {
-                    when (hint.lowercase(Locale.ROOT)) {
-                        View.AUTOFILL_HINT_USERNAME,
-                        View.AUTOFILL_HINT_EMAIL_ADDRESS,
-                        "email",
-                        "username" -> {
-                            if (result.usernameId == null) result.usernameId = autofillId
-                        }
-                        View.AUTOFILL_HINT_PASSWORD,
-                        "password",
-                        "current-password",
-                        "new-password" -> {
-                            if (result.passwordId == null) result.passwordId = autofillId
-                        }
-                    }
-                }
+            // AutoSpill Defense: If we have identified a web domain context (WebView or browser),
+            // ONLY accept credential fields that originate from this web hierarchy.
+            // Reject native host input fields that could be attempting to harvest web credentials.
+            val allowBinding = if (result.webDomain != null) {
+                isWebNode
+            } else {
+                true
             }
 
-            // Rank 2: HTML Info Attributes (for browsers and WebViews)
-            val htmlInfo = node.htmlInfo
-            if (htmlInfo != null) {
-                val tag = htmlInfo.tag?.lowercase(Locale.ROOT)
-                if (tag == "input") {
-                    val attributes = htmlInfo.attributes
-                    if (attributes != null) {
-                        for (pair in attributes) {
-                            val attrName = pair.first.lowercase(Locale.ROOT)
-                            val attrVal = pair.second.lowercase(Locale.ROOT)
-
-                            if (attrName == "type" && (attrVal == "password")) {
-                                if (result.passwordId == null) result.passwordId = autofillId
-                            } else if (attrName == "autocomplete") {
-                                if (attrVal.contains("password") && result.passwordId == null) {
-                                    result.passwordId = autofillId
-                                } else if ((attrVal.contains("username") || attrVal.contains("email")) && result.usernameId == null) {
+            if (allowBinding) {
+                // Rank 1: Standard Android Autofill Hints
+                val hints = node.autofillHints
+                if (hints != null) {
+                    for (hint in hints) {
+                        when (hint.lowercase(Locale.ROOT)) {
+                            View.AUTOFILL_HINT_USERNAME,
+                            View.AUTOFILL_HINT_EMAIL_ADDRESS,
+                            "email",
+                            "username" -> {
+                                if (result.usernameId == null) {
                                     result.usernameId = autofillId
+                                    if (isWebNode) result.isFromWebView = true
+                                }
+                            }
+                            View.AUTOFILL_HINT_PASSWORD,
+                            "password",
+                            "current-password",
+                            "new-password" -> {
+                                if (result.passwordId == null) {
+                                    result.passwordId = autofillId
+                                    if (isWebNode) result.isFromWebView = true
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            // Rank 3: Android Input Type Variations
-            val inputType = node.inputType
-            val isPasswordType = (inputType and InputType.TYPE_MASK_VARIATION) == InputType.TYPE_TEXT_VARIATION_PASSWORD ||
-                    (inputType and InputType.TYPE_MASK_VARIATION) == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD ||
-                    (inputType and InputType.TYPE_MASK_VARIATION) == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                // Rank 2: HTML Info Attributes (for browsers and WebViews)
+                val htmlInfo = node.htmlInfo
+                if (htmlInfo != null) {
+                    val tag = htmlInfo.tag?.lowercase(Locale.ROOT)
+                    if (tag == "input") {
+                        val attributes = htmlInfo.attributes
+                        if (attributes != null) {
+                            for (pair in attributes) {
+                                val attrName = pair.first.lowercase(Locale.ROOT)
+                                val attrVal = pair.second.lowercase(Locale.ROOT)
 
-            if (isPasswordType && result.passwordId == null) {
-                result.passwordId = autofillId
-            }
+                                if (attrName == "type" && (attrVal == "password")) {
+                                    if (result.passwordId == null) {
+                                        result.passwordId = autofillId
+                                        result.isFromWebView = true
+                                    }
+                                } else if (attrName == "autocomplete") {
+                                    if (attrVal.contains("password") && result.passwordId == null) {
+                                        result.passwordId = autofillId
+                                        result.isFromWebView = true
+                                    } else if ((attrVal.contains("username") || attrVal.contains("email")) && result.usernameId == null) {
+                                        result.usernameId = autofillId
+                                        result.isFromWebView = true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
 
-            // Rank 4: Heuristic Matching on View ID, Hint, or Content Description
-            val idEntry = node.idEntry?.lowercase(Locale.ROOT) ?: ""
-            val hintText = node.hint?.toString()?.lowercase(Locale.ROOT) ?: ""
-            val contentDesc = node.contentDescription?.toString()?.lowercase(Locale.ROOT) ?: ""
+                // Rank 3: Android Input Type Variations
+                val inputType = node.inputType
+                val isPasswordType = (inputType and InputType.TYPE_MASK_VARIATION) == InputType.TYPE_TEXT_VARIATION_PASSWORD ||
+                        (inputType and InputType.TYPE_MASK_VARIATION) == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD ||
+                        (inputType and InputType.TYPE_MASK_VARIATION) == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
 
-            if (result.passwordId == null && isPasswordHeuristic(idEntry, hintText, contentDesc)) {
-                result.passwordId = autofillId
-            } else if (result.usernameId == null && isUsernameHeuristic(idEntry, hintText, contentDesc)) {
-                result.usernameId = autofillId
+                if (isPasswordType && result.passwordId == null) {
+                    result.passwordId = autofillId
+                    if (isWebNode) result.isFromWebView = true
+                }
+
+                // Rank 4: Heuristic Matching on View ID, Hint, or Content Description
+                val idEntry = node.idEntry?.lowercase(Locale.ROOT) ?: ""
+                val hintText = node.hint?.toString()?.lowercase(Locale.ROOT) ?: ""
+                val contentDesc = node.contentDescription?.toString()?.lowercase(Locale.ROOT) ?: ""
+
+                if (result.passwordId == null && isPasswordHeuristic(idEntry, hintText, contentDesc)) {
+                    result.passwordId = autofillId
+                    if (isWebNode) result.isFromWebView = true
+                } else if (result.usernameId == null && isUsernameHeuristic(idEntry, hintText, contentDesc)) {
+                    result.usernameId = autofillId
+                    if (isWebNode) result.isFromWebView = true
+                }
             }
         }
 
-        // Recursively traverse child nodes
+        // Recursively traverse child nodes with activeWebDomain context
         val childCount = node.childCount
         for (i in 0 until childCount) {
-            traverseNode(node.getChildAt(i), result, depth + 1)
+            traverseNode(node.getChildAt(i), result, depth + 1, currentWebDomain)
         }
     }
 
