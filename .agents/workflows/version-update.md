@@ -51,11 +51,11 @@ Update all version anchors across the codebase:
 
 ---
 
-## 🧠 Step 4: Memory Bank & Active Context Sync
+## 🧠 Step 4: Brain & Active Context Sync
 
-1. Update `.agents/memory-bank/project/activeContext.md`:
+1. Update `.agents/brain/project/activeContext.md`:
    - Slide recent changes window (maintain top 10).
-2. Update `.agents/memory-bank/raw_reflection_log.md`:
+2. Update `.agents/brain/raw_reflection_log.md`:
    - Record version update details and verification results per continuous improvement protocol.
 
 ---
@@ -64,7 +64,7 @@ Update all version anchors across the codebase:
 
 1. **Stage Modified Files:**
    ```bash
-   git add app/build.gradle.kts README.md .agents/memory-bank/project/changelog.md RELEASE-PLAY.md [RELEASE-vX.Y.Z.N.md]
+   git add app/build.gradle.kts README.md .agents/brain/project/changelog.md RELEASE-PLAY.md [RELEASE-vX.Y.Z.N.md]
    ```
 
 2. **Commit using Two-Layer Attribution:**

@@ -1,9 +1,9 @@
 ---
-description: Sync the temporal Memory Bank with the current state of the project and check the long-term promotion gate.
+description: Sync the temporal Brain with the current state of the project and check the long-term promotion gate.
 ---
 
 <memory>
-The user invoked /memory to sync the temporal Memory Bank with the
+The user invoked /memory to sync the temporal Brain with the
 current state of the project and check the long-term promotion gate.
 Produces a Memory Report artifact for user review.
 
@@ -28,19 +28,19 @@ This is the save point. Quick, factual, no ceremony.
 
 ## Prerequisites
 
-- `memory-bank/` must exist with at least `activeContext.md`
+- `brain/` must exist with at least `activeContext.md`
 - `navigation-log.md` must exist
-- `.agents/memory-bank/long-term/` must exist (or be creatable)
+- `.agents/brain/long-term/` must exist (or be creatable)
 
-If the bank doesn't exist, respond: "No memory bank found. Run the
-temporal memory bank setup first." and exit.
+If the bank doesn't exist, respond: "No brain found. Run the
+temporal brain setup first." and exit.
 
 ## Phase 1: Ingest
 
 Read:
-- All files in `memory-bank/`
+- All files in `brain/` and `brain/project/`
 - `navigation-log.md`
-- `.agents/memory-bank/long-term/` (all four files)
+- `.agents/brain/long-term/` (all four files)
 - The current session's conversation (for what just happened)
 
 ## Phase 2: Identify Updates
@@ -49,13 +49,13 @@ For each temporal bank file, determine what needs updating:
 
 | File | Update trigger |
 |---|---|
-| `activeContext.md` | Current state changed (new decisions, phase shifts, active work items) |
-| `progress.md` | Phase or milestone status changed |
-| `changelog.md` | New changes since last entry |
-| `systemPatterns.md` | New pattern observed or existing pattern refined |
-| `techContext.md` | Stack, tooling, or environment changed |
-| `productContext.md` | Product decisions or constraints changed |
-| `projectbrief.md` | Project scope or goals shifted |
+| `project/activeContext.md` | Current state changed (new decisions, phase shifts, active work items) |
+| `project/progress.md` | Phase or milestone status changed |
+| `project/changelog.md` | New changes since last entry |
+| `project/systemPatterns.md` | New pattern observed or existing pattern refined |
+| `project/techContext.md` | Stack, tooling, or environment changed |
+| `project/productContext.md` | Product decisions or constraints changed |
+| `project/projectBrief.md` | Project scope or goals shifted |
 
 For each file that needs an update, draft the specific edit
 (add / refine / supersede). Keep edits minimal — only what

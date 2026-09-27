@@ -26,10 +26,10 @@ Adhere to the `docs-hygiene.md` rule.
 1. Update `attractorBeacon.md`, `systemPatterns.md`, or component READMEs if the architecture or state model changed.
 2. Update `CHANGELOG.md` under the `## [Unreleased]` header with a descriptive summary of your changes.
 
-## 🧠 Step 3: Memory Bank Consolidation
+## 🧠 Step 3: Brain Consolidation
 Adhere to the `continuous-improvement.md` rule.
-1. Open `.agents/memory-bank/project/activeContext.md` and slide the "Recent Changes" window to include a summary of this task, keeping only the 10 most recent entries.
-2. Log any significant new learnings, patterns, or resolved roadblocks into `.agents/memory-bank/raw_reflection_log.md`.
+1. Open `.agents/brain/project/activeContext.md` and slide the "Recent Changes" window to include a summary of this task, keeping only the 10 most recent entries.
+2. Log any significant new learnings, patterns, or resolved roadblocks into `.agents/brain/raw_reflection_log.md`.
 
 ## 📦 Step 4: Git Hygiene & Merge
 Adhere to the `git-hygiene.md` rule.

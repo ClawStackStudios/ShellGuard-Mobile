@@ -1,10 +1,10 @@
 ---
-description: Integrate unwoven learnings from the Dream Log back into the active temporal Memory Bank.
+description: Integrate unwoven learnings from the Dream Log back into the active temporal Brain.
 ---
 
 <wake>
 The user invoked /wake to integrate unwoven learnings from the Dream
-Log back into the active temporal Memory Bank. The wake reads
+Log back into the active temporal Brain. The wake reads
 `dreamLearnings.md`, identifies entries that have not yet been woven
 into the temporal corpus, proposes specific edits to the appropriate
 temporal bank files, and produces a Wake Report artifact for user
@@ -28,9 +28,9 @@ better baseline.
 
 ## Prerequisites
 
-- `memory-bank/dreamLearnings.md` must exist and contain at least one
+- `brain/dreamLearnings.md` must exist and contain at least one
   entry that is NOT marked `woven: true`.
-- `memory-bank/` with `activeContext.md` and at least one other file.
+- `brain/` with `activeContext.md` and at least one other file.
 
 If no unwoven entries exist, respond: "Nothing to weave. All dream
 learnings are already integrated." and exit.
@@ -38,14 +38,14 @@ learnings are already integrated." and exit.
 ## Phase 1: Ingest
 
 Read:
-- `memory-bank/dreamLearnings.md` — identify all entries WITHOUT
+- `brain/dreamLearnings.md` — identify all entries WITHOUT
   `woven: true`
-- `memory-bank/project/activeContext.md`
-- `memory-bank/project/systemPatterns.md` (if exists)
-- `memory-bank/project/progress.md`
-- `memory-bank/project/techContext.md` (if exists)
-- `memory-bank/project/productContext.md` (if exists)
-- `.agents/memory-bank/long-term/` (all four files) — to avoid
+- `brain/project/activeContext.md`
+- `brain/project/systemPatterns.md` (if exists)
+- `brain/project/progress.md`
+- `brain/project/techContext.md` (if exists)
+- `brain/project/productContext.md` (if exists)
+- `.agents/brain/long-term/` (all four files) — to avoid
   proposing edits that duplicate already-ratified content
 
 Build a model of the current temporal state and what's already

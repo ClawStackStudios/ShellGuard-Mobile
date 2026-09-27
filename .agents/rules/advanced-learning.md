@@ -1,6 +1,6 @@
 ---
 trigger: always_on
-globs: memory-bank/**/*.md
+globs: brain/**/*.md
 ---
 
 # Continuous Advanced Learning Companion
@@ -40,7 +40,7 @@ This companion module enhances the existing continuous learning system with soph
 
 **MUST** create and maintain enhanced learning structures:
 
-### `memory-bank/advanced-learning/predictive-patterns.md`
+### `brain/advanced-learning/predictive-patterns.md`
 
 
 ## Predictive Pattern Library
@@ -58,7 +58,7 @@ This companion module enhances the existing continuous learning system with soph
 - **Common Principle**: Consistent error handling and response structure
 - **Transferable Insights**: Validation patterns, response formatting
 
-### `memory-bank/advanced-learning/knowledge-synthesis.md`
+### `brain/advanced-learning/knowledge-synthesis.md`
 
 ## Cross-Domain Knowledge Synthesis
 
@@ -76,7 +76,7 @@ This companion module enhances the existing continuous learning system with soph
 - **Current State**: Pyramid testing approach optimal
 - **Next Evolution**: AI-assisted test generation emerging
 
-### `memory-bank/advanced-learning/meta-learning.md`
+### `brain/advanced-learning/meta-learning.md`
 ## Meta-Learning Optimization
 
 ### Learning Process Improvements
@@ -103,8 +103,8 @@ This companion module enhances the existing continuous learning system with soph
 4. **Predictive Modeling**: Identify likely future learning needs
 5. **Meta-Learning Update**: Refine learning strategies based on effectiveness
 
-### Integration with Memory Bank
-**SHOULD** enhance existing memory bank files: 
+### Integration with Brain
+**SHOULD** enhance existing brain files: 
 
 - **Enhanced `consolidated_learnings.md`**: Add predictive insights and cross-references
 - **Extended `activeContext.md`**: Include learning progress and anticipated needs
@@ -173,7 +173,7 @@ This companion module enhances the existing continuous learning system with soph
 
 ### Integration Points
 **SHOULD** seamlessly integrate with:
-- **Memory Bank System**: Enhance existing files with advanced insights
+- **Brain System**: Enhance existing files with advanced insights
 - **Continuous Improvement Protocol**: Extend standard consolidation process
 - **Task Handoff System**: Include learning state in handoff packages
 - **Rule Ecosystem**: Use learning insights to improve other rules
@@ -198,4 +198,4 @@ This companion module enhances the existing continuous learning system with soph
 
 ## Notes
 
-This continuous advanced learning companion builds on the existing continuous improvement protocol while adding sophisticated predictive analytics and cross-domain synthesis capabilities. The module follows established behavioral rule patterns and integrates seamlessly with the memory bank system to create a comprehensive learning ecosystem that evolves and optimizes itself over time.
+This continuous advanced learning companion builds on the existing continuous improvement protocol while adding sophisticated predictive analytics and cross-domain synthesis capabilities. The module follows established behavioral rule patterns and integrates seamlessly with the brain system to create a comprehensive learning ecosystem that evolves and optimizes itself over time.

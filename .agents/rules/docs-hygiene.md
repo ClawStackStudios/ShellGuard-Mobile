@@ -7,7 +7,7 @@
 - "I will update the docs later" is treated as an incomplete task.
 
 ## 2. Trigger Conditions
-You MUST proactively update the corresponding `.agents/memory-bank/` files or `project/` specs when:
+You MUST proactively update the corresponding `.agents/brain/` files or `project/` specs when:
 - **State Model Changes:** If you alter how data flows, where it is stored, or how MVI state models (ViewModel `StateFlow`, Room DAOs, or KeyStore vaults) are structured, you must update `systemPatterns.md` and/or `project/room-storage-schema.md`.
 - **API/Endpoint Changes:** If a server route's payload or response shape changes, update `routes-and-contracts.md` and `techContext.md`.
 - **Component Refactors:** If a large component or screen is split or renamed, update the overarching UI documentation and `activeContext.md`.

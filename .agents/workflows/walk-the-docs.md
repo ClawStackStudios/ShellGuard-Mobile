@@ -81,14 +81,14 @@ Walk each anchor document sequentially and enforce bidirectional consistency wit
 
 ---
 
-## 🧠 Phase 3: Memory Bank & Companion Log Attestation
+## 🧠 Phase 3: Brain & Companion Log Attestation
 
 Walk and synchronize the agent semantic and episodic memory:
-- [ ] `.agents/memory-bank/project/activeContext.md`: Slide 10-event window, record current phase status.
-- [ ] `.agents/memory-bank/project/progress.md`: Mark phase done, update test metrics, update what's next.
-- [ ] `.agents/memory-bank/project/changelog.md`: Append version entry.
-- [ ] `.agents/memory-bank/raw_reflection_log.md`: Record learnings and difficulties.
-- [ ] `.agents/memory-bank/decision-log.md`: Record felt friction and architectural calibrations.
+- [ ] `.agents/brain/project/activeContext.md`: Slide 10-event window, record current phase status.
+- [ ] `.agents/brain/project/progress.md`: Mark phase done, update test metrics, update what's next.
+- [ ] `.agents/brain/project/changelog.md`: Append version entry.
+- [ ] `.agents/brain/raw_reflection_log.md`: Record learnings and difficulties.
+- [ ] `.agents/brain/decision-log.md`: Record felt friction and architectural calibrations.
 
 ---
 
@@ -108,4 +108,4 @@ export GRADLE_OPTS="-XX:-UsePerfData -Djava.io.tmpdir=$PWD/app/build/tmp"
 ./gradlew assembleDebug --no-daemon
 ```
 
-Confirm that test counts in `README.md`, `CHANGELOG.md`, and memory bank match the actual test run output (`Total: N, Failures: 0, Errors: 0`).
+Confirm that test counts in `README.md`, `CHANGELOG.md`, and brain match the actual test run output (`Total: N, Failures: 0, Errors: 0`).

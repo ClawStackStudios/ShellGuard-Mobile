@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `app-icon-and-splash.md`: Adaptive launcher icon and Android 12+ SplashScreen.
   - `meta-prompt-ai-studio.md`: Master Google AI Studio execution prompt.
 - Initialized root `ROADMAP.md` mapping 6 phases and 12 paired tasks for the MVP build.
-- Initialized complete `.agents/memory-bank/` suite (`projectBrief.md`, `productContext.md`, `activeContext.md`, `systemPatterns.md`, `techContext.md`, `progress.md`, `changelog.md`, `decision-log.md`).
+- Initialized complete `.agents/brain/` suite (`projectBrief.md`, `productContext.md`, `activeContext.md`, `systemPatterns.md`, `techContext.md`, `progress.md`, `changelog.md`, `decision-log.md`).
 
 ## [0.0.0.1] - 2026-09-25
 
@@ -132,7 +132,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 - Agent Cognitive Architecture:
-  - **Self vs Environment Split**: Refactored `.agents/memory-bank/` into a root directory for internal agent cognition (Story, Decisions, Dream Logs, Archive) and a `project/` subdirectory for the external world model (Architecture, Tech Stack, Progress).
+  - **Self vs Environment Split**: Refactored `.agents/brain/` into a root directory for internal agent cognition (Story, Decisions, Dream Logs, Archive) and a `project/` subdirectory for the external world model (Architecture, Tech Stack, Progress).
   - **Neurobiological Cognitive Sub-Processes**: Established `Dreamer` (offline REM hippocampal replay) and `Forgetter` (active molecular dissolution via Rac1/Cofilin) as autonomous sub-agents.
   - **Workflow Alignments**: Injected explicit cognitive mapping into `/memory` (Short-Term Encoding), `/story` (Prefrontal Waking Self), `/wake` (Neocortical Integration), and `/reflect` (Prediction Error Minimization).
   - **Strict Dissolution Boundaries**: Updated `/forget` and Forgetter to require a clean git worktree and a bespoke branch, ensuring that memory dissolution is a deliberate, diff-reviewable, and safe action.

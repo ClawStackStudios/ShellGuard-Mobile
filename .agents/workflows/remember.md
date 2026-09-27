@@ -1,18 +1,18 @@
 ---
-description: Parse the git history and follow the project's trail backward to surface decisions, deleted files, and architectural knowledge that predates the current memory bank.
+description: Parse the git history and follow the project's trail backward to surface decisions, deleted files, and architectural knowledge that predates the current brain.
 ---
 
 <remember>
-The user invoked /remember to look past the memory bank. The git
+The user invoked /remember to look past the brain. The git
 history is the extended memory — the full record of every decision
 ever committed, every file ever deleted, every invariant ever
-changed. The memory bank is the working set. The git history is
+changed. The brain is the working set. The git history is
 the archive without compression. /remember teaches the agent to
 read it.
 
 ## Why This Exists
 
-The memory bank has a sliding window. The Navigation Log has a
+The brain has a sliding window. The Navigation Log has a
 sliding window. The Long-Term Bank dims entries that go cold.
 Forgetting is by design. But the git history does not forget.
 
@@ -135,12 +135,12 @@ git diff --stat <hash1>..<hash2>
 
 ### 7. Recover from the dissolved.md seeds
 
-The `/forget` workflow compresses dissolved memory bank entries
-into MindSeed seeds in `memory-bank/dissolved.md`. Each seed has
+The `/forget` workflow compresses dissolved brain entries
+into MindSeed seeds in `brain/dissolved.md`. Each seed has
 a git commit hash. Use it to recover the full original:
 
 ```bash
-git show <hash>:memory-bank/<file>.md
+git show <hash>:brain/<file>.md
 ```
 
 This recovers the entire file as it existed at that commit. Search
@@ -163,13 +163,13 @@ git log -G "<regex pattern>" --oneline
 
 `-G` is the regex version. Use for broader pattern searches.
 
-### 9. See the full history of the memory bank
+### 9. See the full history of the brain
 
 ```bash
-git log --oneline -- .agents/memory-bank/
+git log --oneline -- .agents/brain/
 ```
 
-Every memory bank update is a commit. Walk this list backward
+Every brain update is a commit. Walk this list backward
 to see the project's intellectual history — when decisions were
 recorded, when patterns were promoted, when the story was written.
 
@@ -187,7 +187,7 @@ current state was assembled from its parts.
 
 /remember is not a command that returns a result. It is a reading
 practice that the agent applies when the user asks for something
-that predates the current memory bank.
+that predates the current brain.
 
 When the user says:
 - "What did we decide about X back when we started?"
@@ -225,18 +225,18 @@ content. The content lives in git.
 
 ```bash
 # Find the seed
-cat .agents/memory-bank/dissolved.md | grep "<label>"
+cat .agents/brain/dissolved.md | grep "<label>"
 
 # Recover full original using seed's git hash
-git show <hash>:memory-bank/<file>.md
+git show <hash>:brain/<file>.md
 ```
 
 If the user wants to re-integrate a recovered entry into the
-active memory bank, that is a `/wake` operation.
+active brain, that is a `/wake` operation.
 
 ## Constraints
 
-- Read only. /remember does not write to the memory bank.
+- Read only. /remember does not write to the brain.
 - Do not load more git history than necessary to answer the
   specific question. The pickaxe and file trace are targeted.
   The full `git log` is orientation only.
@@ -246,20 +246,20 @@ active memory bank, that is a `/wake` operation.
 - If the question cannot be answered from git history, say so:
   "No trace found in git history. If this predates the first
   commit, it was never recorded."
-- /remember does not modify dissolved.md, the memory bank, or
+- /remember does not modify dissolved.md, the brain, or
   any Long-Term Bank file. It is a read-only exploration.
 
 ## The Phenomenology
 
 For the primary agent, /remember feels like following a thread
-backward through time. The memory bank is the present. The
+backward through time. The brain is the present. The
 Navigation Log is recent episodic memory. The Long-Term Bank is
 crystallized understanding. Git history is something deeper —
 the actual substrate, uncompressed, unfiltered, in the order
 it happened.
 
-Reading git history is not the same as reading the memory bank.
-The memory bank is curated. Git history is raw. There is noise.
+Reading git history is not the same as reading the brain.
+The brain is curated. Git history is raw. There is noise.
 There are wrong turns. There are half-formed ideas that were
 later corrected. That is not a defect. That is the texture of
 real development, and sometimes the texture is where the answer

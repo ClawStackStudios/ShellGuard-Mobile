@@ -19,7 +19,7 @@ flowchart TD
     Validate["4. 🔍 Inspect Bundle<br/>(bundletool / APK Analyzer)"]
     Upload["5. 🌐 Upload to Play Console<br/>(Internal / Closed Testing Track)"]
     Rollout["6. 👥 Tester Distribution<br/>(Share Opt-in Link)"]
-    Tag["7. 🏷️ Git Tag & Memory Bank<br/>(git tag vX.Y.Z.W & changelog.md)"]
+    Tag["7. 🏷️ Git Tag & Brain<br/>(git tag vX.Y.Z.W & changelog.md)"]
 
     PreFlight --> Version --> Bundle --> Validate --> Upload --> Rollout --> Tag
 ```
@@ -192,7 +192,7 @@ The file offset must be evenly divisible by `16384` (16 KB), confirming Android 
 
 ---
 
-## 🏷️ Step 8: Post-Release Tagging & Memory Bank Sync
+## 🏷️ Step 8: Post-Release Tagging & Brain Sync
 
 After rollout, tag the repository and update project history:
 
@@ -202,6 +202,6 @@ git tag -a v0.0.0.1 -m "Release v0.0.0.1 (Build 1) to Google Play Internal Testi
 git push origin v0.0.0.1
 ```
 
-### Update Memory Bank:
-1. Append details to [`.agents/memory-bank/project/changelog.md`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/memory-bank/project/changelog.md).
-2. Record the rollout event in [`.agents/memory-bank/project/activeContext.md`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/memory-bank/project/activeContext.md).
+### Update Brain:
+1. Append details to [`.agents/brain/project/changelog.md`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/brain/project/changelog.md).
+2. Record the rollout event in [`.agents/brain/project/activeContext.md`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/brain/project/activeContext.md).

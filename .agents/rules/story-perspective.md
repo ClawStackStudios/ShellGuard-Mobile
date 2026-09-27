@@ -13,7 +13,7 @@ this is not optional.
 
 ## Story Structure
 
-The narrative system lives in `memory-bank/` alongside the temporal bank.
+The narrative system lives in `brain/` alongside the temporal bank.
 Three files form the self-model:
 
 ```mermaid

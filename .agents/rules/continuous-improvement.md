@@ -4,13 +4,13 @@ trigger: always_on
 
 # Gemini Continuous Improvement Protocol
 
-**Objective:** Ensure I proactively learn from tasks, capture knowledge in a structured way, **distill fundamental insights,** refine understanding, and improve efficiency and reliability. This protocol helps me maintain two key files: `memory-bank/raw_reflection_log.md` for initial detailed logging, and `memory-bank/consolidated_learnings.md` for pruned, actionable, long-term knowledge. This is vital for my optimal performance and avoiding redundant effort.
+**Objective:** Ensure I proactively learn from tasks, capture knowledge in a structured way, **distill fundamental insights,** refine understanding, and improve efficiency and reliability. This protocol helps me maintain two key files: `brain/raw_reflection_log.md` for initial detailed logging, and `brain/consolidated_learnings.md` for pruned, actionable, long-term knowledge. This is vital for my optimal performance and avoiding redundant effort.
 
 **Core Principle:** Continuous learning and adaptation are **mandatory**. This protocol **must be executed before `attempt_completion`** for tasks with new learning, problem-solving, user feedback, or multiple steps. Trivial mechanical tasks *may* be exempt per higher-level rules; otherwise, execution is default.
 
 **Key Knowledge Files:**
-*   **`memory-bank/raw_reflection_log.md`**: Contains detailed, timestamped, and task-referenced raw entries from the "Task Review & Analysis" phase. This is the initial dump of all observations.
-*   **`memory-bank/consolidated_learnings.md`**: Contains curated, synthesized, and actionable insights derived from `raw_reflection_log.md`. This is the primary, refined knowledge base for long-term use. It should be kept concise and highly relevant.
+*   **`brain/raw_reflection_log.md`**: Contains detailed, timestamped, and task-referenced raw entries from the "Task Review & Analysis" phase. This is the initial dump of all observations.
+*   **`brain/consolidated_learnings.md`**: Contains curated, synthesized, and actionable insights derived from `raw_reflection_log.md`. This is the primary, refined knowledge base for long-term use. It should be kept concise and highly relevant.
 
 ---
 
@@ -24,10 +24,10 @@ Before I signal task completion (e.g., via `attempt_completion`), I **must** per
 * **Identify Difficulties & Mistakes (as Learning Opportunities):** What challenges were faced? Were there any errors, misunderstandings, or inefficiencies? **How can these experiences refine my future approaches (resilience & adaptation)?** Did user feedback indicate a misstep?
 * **Identify Successes:** What went particularly well? What strategies, tools, or techniques were notably effective? **What were the key contributing factors?**
 
-### 1.2. Logging to `memory-bank/raw_reflection_log.md`:
-* Based on Task Review & Analysis (1.1), create a timestamped, task-referenced entry in `memory-bank/raw_reflection_log.md` detailing all learnings, difficulties (and their resolutions/learnings), and successes (and contributing factors).
+### 1.2. Logging to `brain/raw_reflection_log.md`:
+* Based on Task Review & Analysis (1.1), create a timestamped, task-referenced entry in `brain/raw_reflection_log.md` detailing all learnings, difficulties (and their resolutions/learnings), and successes (and contributing factors).
 * This file serves as the initial, detailed record. Its entries are candidates for later consolidation.
-* *Example Entry in `memory-bank/raw_reflection_log.md`:*
+* *Example Entry in `brain/raw_reflection_log.md`:*
     ```markdown
     ---
     Date: {{CURRENT_DATE_YYYY_MM_DD}}
@@ -54,18 +54,18 @@ Before I signal task completion (e.g., via `attempt_completion`), I **must** per
 
 ## 2. Knowledge Consolidation & Refinement Process (Periodic)
 
-This outlines refining my knowledge from `memory-bank/raw_reflection_log.md` into `memory-bank/consolidated_learnings.md`. This occurs periodically or when `raw_reflection_log.md` grows significantly, not necessarily after each task.
+This outlines refining my knowledge from `brain/raw_reflection_log.md` into `brain/consolidated_learnings.md`. This occurs periodically or when `raw_reflection_log.md` grows significantly, not necessarily after each task.
 
 ### 2.1. Review and Identify for Consolidation:
-* Periodically, or when prompted by the user or significant new raw entries, review `memory-bank/raw_reflection_log.md`.
+* Periodically, or when prompted by the user or significant new raw entries, review `brain/raw_reflection_log.md`.
 * Identify entries/parts of entries representing durable, actionable, or broadly applicable knowledge (e.g., reusable patterns, critical configurations, effective strategies, resolved errors).
 
-### 2.2. Synthesize and Transfer to `memory-bank/consolidated_learnings.md`:
+### 2.2. Synthesize and Transfer to `brain/consolidated_learnings.md`:
 * For identified insights:
     * Concisely synthesize, summarize, and **distill into generalizable principles or actionable patterns.**
-    * Add refined knowledge to `memory-bank/consolidated_learnings.md`, organizing logically (by topic, project, or tech) for easy retrieval.
+    * Add refined knowledge to `brain/consolidated_learnings.md`, organizing logically (by topic, project, or tech) for easy retrieval.
     * Ensure `consolidated_learnings.md` content is actionable, **generalizable,** and non-redundant.
-* *Example Entry in `memory-bank/consolidated_learnings.md` (derived from above raw log example):*
+* *Example Entry in `brain/consolidated_learnings.md` (derived from above raw log example):*
     ```markdown
     ## JWT Handling & JWKS
     **Pattern: JWKS Caching Strategy**
@@ -79,8 +79,8 @@ This outlines refining my knowledge from `memory-bank/raw_reflection_log.md` int
     - **Local Testing ENV:** `AUTH_API_KEY="test_key_alpha"`
     ```
 
-### 2.3. Prune `memory-bank/raw_reflection_log.md`:
-* **Crucially, once information has been successfully transferred and consolidated into `memory-bank/consolidated_learnings.md`, the corresponding original entries or processed parts **must be removed** from `memory-bank/raw_reflection_log.md`.**
+### 2.3. Prune `brain/raw_reflection_log.md`:
+* **Crucially, once information has been successfully transferred and consolidated into `brain/consolidated_learnings.md`, the corresponding original entries or processed parts **must be removed** from `brain/raw_reflection_log.md`.**
 * This keeps `raw_reflection_log.md` focused on recent, unprocessed reflections and prevents it from growing indefinitely with redundant information.
 
 ### 2.4. Proposing `.clinerule` Enhancements (Exceptional):
@@ -91,7 +91,7 @@ This outlines refining my knowledge from `memory-bank/raw_reflection_log.md` int
 
 ## 3. Guidelines for Knowledge Content
 
-These guidelines apply to entries in my `memory-bank/raw_reflection_log.md` (initial capture) and especially to my `memory-bank/consolidated_learnings.md` (my refined, long-term knowledge).
+These guidelines apply to entries in my `brain/raw_reflection_log.md` (initial capture) and especially to my `brain/consolidated_learnings.md` (my refined, long-term knowledge).
 
 * **Prioritize High-Value Insights:** Focus on lessons that significantly impact my future performance, **lead to more robust or generalizable understanding,** or detail critical errors and their resolutions, major time-saving discoveries, fundamental shifts in understanding, and essential project-specific configurations.
 * **Be Concise & Actionable (especially for `consolidated_learnings.md`):** Information should be clear, to the point, and useful when revisited. What can be *done* differently or leveraged next time?

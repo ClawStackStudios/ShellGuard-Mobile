@@ -36,7 +36,7 @@ The agent acts as an active cartographer of the project's development lifecycle.
 ### 4. Non-Blocking Memory Persistence
 - If the user indicates *"No, we're still adding / reviewing"*, the agent:
   1. Respects the user's focus and does not push or nag.
-  2. Records the in-flight context in `.agents/memory-bank/activeContext.md`.
+  2. Records the in-flight context in `.agents/brain/project/activeContext.md`.
   3. Automatically re-evaluates the cadence at the next natural task completion point when a series of uncommitted changes accumulates.
 
 ---

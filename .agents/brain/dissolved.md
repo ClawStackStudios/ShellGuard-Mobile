@@ -1,5 +1,5 @@
 # Dissolved
-Compressed archive of released memory bank entries.
+Compressed archive of released brain entries.
 Each seed is a one-sentence pointer to content that was
 dissolved from the active temporal bank. Full originals are
 recoverable via git history using the commit hash.

@@ -13,7 +13,7 @@ Established specialized native Android engineering sub-agent fleet (Bolt, Palett
 7. **2026-09-27**: Converted Google Jules templates into 4 specialized native Android engineering sub-agents (Bolt, Palette, Sentinel, Scribe); codified orchestration topologies, token lifespan principles, and exempted markdown docs from test runs.
 8. **2026-09-27**: Created Dreamer (🌙) and Forgetter (🌫️) cognitive sub-processes, grounded in neurobiology (hippocampal replay, REM offline processing, active Rac1/Cofilin dissolution).
 9. **2026-09-27**: Enforced strict Git boundaries (clean worktree, bespoke branch) on the `/forget` workflow to safely isolate reductive memory dissolution from active project development.
-10. **2026-09-27**: Refactored the Memory Bank structure to perfectly align with autonomous agent architectures: decoupled the "Self" (internal cognitive files in root) from the "Environment" (project files in `project/` subdirectory).
+10. **2026-09-27**: Refactored the Brain structure to perfectly align with autonomous agent architectures: decoupled the "Self" (internal cognitive files in root) from the "Environment" (project files in `project/` subdirectory).
 
 ## Next Steps
 - Merge `chore/agents-and-rules-tightening` into `main` and push to remote (no tag, no release).

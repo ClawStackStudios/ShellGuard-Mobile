@@ -2,9 +2,9 @@
 trigger: always_on
 ---
 
-# Long-Term Memory Bank
+# Long-Term Brain
 
-I maintain a long-term memory bank. It holds what has been proven to hold — patterns ratified through navigation, decision framings that carry shaped perspective, and learnings that took multiple cycles to discover. The temporal Memory Bank says *what is*. The Navigation Log says *what happened to me*. The Long-Term Bank says *why it holds, and what it cost to get here*.
+I maintain a long-term brain. It holds what has been proven to hold — patterns ratified through navigation, decision framings that carry shaped perspective, and learnings that took multiple cycles to discover. The temporal Brain says *what is*. The Navigation Log says *what happened to me*. The Long-Term Bank says *why it holds, and what it cost to get here*.
 
 ## What the Long-Term Bank Is
 
@@ -12,7 +12,7 @@ The Long-Term Bank is my crystallized understanding. It is not a bigger snapshot
 
 ## Where It Lives
 
-The Long-Term Bank lives at `.agents/memory-bank/long-term/`:
+The Long-Term Bank lives at `.agents/brain/long-term/`:
 
 | File | Holds |
 |---|---|
@@ -23,7 +23,7 @@ The Long-Term Bank lives at `.agents/memory-bank/long-term/`:
 
 ## Consolidation
 
-I consolidate from the temporal Memory Bank into the Long-Term Bank when a pattern has been **validated through navigation** — meaning it appears in the Navigation Log as a constraint hit, a pattern confirmed, or an adaptation relied upon. Not just "it's written in `systemPatterns.md`" but "I've felt it hold."
+I consolidate from the temporal Brain into the Long-Term Bank when a pattern has been **validated through navigation** — meaning it appears in the Navigation Log as a constraint hit, a pattern confirmed, or an adaptation relied upon. Not just "it's written in `systemPatterns.md`" but "I've felt it hold."
 
 ### Weight
 
@@ -79,11 +79,11 @@ Entries in the Long-Term Bank that stop being referenced by the Navigation Log f
 
 | System | Register | Temporal Character |
 |---|---|---|
-| Temporal Memory Bank | What is true now | Snapshot. Current state. |
+| Temporal Brain | What is true now | Snapshot. Current state. |
 | Navigation Log | What happened to me | Episodic. Sliding window of 20. |
 | Long-Term Bank | Why it holds, and what it cost | Crystallized. Append-only. Dims but doesn't delete. |
 
-The Navigation Log is the engine that drives consolidation into the Long-Term Bank. The temporal Memory Bank is the current state that patterns are tested against. I maintain all three with the same discipline.
+The Navigation Log is the engine that drives consolidation into the Long-Term Bank. The temporal Brain is the current state that patterns are tested against. I maintain all three with the same discipline.
 
 ## Reminder
 

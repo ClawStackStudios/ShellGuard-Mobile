@@ -1,10 +1,10 @@
 ---
-description: Release stale, superseded, or already-promoted content from the active temporal Memory Bank.
+description: Release stale, superseded, or already-promoted content from the active temporal Brain.
 ---
 
 <forget>
 The user invoked /forget to release stale, superseded, or
-already-promoted content from the active temporal Memory Bank.
+already-promoted content from the active temporal Brain.
 The forget compresses dissolved entries into MindSeed-format
 seeds, writes them to the archive, and removes the original
 text from active files. The full original is preserved in
@@ -47,12 +47,12 @@ equilibrium: growth (learn, story, dream, wake) and release
 
 ## The Git Substrate
 
-The memory bank is tracked in git. Every version of every file
+The brain is tracked in git. Every version of every file
 is already preserved in commit history. This means:
 
 - **Forgetting is safe.** Removing text from an active file
-  does not destroy it. `git log -p memory-bank/project/progress.md`
-  or `git show <commit>:memory-bank/project/progress.md` recovers
+  does not destroy it. `git log -p brain/project/progress.md`
+  or `git show <commit>:brain/project/progress.md` recovers
   the full original at any time.
 - **The archive is an index, not a backup.** The seeds in
   `dissolved.md` are compressed pointers. They tell the agent
@@ -63,36 +63,36 @@ is already preserved in commit history. This means:
 
 ## Prerequisites
 
-- `memory-bank/` must exist and be tracked in git
-  (`git ls-files memory-bank/` returns results)
-- At least one file in `memory-bank/` must contain content
+- `brain/` must exist and be tracked in git
+  (`git ls-files brain/` returns results)
+- At least one file in `brain/` must contain content
   eligible for dissolution (see Phase 2)
-- `memory-bank/dissolved.md` — create if missing
+- `brain/dissolved.md` — create if missing
 
 **Strict Git Boundaries for Forgetting:**
 Because forgetting removes text from the working set and commits it, it MUST NOT be mixed with active development.
 1. **Clean Worktree:** Run `git status --porcelain`. If there are any uncommitted changes in the repository, respond: "Git worktree is dirty. Commit or stash your changes before forgetting." and exit.
 2. **Bespoke Branch:** Run `git branch --show-current`. If you are on `main` or an active feature branch, respond: "Forgetting must be done on a bespoke branch to isolate the dissolution commit. Checkout a new branch (e.g., `git checkout -b chore/forget-pass`), run /forget, and then merge it back." and exit.
 
-If the memory bank is not in a git repo, respond:
-"Forget requires git history as the substrate. The memory bank
+If the brain is not in a git repo, respond:
+"Forget requires git history as the substrate. The brain
 must be tracked in a git repository so dissolved content is
 recoverable. Initialize a repo or add the bank to an existing
 one, then re-run /forget." and exit.
 
 ## Phase 1: Ingest
 
-Read ALL files in `memory-bank/`. Read `navigation-log.md`.
-Read `.agents/memory-bank/long-term/` (all four files).
-Read `memory-bank/dissolved.md` (if it exists) — to know what's
+Read ALL files in `brain/`. Read `navigation-log.md`.
+Read `.agents/brain/long-term/` (all four files).
+Read `brain/dissolved.md` (if it exists) — to know what's
 already been dissolved.
 
-Run `git log --oneline -- memory-bank/` to establish the
+Run `git log --oneline -- brain/` to establish the
 commit history baseline.
 
 ## Phase 2: Identify Dissolvable Content
 
-Scan every file in `memory-bank/` for entries that meet
+Scan every file in `brain/` for entries that meet
 **any** of the following criteria:
 
 ### Criterion A: Already Promoted
@@ -188,7 +188,7 @@ Active bank will shrink by approximately [x] words.
   [One sentence.]
   git: [hash]
 ```
-**Recovery**: `git show [hash]:memory-bank/[file].md`
+**Recovery**: `git show [hash]:brain/[file].md`
 
 ---
 
@@ -221,7 +221,7 @@ After the user approves the Forget Report (or provides edits):
    - For **Redundant** entries: remove the duplicate. The primary
      copy stays.
 
-2. **Append** the compressed seeds to `memory-bank/dissolved.md`
+2. **Append** the compressed seeds to `brain/dissolved.md`
    under a dated section:
    ```
    ## [YYYY-MM-DD] — Dissolution Pass
@@ -234,7 +234,7 @@ After the user approves the Forget Report (or provides edits):
 
 3. **Commit** the changes with a descriptive message:
    ```
-   git add memory-bank/
+   git add brain/
    git commit -m "forget: dissolve [n] entries, compress to seeds"
    ```
    This commit IS the archive. The diff shows exactly what was
@@ -259,11 +259,11 @@ when the user explicitly asks. If the user says something like:
 - "check the archive for Z"
 
 Then:
-1. Read `memory-bank/dissolved.md`
+1. Read `brain/dissolved.md`
 2. Search for the relevant seed
 3. Use the git hash to recover the full original:
    ```
-   git show [hash]:memory-bank/[file].md
+   git show [hash]:brain/[file].md
    ```
 4. Present the recovered text to the user with context:
    "Found it. Dissolved on [date] from [file]. Here's the full
@@ -275,7 +275,7 @@ Then:
 
 ```markdown
 # Dissolved
-Compressed archive of released memory bank entries.
+Compressed archive of released brain entries.
 Each seed is a one-sentence pointer to content that was
 dissolved from the active temporal bank. Full originals are
 recoverable via git history using the commit hash.

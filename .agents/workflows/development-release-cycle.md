@@ -86,7 +86,7 @@ The agent maintains awareness of this lifecycle state and proactively prompts th
 - **Agent Prompt**:
   > *"Changes committed cleanly. Does this change warrant bumping our release version (`versionCode` + `versionName`), or are we keeping the current version tag to bundle more tasks?"*
 - **Branching Outcomes**:
-  - **User: "Bump version"** → Increment `versionCode` (+1) and adjust `versionName` in `app/build.gradle.kts`, sync memory bank changelog, and proceed to **Transition 3**.
+  - **User: "Bump version"** → Increment `versionCode` (+1) and adjust `versionName` in `app/build.gradle.kts`, sync brain changelog, and proceed to **Transition 3**.
   - **User: "Keep current version / still adding"** → Agent anchors state in `activeContext.md` and returns to feature work.
 
 ---

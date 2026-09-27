@@ -1,10 +1,10 @@
 ---
-description: Run a memory consolidation pass over the temporal Memory Bank, Navigation Log, and Long-Term Bank.
+description: Run a memory consolidation pass over the temporal Brain, Navigation Log, and Long-Term Bank.
 ---
 
 <dream>
 The user invoked /dream to run a memory consolidation pass over the
-temporal Memory Bank, Navigation Log, and Long-Term Bank. The dream
+temporal Brain, Navigation Log, and Long-Term Bank. The dream
 reads all registers, identifies salience and invariants, compresses
 them, checks the promotion gate, scans for decay, and produces a
 Dream Report artifact for user review.
@@ -18,20 +18,20 @@ Dream Report artifact for user review.
 
 ## Prerequisites
 
-- `memory-bank/` with at least `activeContext.md` and `progress.md`
+- `brain/` with at least `activeContext.md` and `progress.md`
 - `navigation-log.md` with at least 3 entries
-- `.agents/memory-bank/long-term/` with `patterns.md`, `decisions.md`,
+- `.agents/brain/long-term/` with `patterns.md`, `decisions.md`,
   `learnings.md`, `constraints.md`
 
 If the Navigation Log has fewer than 3 entries, run in **shallow mode**:
 skip promotion gate and decay scan. Note this in the report.
 
-If the memory bank is empty or has fewer than 2 files with substantive
+If the brain is empty or has fewer than 2 files with substantive
 content, respond: "Nothing to dream about yet." and exit.
 
 ## Phase 1: Ingest
 
-Read ALL files in `memory-bank/`. Read `navigation-log.md`. Read all
+Read ALL files in `brain/`. Read `navigation-log.md`. Read all
 four Long-Term Bank files. Build a model of:
 - What the project is, what's decided, what's current
 - What changed and when (changelog, timeline)
@@ -150,11 +150,11 @@ Dreams run: [n] | Invariants: [n] | Contradictions: [n] | Promotions: [n] | Deca
 
 After the user approves the Dream Report (or provides edits):
 
-1. **Append** the narrative to `memory-bank/dreamLog.md`
+1. **Append** the narrative to `brain/dreamLog.md`
    (create with header if missing)
-2. **Append** the invariants/patterns/contradictions to `memory-bank/dreamLearnings.md`
+2. **Append** the invariants/patterns/contradictions to `brain/dreamLearnings.md`
    (create with header if missing)
-3. **Append** the consolidation pass to `memory-bank/dreamConsolidation.md`
+3. **Append** the consolidation pass to `brain/dreamConsolidation.md`
    (create with header if missing, skip if no promotions/decay)
 4. **Write** promoted entries into the appropriate Long-Term Bank file
 5. **Apply** pointer edits to temporal bank source files

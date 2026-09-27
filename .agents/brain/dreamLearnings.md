@@ -28,7 +28,7 @@ This file is the "what the dream produced" artifact.
 
 ### Contradictions Flagged
 - **`progress.md` header vs actual completion**: `progress.md` line 3 states *"Current Status: Phase 1 Cryptographic Engine & Room Database Verified (Transitioning to Phase 2)"*, but Phase 2 (Tasks 03 & 04) is fully implemented, verified, and released as `v0.0.0.3` on GitHub. — resolution: Update `progress.md` header to Phase 2 Complete, Transitioning to Phase 3.
-- **`changelog.md` temporal lag**: `memory-bank/changelog.md` only documents through Phase 1 under `[0.0.0.3]`, whereas root `CHANGELOG.md` and `RELEASE-v0.0.0.3.md` document the complete Phase 2 release. — resolution: Update `memory-bank/changelog.md` with Phase 2 release highlights.
+- **`changelog.md` temporal lag**: `brain/project/changelog.md` only documents through Phase 1 under `[0.0.0.3]`, whereas root `CHANGELOG.md` and `RELEASE-v0.0.0.3.md` document the complete Phase 2 release. — resolution: Update `brain/project/changelog.md` with Phase 2 release highlights.
 
 ### Superseded (archive)
 - **Hexadecimal ClawKey Validator** (`hu-[0-9a-f]{64}`) — superseded by: Base62 ClawKey Validator (`hu-[0-9a-zA-Z]{64}`) on 2026-09-26.

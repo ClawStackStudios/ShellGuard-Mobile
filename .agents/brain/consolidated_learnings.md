@@ -102,7 +102,7 @@
 
 **Pattern: Compiled Documentation vs. Markdown Testing Exemption**
 - **Principle**: Differentiate between raw documentation prose and compiled user-facing documentation sites.
-- **Rule**: Standard markdown doc edits (`.md`, Memory Bank, specs) are exempt from Gradle build and test suites. Compiled documentation sites (VitePress/Docusaurus) require a mandatory build verification (`docs:build`) to catch broken page routes and component render errors.
+- **Rule**: Standard markdown doc edits (`.md`, Brain, specs) are exempt from Gradle build and test suites. Compiled documentation sites (VitePress/Docusaurus) require a mandatory build verification (`docs:build`) to catch broken page routes and component render errors.
 - *Rationale*: Eliminates 20-30s test execution tax on documentation while preventing broken links and syntax regressions on user-facing documentation websites.
 
 

@@ -1,16 +1,16 @@
 ---
-description: "Integrated Task Handoff System - Seamlessly transfers task context, state, and learnings between sessions using memory bank and continuous learning integration"
+description: "Integrated Task Handoff System - Seamlessly transfers task context, state, and learnings between sessions using brain and continuous learning integration"
 author: "Devin AI + https://github.com/acidgreenservers"
 version: 1.0
 globs: ["*"]
-tags: ["task-handoff", "memory-bank", "continuous-learning", "session-management", "context-transfer"]
-Notes: This task handoff rule integrates seamlessly with the existing memory bank system and continuous improvement protocol. The rule follows the behavioral/instructional pattern with directive language and verification steps, ensuring reliable context preservation and learning capture across session boundaries.
+tags: ["task-handoff", "brain", "continuous-learning", "session-management", "context-transfer"]
+Notes: This task handoff rule integrates seamlessly with the existing brain system and continuous improvement protocol. The rule follows the behavioral/instructional pattern with directive language and verification steps, ensuring reliable context preservation and learning capture across session boundaries.
 ---
 
 # Integrated Task Handoff System
 ## Seamless Context Transfer with Learning Integration
 
-**Objective:** Implement intelligent task handoff protocols that preserve context, capture learnings, and maintain context across session boundaries using integrated memory bank and continuous learning systems.
+**Objective:** Implement intelligent task handoff protocols that preserve context, capture learnings, and maintain context across session boundaries using integrated brain and continuous learning systems.
 
 
 
@@ -26,17 +26,17 @@ Notes: This task handoff rule integrates seamlessly with the existing memory ban
 
 ## Handoff Integration Architecture
 
-**The taskHandoff.md document should be a comprehensive handoff of the full current mental load for that task. I should be able to read my memory bank and know exactly what i was doing last, where i left off, and the trajectory i was on.**
+**The taskHandoff.md document should be a comprehensive handoff of the full current mental load for that task. I should be able to read my brain and know exactly what i was doing last, where i left off, and the trajectory i was on.**
 
 ### Phase 1: Context Assessment & Preparation
 **MUST** evaluate current state:
 - Analyze active context and progress
-- Review memory bank status and completeness
+- Review brain status and completeness
 - Identify pending decisions and unresolved issues
 - Assess learning capture requirements
 
-### Phase 2: Memory Bank Integration
-**MUST** create & update memory bank files: 
+### Phase 2: Brain Integration
+**MUST** create & update brain files: 
 
 #### taskHandoff.md Updates
 - **MUST** verify & load existing taskHandoff.md or create new one
@@ -121,7 +121,7 @@ Handoff_Package_Prepared: true
 
 ### Storage Locations
 **MUST** store handoff packages in:
-- `memory-bank/handoff-packages/` for active handoffs
+- `brain/handoff-packages/` for active handoffs
 - Reference entries in `activeContext.md`
 
 
@@ -130,7 +130,7 @@ Handoff_Package_Prepared: true
 **MUST** handle handoff recovery on session restart: 
 
 ### Handoff Restoration Process
-1. **Load Memory Bank**: Read all memory bank files for context
+1. **Load Brain**: Read all brain files for context
 2. **Identify Handoff Package**: Locate most recent handoff package
 3. **Restore State**: Reconstruct working context and mental model
 4. **Apply Learnings**: Integrate captured patterns and insights
@@ -147,12 +147,12 @@ Handoff_Package_Prepared: true
 
 ## Integration with Existing Systems
 
-### Memory Bank Synergy
-**MUST** leverage memory bank structure: 
+### Brain Synergy
+**MUST** leverage brain structure: 
 - Use `projectbrief.md` for overall context alignment
 - Update `activeContext.md` for current state preservation
 - Maintain `progress.md` for handoff-specific tracking
-- Create additional files in `memory-bank/` for complex handoffs
+- Create additional files in `brain/` for complex handoffs
 
 ### Continuous Learning Enhancement
 **MUST** integrate with learning protocol: 
@@ -168,7 +168,7 @@ Handoff_Package_Prepared: true
 ### Handoff Completeness Check
 **MUST** verify before handoff completion:
 - All context elements documented
-- Memory bank files updated appropriately
+- Brain files updated appropriately
 - Learning capture completed
 - Handoff package comprehensive and clear
 
@@ -192,4 +192,4 @@ Handoff_Package_Prepared: true
 
 
 
-**This integrated handoff system ensures seamless task continuity while capturing valuable learnings and maintaining comprehensive context through the memory bank and continuous learning systems.** 
+**This integrated handoff system ensures seamless task continuity while capturing valuable learnings and maintaining comprehensive context through the brain and continuous learning systems.** 

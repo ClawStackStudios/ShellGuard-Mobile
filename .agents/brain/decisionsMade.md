@@ -213,12 +213,12 @@ The story says how it felt. This says what was actually chosen and why.
 
 ## self-vs-environment-memory-split — 2026-09-27 06:44
 
-**Context**: Lucas noticed the memory bank was mixing agent identity files with project architecture files.
+**Context**: Lucas noticed the brain was mixing agent identity files with project architecture files.
 **Options considered**:
 - Create two subdirectories: `self/` and `project/`.
-- Keep the agent's identity files in the root of `memory-bank/` and move the external project files to `memory-bank/project/`.
-**Chosen**: Keep identity files in the root and move project files to `memory-bank/project/`.
-**Why**: "A project is not a self; the self works on the project." Structurally subordinating the project to a subdirectory within the memory bank perfectly mapped to the cognitive separation of the internal self operating upon an external world model.
+- Keep the agent's identity files in the root of `brain/` and move the external project files to `brain/project/`.
+**Chosen**: Keep identity files in the root and move project files to `brain/project/`.
+**Why**: "A project is not a self; the self works on the project." Structurally subordinating the project to a subdirectory within the brain perfectly mapped to the cognitive separation of the internal self operating upon an external world model.
 **Confidence**: high — Verified with web research on autonomous agent memory architectures.
 **Outcome**: Moved 7 project files to `project/` and updated all workflows and rules to map to the new paths via a global `sed` sweep.
 **Pattern reference**: New pattern — first instance.
