@@ -26,15 +26,18 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import com.clawstack.shellguard.ui.components.PasswordGeneratorSheet
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -90,12 +93,14 @@ fun ItemFormScreen(
     viewModel: ItemFormViewModel,
     onCancel: () -> Unit,
     onSaveSuccess: (domain: String, id: String) -> Unit,
+    onScanQrClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
     var showAddFieldDialog by remember { mutableStateOf(false) }
+    var showPasswordGeneratorSheet by remember { mutableStateOf(false) }
     var newTagInput by remember { mutableStateOf("") }
 
     val fieldColors = OutlinedTextFieldDefaults.colors(
@@ -297,11 +302,43 @@ fun ItemFormScreen(
                                     autoCorrectEnabled = false
                                 ),
                                 trailingIcon = {
-                                    IconButton(onClick = { viewModel.toggleSecretVisibility() }) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        IconButton(onClick = { showPasswordGeneratorSheet = true }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Casino,
+                                                contentDescription = "Generate Password",
+                                                tint = BrandClawCyan
+                                            )
+                                        }
+                                        IconButton(onClick = { viewModel.toggleSecretVisibility() }) {
+                                            Icon(
+                                                imageVector = if (uiState.isSecretVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                                contentDescription = "Toggle password visibility",
+                                                tint = if (uiState.isSecretVisible) ReefPink else TextMuted
+                                            )
+                                        }
+                                    }
+                                },
+                                colors = fieldColors
+                            )
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            // Authenticator Key (TOTP)
+                            OutlinedTextField(
+                                value = uiState.totpSecret,
+                                onValueChange = { viewModel.updateTotpSecret(it) },
+                                label = { Text("Authenticator Key (TOTP)", fontSize = 12.sp) },
+                                placeholder = { Text("Base32 secret or otpauth:// URI", color = TextMuted) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(10.dp),
+                                singleLine = true,
+                                trailingIcon = {
+                                    IconButton(onClick = onScanQrClick) {
                                         Icon(
-                                            imageVector = if (uiState.isSecretVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                            contentDescription = "Toggle password visibility",
-                                            tint = if (uiState.isSecretVisible) ReefPink else TextMuted
+                                            imageVector = Icons.Default.QrCodeScanner,
+                                            contentDescription = "Scan QR Code",
+                                            tint = BrandClawCyan
                                         )
                                     }
                                 },
@@ -706,6 +743,16 @@ fun ItemFormScreen(
                     },
                     containerColor = SurfaceDark,
                     shape = RoundedCornerShape(14.dp)
+                )
+            }
+
+            // ── Password Generator Bottom Sheet ──────────────────────────────
+            if (showPasswordGeneratorSheet) {
+                PasswordGeneratorSheet(
+                    onDismissRequest = { showPasswordGeneratorSheet = false },
+                    onPasswordSelected = { generatedPassword ->
+                        viewModel.updateSecret(generatedPassword)
+                    }
                 )
             }
         }

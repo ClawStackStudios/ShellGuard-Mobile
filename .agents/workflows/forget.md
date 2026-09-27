@@ -2,13 +2,7 @@
 description: Release stale, superseded, or already-promoted content from the active temporal Memory Bank.
 ---
 
-This is the one that makes the whole system *sustainable*. Without it, the temporal bank grows forever, context loading gets slower, and the signal-to-noise ratio degrades until the dream has nothing to work with because everything is buried under dead weight.
-
-The brain doesn't "lose" memories. It **releases working memory back to the substrate**. The information isn't gone — it's just no longer in the active circuit. And you're right that git is the perfect substrate: the full-fidelity record already exists in commit history. The archive file isn't a backup. It's a **table of contents for the git history**. A compressed index that says "this was here, this is what it was, here's where to find the full text."
-
-```markdown
-# /forget
-
+<forget>
 The user invoked /forget to release stale, superseded, or
 already-promoted content from the active temporal Memory Bank.
 The forget compresses dissolved entries into MindSeed-format
@@ -282,24 +276,4 @@ request only.
 ## Index
 [Auto-maintained. One line per seed, sorted by date.]
 ```
-
-## Constraints
-
-- `/forget` NEVER touches the Long-Term Bank. Long-term entries
-  are crystallized. They don't dissolve. If a long-term entry
-  should be dimmed, that's the `/dream` decay scan's job.
-- `/forget` NEVER touches `dreamLog.md`, `dreamLearnings.md`,
-  `dreamConsolidation.md`, `myStory.md`, or `decisionsMade.md`.
-  These are append-only historical records.
-- `/forget` NEVER removes file headers or structural context.
-  Only *entries* are dissolved. The file skeleton stays.
-- `/forget` NEVER dissolves entries from the last 7 days.
-  Working memory needs a minimum retention window.
-- `/forget` NEVER dissolves `pinned: true` entries.
-- `/forget` ALWAYS commits to git after executing. The commit
-  is the archive. No commit, no forget.
-- The compressed seed MUST be one sentence. If it can't be
-  compressed to one sentence, it's not ready to be forgotten.
-  Keep it in the active bank.
-- If the active bank is already small (< 2000 words total),
-  respond: "Nothing to release. The bank is still lean." and exit.
+</forget>

@@ -1,7 +1,7 @@
 # Progress: ShellGuard Mobile
 
-## Current Status: Phase 3 Vault Domains, Universal Editor & Zero-Knowledge Session Atomicity Complete (Hardware Verified)
-All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold, Phase 1 (ShellCryption HKDF + Room SQLCipher, Gateway UI & Theme Engine), Phase 2 (Ktor API Client, Bidirectional Delta Sync, Master-Detail Dashboard, Base62 Identity Parity, IME Hardening), and Phase 3 (Multi-Domain Vault, Polymorphic Universal Editor, Custom Fields, Password History, and Zero-Knowledge Session Atomicity) have been executed, compiled, and verified green with 100% test pass rate (32/32 tests) and verified live on physical Google Pixel hardware.
+## Current Status: Phase 4 Algorithmic TOTP Engine, CameraX Scanner, Password Generator & Biometrics Complete (Hardware Verified)
+All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold, Phase 1 (ShellCryption HKDF + Room SQLCipher, Gateway UI & Theme Engine), Phase 2 (Ktor API Client, Bidirectional Delta Sync, Master-Detail Dashboard, Base62 Identity Parity, IME Hardening), Phase 3 (Multi-Domain Vault, Polymorphic Universal Editor, Custom Fields, Password History, and Zero-Knowledge Session Atomicity), and Phase 4 (RFC 6238 TOTP Engine, CameraX ML Kit Scanner, Password Generator Sheet, and Biometric Vault Lifecycle) have been executed, compiled, and verified green with 100% test pass rate (63/63 tests) and verified live on physical Google Pixel hardware.
 
 
 ## What Works (Documented, Designed & Scaffolded)
@@ -66,11 +66,22 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
   - `GatewayViewModel.kt`: Pre-filled server parameters (`protocol`, `host`, `port`) from stored URL for frictionless re-entry.
   - Compose Navigation wired in `MainActivity.kt` and `VaultDashboardScreen.kt` connecting Dashboard ➔ Detail ➔ Form.
   - 100% green verification: 32 unit tests passing across all suites (`CustomFieldTest`, `SyncRepositoryTest`, `EncryptedDeviceVaultTest`), `app-debug.apk` cleanly compiled, and live interactive UI flows verified on physical Google Pixel hardware (password decryption, unmasking, cold-restart survival).
+- [x] **Phase 4: TOTP Engine & Biometric Security Lifecycle (Tasks 07 & 08)**:
+  - `Base32Decoder.kt`: Pure Kotlin RFC 4648 Base32 decoder with sanitization.
+  - `TotpEngine.kt`: RFC 6238 TOTP computation (HMAC-SHA1/256/512, 6/8 digits, dynamic truncation RFC 4226 §5.4, Steam Guard 5-char token).
+  - `TotpTicker.kt`: Sub-second coroutine Flow emitting `TotpTick(remainingSeconds, progress)` for 60fps animation.
+  - `TotpUriParser.kt`: Standard `otpauth://totp/...` URI parser and raw Base32 secret key extractor.
+  - `PasswordGenerator.kt` & `PasswordGeneratorSheet.kt`: Cryptographic `SecureRandom` character generator (sliders, character toggles, ambiguity exclusion) and diceware passphrase generator with entropy scoring.
+  - `TotpCountdownRing.kt` & `TotpDisplayCard.kt`: Depleting Canvas arc with Cyan -> Amber -> Red color interpolation, live formatted code (`123 456`), and sensitive clipboard copy (`EXTRA_IS_SENSITIVE = true`).
+  - `QrCodeAnalyzer.kt` & `QrScannerScreen.kt`: CameraX viewfinder, animated pink scanning laser, cyan reticle corners, torch toggle, and ML Kit gallery picker fallback.
+  - `BiometricAuthManager.kt`, `VaultLockManager.kt`, & `LockScreen.kt`: Android KeyStore biometrics (`BiometricPrompt`), background auto-lock timeout manager, and Reef Modernist lock screen.
+  - Resolved `MainActivity` splash theme rogue ActionBar overlap with `installSplashScreen()` and `themes.xml` window title suppression.
+  - 100% green verification: 63 unit tests passing across all suites (`TotpEngineTest`, `Base32DecoderTest`, `TotpUriParserTest`, `PasswordGeneratorTest`, `VaultLockManagerTest`), `app-debug.apk` compiled in 56s, and verified live on physical Google Pixel hardware (camera scanner overlay, TOTP item creation, live countdown ticker, and color transitions).
 
 
-## What's Left to Build (Phase 4 through Phase 6)
-- [ ] Phase 4: TOTP Engine & Biometric Security Lifecycle (Tasks 07 & 08).
+## What's Left to Build (Phase 5 through Phase 6)
 - [ ] Phase 5: Android Autofill & Credential Provider (Tasks 09 & 10).
 - [ ] Phase 6: Settings, Backup Bridge & Release Hardening (Tasks 11 & 12).
+
 
 

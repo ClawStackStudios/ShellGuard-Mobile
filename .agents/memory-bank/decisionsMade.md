@@ -124,5 +124,14 @@ The story says how it felt. This says what was actually chosen and why.
 **Outcome**: Tag `v0.0.0.4` cleanly triggered workflow run `36282251653`, which published the release in under 4 minutes.
 **Pattern reference**: New pattern — first instance (`explicit-annotated-release-tagging`).
 
+## install-splashscreen-actionbar-suppression — 2026-09-27 04:00
 
-
+**Context**: When launching the CameraX scanner screen on physical hardware, an unwanted default platform ActionBar displaying "ShellGuard" appeared at the top of the window, overlapping the Compose TopAppBar.
+**Options considered**:
+- Manually hide ActionBar in Activity `supportActionBar?.hide()` — Works, but risks flickering during window creation and doesn't fix theme inheritance.
+- Call `installSplashScreen()` in `MainActivity.onCreate()` before `super.onCreate()` and set `windowActionBar=false` / `windowNoTitle=true` in `res/values/themes.xml` — Follows canonical Android 12+ SplashScreen pattern, immediately switching `Theme.SplashScreen` to `Theme.ShellGuard` (`NoActionBar`).
+**Chosen**: `installSplashScreen()` + explicit `windowActionBar=false` in `themes.xml`.
+**Why**: The window theme must hold its structure from the first frame. Hiding an action bar via code after the fact causes layout re-measurement jitter; configuring the theme correctly at genesis ensures the window never attempts to allocate an ActionBar in the first place.
+**Confidence**: high — verified on live Google Pixel hardware.
+**Outcome**: The top bar is completely pristine with Compose TopAppBar rendering flush against the system status bar.
+**Pattern reference**: New pattern — first instance (`splash-theme-actionbar-suppression`).

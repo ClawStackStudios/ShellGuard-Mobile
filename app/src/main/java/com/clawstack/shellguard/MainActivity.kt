@@ -2,14 +2,17 @@ package com.clawstack.shellguard
 
 import android.os.Bundle
 import android.view.WindowManager
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -18,6 +21,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.clawstack.shellguard.ui.scanner.QrScannerScreen
 import com.clawstack.shellguard.ui.screens.dashboard.VaultDashboardScreen
 import com.clawstack.shellguard.ui.screens.dashboard.VaultDashboardViewModel
 import com.clawstack.shellguard.ui.screens.detail.ItemDetailScreen
@@ -26,12 +30,16 @@ import com.clawstack.shellguard.ui.screens.form.ItemFormScreen
 import com.clawstack.shellguard.ui.screens.form.ItemFormViewModel
 import com.clawstack.shellguard.ui.screens.gateway.GatewayScreen
 import com.clawstack.shellguard.ui.screens.gateway.GatewayViewModel
+import com.clawstack.shellguard.ui.screens.lock.LockScreen
+import com.clawstack.shellguard.ui.screens.lock.LockViewModel
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.clawstack.shellguard.ui.theme.OceanDark
 import com.clawstack.shellguard.ui.theme.ShellGuardTheme
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
@@ -54,7 +62,21 @@ class MainActivity : ComponentActivity() {
                     contentWindowInsets = WindowInsets(0, 0, 0, 0)
                 ) { innerPadding ->
                     val navController = rememberNavController()
-                    val startDestination = if (appContainer.deviceVault.hasActiveSession()) "dashboard" else "gateway"
+                    val isVaultLocked by appContainer.vaultLockManager.isVaultLocked.collectAsState()
+
+                    val startDestination = if (appContainer.deviceVault.hasActiveSession()) {
+                        if (isVaultLocked) "lock" else "dashboard"
+                    } else {
+                        "gateway"
+                    }
+
+                    LaunchedEffect(isVaultLocked) {
+                        if (isVaultLocked && appContainer.deviceVault.hasActiveSession()) {
+                            navController.navigate("lock") {
+                                launchSingleTop = true
+                            }
+                        }
+                    }
 
                     NavHost(
                         navController = navController,
@@ -102,13 +124,11 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate("form/NEW/PASSWORD/new")
                                 },
                                 onLockClick = {
-                                    navController.navigate("gateway") {
-                                        popUpTo("dashboard") { inclusive = true }
-                                    }
+                                    navController.navigate("lock")
                                 },
                                 onLogoutClick = {
                                     navController.navigate("gateway") {
-                                        popUpTo("dashboard") { inclusive = true }
+                                        popUpTo(0) { inclusive = true }
                                     }
                                 }
                             )
@@ -165,16 +185,91 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
 
+                            val scannedSecret = backStackEntry.savedStateHandle.get<String>("scanned_totp_secret")
+                            val scannedTitle = backStackEntry.savedStateHandle.get<String>("scanned_totp_title")
+                            val scannedIssuer = backStackEntry.savedStateHandle.get<String>("scanned_totp_issuer")
+                            LaunchedEffect(scannedSecret) {
+                                if (!scannedSecret.isNullOrBlank()) {
+                                    formViewModel.updateTotpSecret(scannedSecret)
+                                    if (formViewModel.uiState.value.title.isBlank()) {
+                                        val titleToUse = when {
+                                            !scannedIssuer.isNullOrBlank() && !scannedTitle.isNullOrBlank() -> "$scannedIssuer ($scannedTitle)"
+                                            !scannedIssuer.isNullOrBlank() -> scannedIssuer
+                                            !scannedTitle.isNullOrBlank() -> scannedTitle
+                                            else -> ""
+                                        }
+                                        if (titleToUse.isNotBlank()) {
+                                            formViewModel.updateTitle(titleToUse)
+                                        }
+                                    }
+                                    backStackEntry.savedStateHandle.remove<String>("scanned_totp_secret")
+                                    backStackEntry.savedStateHandle.remove<String>("scanned_totp_title")
+                                    backStackEntry.savedStateHandle.remove<String>("scanned_totp_issuer")
+                                }
+                            }
+
                             ItemFormScreen(
                                 viewModel = formViewModel,
                                 onCancel = { navController.popBackStack() },
-                                onSaveSuccess = { _, _ -> navController.popBackStack() }
+                                onSaveSuccess = { _, _ -> navController.popBackStack() },
+                                onScanQrClick = { navController.navigate("scanner") }
+                            )
+                        }
+
+                        composable("scanner") {
+                            QrScannerScreen(
+                                onCodeScanned = { parsed ->
+                                    navController.previousBackStackEntry?.savedStateHandle?.set("scanned_totp_secret", parsed.secret)
+                                    if (parsed.issuer.isNotBlank()) {
+                                        navController.previousBackStackEntry?.savedStateHandle?.set("scanned_totp_issuer", parsed.issuer)
+                                    }
+                                    if (parsed.title.isNotBlank()) {
+                                        navController.previousBackStackEntry?.savedStateHandle?.set("scanned_totp_title", parsed.title)
+                                    }
+                                    navController.popBackStack()
+                                },
+                                onBackClick = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable("lock") {
+                            val lockViewModel: LockViewModel = viewModel(
+                                factory = object : ViewModelProvider.Factory {
+                                    @Suppress("UNCHECKED_CAST")
+                                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                        return LockViewModel(appContainer) as T
+                                    }
+                                }
+                            )
+
+                            LockScreen(
+                                viewModel = lockViewModel,
+                                onUnlocked = {
+                                    navController.navigate("dashboard") {
+                                        popUpTo("lock") { inclusive = true }
+                                    }
+                                },
+                                onFallbackToGateway = {
+                                    navController.navigate("gateway") {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                }
                             )
                         }
                     }
                 }
             }
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        (application as? ShellGuardApp)?.appContainer?.vaultLockManager?.onAppBackgrounded()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        (application as? ShellGuardApp)?.appContainer?.vaultLockManager?.onAppForegrounded()
     }
 }
 

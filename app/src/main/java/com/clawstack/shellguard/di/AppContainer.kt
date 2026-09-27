@@ -22,6 +22,7 @@ interface AppContainer {
     val deviceVault: EncryptedDeviceVault
     val connectivityMonitor: ConnectivityMonitor
     val syncRepository: SyncRepository
+    val vaultLockManager: com.clawstack.shellguard.crypto.VaultLockManager
     fun getClient(baseUrl: String): ShellGuardClient
 }
 
@@ -53,6 +54,10 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
 
     override val connectivityMonitor: ConnectivityMonitor by lazy {
         ConnectivityMonitor(context)
+    }
+
+    override val vaultLockManager: com.clawstack.shellguard.crypto.VaultLockManager by lazy {
+        com.clawstack.shellguard.crypto.VaultLockManager(context, deviceVault)
     }
 
     override val syncRepository: SyncRepository by lazy {

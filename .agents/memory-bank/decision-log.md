@@ -1,8 +1,5 @@
 # Decision Log
 
-## 2026-09-24 — biometric recovery state machine
-Implemented KeyPermanentlyInvalidatedException recovery flow to prevent permanent user lockout when device biometrics are altered in system settings.
-
 ## 2026-09-24 — sensitive clipboard masking
 Mandated ClipDescription.EXTRA_IS_SENSITIVE for all password and TOTP copy actions to suppress visual previews in Android 13+ clipboard overlays, paired with auto-scrubbing.
 
@@ -59,6 +56,9 @@ Architected universal `ItemFormScreen` and polymorphic `ItemDetailScreen` suppor
 
 ## 2026-09-26 — session key persistence & zero-knowledge active session invariant
 Diagnosed "Error Loading Item: Vault locked or shellKey missing" on physical Pixel when opening vault items across app restarts. Traced to `inMemoryShellKey` living exclusively in volatile RAM while `hasActiveSession()` checked only persisted tokens, allowing the dashboard to open without the decryption key. Persisted the derived `shellKey` in hardware KeyStore-backed `EncryptedSharedPreferences` (see `android-development.md` §3 E), hardened `hasActiveSession()` to strictly require a valid shellKey, and verified seamless decryption and cold-restart persistence on hardware.
+
+## 2026-09-27 — splash theme actionbar suppression & camera totp verification
+Resolved rogue native ActionBar overlapping Compose TopAppBar by invoking `installSplashScreen()` in `MainActivity.onCreate()` and declaring `windowActionBar=false` and `windowNoTitle=true` in `themes.xml`. Verified live on physical Google Pixel hardware across CameraX QR scanner, item creation with TOTP secret, and 30s countdown Canvas ring with Cyan to Amber color interpolation.
 
 
 

@@ -110,6 +110,7 @@ class VaultDashboardViewModel(
 
     fun lockVault(onLocked: () -> Unit) {
         appContainer.deviceVault.zeroizeMemory()
+        appContainer.vaultLockManager.lockVaultNow()
         onLocked()
     }
 

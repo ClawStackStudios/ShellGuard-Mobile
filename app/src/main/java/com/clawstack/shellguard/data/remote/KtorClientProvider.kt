@@ -58,7 +58,7 @@ suspend fun handleNetworkDiagnostics(response: HttpResponse) {
     if (response.status.value == 400) {
         val responseBody = response.bodyAsText()
         try {
-            val errorDetails = Json { ignoreUnknownKeys = true }.decodeFromString<ShellResponse<Unit>>(responseBody)
+            val errorDetails = KtorClientProvider.jsonConfig.decodeFromString<ShellResponse<Unit>>(responseBody)
             Log.e("ShellGuardClient", "🚨 [VALIDATION ERROR 400]: ${errorDetails.error}")
             errorDetails.details?.forEach { issue ->
                 Log.e("ShellGuardClient", "  → Field [${issue.path}]: ${issue.message}")
@@ -77,6 +77,7 @@ object KtorClientProvider {
         ignoreUnknownKeys = true
         coerceInputValues = true
         encodeDefaults = true
+        explicitNulls = false
     }
 
     fun createClient(

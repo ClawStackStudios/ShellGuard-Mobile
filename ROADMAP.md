@@ -1,10 +1,10 @@
 ---
 roadmap_version: 1.0.0
 last_updated: 2026-09-26
-current_position: "Phase 3 Complete (Tasks 05 & 06) — Multi-Domain Data Layer, Custom Fields, Universal Editor & Zero-Knowledge Session Atomicity verified green; ready for Phase 4 execution"
+current_position: "Phase 4 Complete (Tasks 07 & 08) — Algorithmic TOTP Engine, CameraX Scanner, Password Generator & Biometrics verified green; ready for Phase 5 execution"
 statistics:
   description: "Deterministic build roadmap for ShellGuard Mobile (Full Vault Android Client). Engineered strictly in synergistic 2-task phases where Task A delivers core functionality and Task B delivers the corresponding UI/UX component."
-  features_completed: "█████░░░░░ 50%"
+  features_completed: "███████░░░ 67%"
   features_in_progress: "░░░░░░░░░░ 0%"
 ---
 
@@ -92,14 +92,14 @@ statistics:
 > Phase Feature Set Overview:
 > Delivers the RFC 6238 TOTP computation engine and hardware-backed Android KeyStore biometrics, paired immediately with the password generator, CameraX QR scanner, and Biometric LockScreen.
 
-- [ ] **Task 07: [Functionality] Algorithmic TOTP Engine & Hardware KeyStore Biometrics**
+- [x] **Task 07: [Functionality] Algorithmic TOTP Engine & Hardware KeyStore Biometrics**
   - Implement `TotpEngine.kt` (RFC 6238, HMAC-SHA1/256/512, 6/8 digits, Steam Guard 5-char alphanumeric).
   - Implement `AndroidKeyStoreHelper.kt` managing hardware-backed AES-256-GCM secret keys with `setUserAuthenticationRequired(true)`.
   - Implement `AppLifecycleObserver.kt` enforcing auto-lock timeouts when the app is backgrounded.
   - Apply `FLAG_SECURE` to prevent screen captures and recents thumbnails.
   - *Success Criteria*: TOTP codes match Google Authenticator / ShellGuard web client; biometric prompt unlocks hardware cipher; cold boot locks the vault.
 
-- [ ] **Task 08: [UI Component] Password Generator, Countdown Display & CameraX Scanner**
+- [x] **Task 08: [UI Component] Password Generator, Countdown Display & CameraX Scanner**
   - Implement `PasswordGeneratorSheet.kt` with length slider, character set toggles, and passphrase mode.
   - Implement `TotpCard.kt` and `TotpCountdownRing.kt` Canvas component with smooth color transitions.
   - Implement `QrScannerScreen.kt` using CameraX and ML Kit Barcode Scanning with gallery QR picker.

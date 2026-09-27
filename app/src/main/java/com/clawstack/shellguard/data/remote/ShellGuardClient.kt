@@ -56,7 +56,7 @@ class ShellGuardClient(
      */
     suspend fun authenticate(keyHash: String, uuid: String? = null): Result<SessionData> = withContext(Dispatchers.IO) {
         runCatching {
-            val requestBody = TokenRequest(type = "human", keyHash = keyHash, uuid = uuid)
+            val requestBody = TokenRequest(type = "human", keyHash = keyHash, uuid = uuid?.takeIf { it.isNotBlank() })
             val response: HttpResponse = client.post("api/auth/token") {
                 contentType(ContentType.Application.Json)
                 setBody(requestBody)

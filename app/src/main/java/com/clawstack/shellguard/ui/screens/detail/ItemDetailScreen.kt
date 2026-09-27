@@ -83,6 +83,7 @@ import com.clawstack.shellguard.data.repository.VaultItemDomain
 import com.clawstack.shellguard.domain.models.CustomFieldType
 import com.clawstack.shellguard.ui.components.ClipboardToastPill
 import com.clawstack.shellguard.ui.components.CustomFieldDisplayRow
+import com.clawstack.shellguard.ui.components.TotpDisplayCard
 import com.clawstack.shellguard.ui.theme.BorderSubtle
 import com.clawstack.shellguard.ui.theme.BrandClawCyan
 import com.clawstack.shellguard.ui.theme.LocalShellGuardColors
@@ -493,6 +494,12 @@ fun ItemDetailScreen(
                                         }
                                     }
                                 }
+                            }
+
+                            // ── TOTP Verification Code Section ───────────────────────
+                            if (!state.totpSecret.isNullOrBlank()) {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                TotpDisplayCard(secret = state.totpSecret)
                             }
 
                             // ── Custom Fields Section ─────────────────────────────────
