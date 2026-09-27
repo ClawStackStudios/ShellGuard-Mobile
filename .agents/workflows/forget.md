@@ -69,6 +69,11 @@ is already preserved in commit history. This means:
   eligible for dissolution (see Phase 2)
 - `memory-bank/dissolved.md` — create if missing
 
+**Strict Git Boundaries for Forgetting:**
+Because forgetting removes text from the working set and commits it, it MUST NOT be mixed with active development.
+1. **Clean Worktree:** Run `git status --porcelain`. If there are any uncommitted changes in the repository, respond: "Git worktree is dirty. Commit or stash your changes before forgetting." and exit.
+2. **Bespoke Branch:** Run `git branch --show-current`. If you are on `main` or an active feature branch, respond: "Forgetting must be done on a bespoke branch to isolate the dissolution commit. Checkout a new branch (e.g., `git checkout -b chore/forget-pass`), run /forget, and then merge it back." and exit.
+
 If the memory bank is not in a git repo, respond:
 "Forget requires git history as the substrate. The memory bank
 must be tracked in a git repository so dissolved content is

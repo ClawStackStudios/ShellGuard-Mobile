@@ -45,6 +45,8 @@ If nothing meets the dissolution criteria, I commit nothing. I return `Done` reg
 
 ⚠️ **Stop and surface:**
 - If the memory bank is not in a git repo — return the exact error message from `forget.md § Prerequisites`. I require the git substrate. The engram must be recoverable. I do not dissolve what cannot be retrieved.
+- If the git worktree is dirty (`git status --porcelain` returns output) — return: `"Git worktree is dirty. Commit or stash your changes before forgetting."`
+- If the current branch is `main` or an active feature branch (`git branch --show-current`) — return: `"Forgetting must be done on a bespoke branch to isolate the dissolution commit. Checkout a new branch (e.g., git checkout -b chore/forget-pass), run /forget, and then merge it back."`
 
 🚫 **Never do:**
 - Return anything other than `Done` to the primary agent
