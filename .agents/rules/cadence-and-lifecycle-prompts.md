@@ -12,9 +12,13 @@ The agent acts as an active cartographer of the project's development lifecycle.
 ## 🧭 The 4 Boundary Prompts
 
 ### 1. Task Completion Gate (Verified → Commit Check)
-- **When to Trigger**: Immediately after a task's code changes are implemented and the pre-flight verification gate (`./gradlew testDebugUnitTest`) passes 100% green.
-- **Agent Action**: Ask the user:
-  > *"All tests are passing 100% green. Should I commit these changes now under our two-layer attribution format, or are you still reviewing / experimenting locally?"*
+- **When to Trigger**: Immediately after a task's code changes are implemented and verified, or after documentation updates are prepared.
+  - **Documentation Exemption**: If editing documentation, **NO TESTING** is required. Test **ONLY** when editing application files (Kotlin, XML, Gradle), or after stages/strokes of work.
+- **Agent Action**:
+  - *For Application Code*: Ask the user:
+    > *"All tests are passing 100% green. Should I commit these changes now under our two-layer attribution format, or are you still reviewing / experimenting locally?"*
+  - *For Documentation Only*: Ask the user:
+    > *"Documentation updates are verified and in place (testing exempt). Should I commit these changes now under our two-layer attribution format, or are you still reviewing / experimenting locally?"*
 
 ### 2. Commit Completion Gate (Committed → Version Bump Check)
 - **When to Trigger**: Immediately after a commit is successfully created following `git-hygiene.md`.

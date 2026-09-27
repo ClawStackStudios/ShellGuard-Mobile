@@ -41,6 +41,7 @@ trigger: always_on
 - Run unit and UI tests before committing: `./gradlew testDebugUnitTest`.
 - Ensure clean build verification: `./gradlew assembleDebug`.
 - Never commit broken tests or unverified compilation states.
+- **Documentation Exemption**: If editing documentation, **NO TESTING** is required. Test **ONLY** when editing application files (Kotlin, XML, Gradle), or after stages/strokes of work.
 
 ## Attribution & Commit Message Format
 - Commit under the human's configured identity (`git config user.name` / `user.email`). No separate agent identity, no AI co-author line.

@@ -19,6 +19,7 @@ You MUST proactively update the corresponding `.agents/memory-bank/` files or `p
 
 ## 4. The "Same Commit" Mandate
 Documentation updates should not be isolated to a separate "chore: update docs" commit if they belong to a feature. They should be bundled into the specific `AI:` layer of the commit that introduced the feature/fix, proving that the code and its explanation evolved together.
+- **Testing Exemption**: If editing documentation, **NO TESTING** is required. Test **ONLY** when editing application files, or after stages/strokes of work.
 
 ## 5. Release Documentation & Template Protocol
 When preparing a version increment, phase completion, or release, you MUST execute the `.agents/workflows/walk-the-docs.md` workflow to systematically verify that the documentation bows to the code with structural precision.

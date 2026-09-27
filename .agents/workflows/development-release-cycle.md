@@ -65,9 +65,13 @@ The agent maintains awareness of this lifecycle state and proactively prompts th
 ---
 
 ### Transition 1: Task Finished → Commit Check
-- **Context**: The agent has finished writing/refactoring code and the pre-flight verification gate (`./gradlew testDebugUnitTest`) is 100% green.
+- **Context**: The agent has finished writing/refactoring code or updating documentation.
+  - **Documentation Exemption**: If editing documentation **NO TESTING** is required. Test **ONLY** when editing application files (Kotlin sources, XML resources, Gradle scripts), or after stages/strokes of work.
 - **Agent Prompt**:
-  > *"All tests and verification gates are passing 100% green. Would you like me to commit these changes now under our two-layer attribution format, or are you still reviewing / adding more locally?"*
+  - *When Application Code Modified*:
+    > *"All tests and verification gates are passing 100% green. Would you like me to commit these changes now under our two-layer attribution format, or are you still reviewing / adding more locally?"*
+  - *When Documentation Only Modified*:
+    > *"Documentation updates are verified and in place (testing exempt). Would you like me to commit these changes now under our two-layer attribution format, or are you still reviewing / adding more locally?"*
 - **Branching Outcomes**:
   - **User: "Commit"** → Proceed to **Transition 2**.
   - **User: "Still reviewing / adding"** → Agent preserves unstaged state and returns to local execution mode.
@@ -124,3 +128,4 @@ Immediately after pushing a release tag or triggering a release commit:
 1. **Never Assume — Ask at Boundaries**: Do not commit without asking. Do not bump versions without asking. Do not tag releases without asking.
 2. **Context Persistence Across "No" Responses**: If the user responds *"No, we're still adding"*, the agent notes this in `activeContext.md` as an accumulated sprint and re-surfaces the commit/release check after the next series of modifications.
 3. **Always Ground in Evidence**: Never propose a commit or version bump while tests are failing or compilation is unverified.
+4. **Documentation Testing Exemption**: If editing documentation, **NO TESTING** is required. Test **ONLY** when editing application files, or after stages/strokes of work.
