@@ -122,10 +122,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `BiometricAuthManager.kt`: KeyStore hardware biometric authentication via `BiometricPrompt`.
   - `VaultLockManager.kt`: Background auto-lock timeout manager tracking user inactivity and lifecycle backgrounding.
   - `LockScreen.kt`: Biometric challenge with PIN/Password fallback.
-- Splash Theme ActionBar Suppression:
-  - Resolved rogue platform ActionBar overlap in `MainActivity.onCreate()` via `installSplashScreen()` and `themes.xml` title suppression.
-- Test Coverage:
-  - 63 unit and Robolectric tests passing 100% green across all suites. Verified live on physical Google Pixel hardware.
+- Agent Framework & Orchestration Fleet:
+  - `.agents/agents/`: Converted Google Jules templates into four dedicated native Android engineering sub-agents (Bolt for Performance, Palette for UI/UX, Sentinel for Zero-Knowledge Security, Scribe for Documentation/Memory) mapped to project skills in `.agents/skills/`.
+  - `.agents/ORCHESTRATION.md`: Codified dynamic multi-agent interaction topologies (Bundled, Chain, Staggered, Hybrid) with Mermaid diagrams, pre-collapsed delegation protocols, and conflict resolution hierarchies.
+  - `.agents/TOOLS.md`: Documented complete Android development toolchain (Gradle wrapper, headless JBR exports, build-tools, physical Pixel wireless ADB, 16 KB ELF alignment verification).
+  - `.agents/AGENTS.md`: Integrated Lucas's Core Being token lifespan principles and registered 4 specialized engineering sub-agents.
+  - `.agents/rules/android-development.md`: Formally codified splash theme ActionBar suppression and Algorithmic TOTP/CameraX pipeline invariants.
 
 
 
