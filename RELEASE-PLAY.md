@@ -5,6 +5,21 @@
 
 ---
 
+## `v0.0.0.4` — Phase 3: Vault Domains, Universal Item Editor & Session Atomicity (Build 4)
+
+```xml
+<en-US>
+• Vault Domains: Full CRUD across Passwords, Notes, and SSH Keys.
+• Custom Fields: Bitwarden-style text, hidden, boolean, and linked fields.
+• Password History: Automatic versioning of password changes.
+• Universal Editor: Create and edit items with tags and dynamic fields.
+• Polymorphic Details: Masked passwords, 30s clipboard auto-scrub, and Claw Re-Prompt.
+• KeyStore Session Atomicity: Zero-knowledge session persistence across cold restarts.
+</en-US>
+```
+
+---
+
 ## `v0.0.0.3` — Phase 2: Ktor Sync, Vault Dashboard & IME Hardening (Build 3)
 
 ```xml

@@ -1,3 +1,7 @@
+---
+description: Google Play Console Release & Deployment Workflow
+---
+
 # 🚀 Google Play Console Release & Deployment Workflow
 
 > **Standard Operating Procedure for ShellGuard Mobile Releases**  
