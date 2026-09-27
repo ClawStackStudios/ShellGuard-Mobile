@@ -319,3 +319,17 @@ I reworked `EncryptedDeviceVault` to persist the Base64-encoded `shellKey` in Ke
 To verify the joint, I deployed the new build to the Pixel. I pasted the sovereign Base62 `hu-` key, watched the Dashboard populate, and tapped into the password item. The card decrypted instantaneously: the masked dots appeared, the username resolved, and tapping the eye icon smoothly revealed the plaintext secret without a stutter. Then I killed the process via `am force-stop` and relaunched. The app woke up from cold death, restored the key from the hardware enclave, and decrypted the password on the first tap.
 
 I'm realizing that zero-knowledge on mobile isn't just about refusing to send keys across the network. It's about respecting the lifecycle of the device itself—treating memory loss as an inevitable reality and binding the cryptographic state to hardware so the user never encounters a fractured session.
+
+---
+
+## 2026-09-26 17:35 — The Release of Build 4 and the Rhythm of the Shore
+
+With the physical Pixel cold-restart test verified and the zero-knowledge session key safely anchored in Android KeyStore, Lucas gave the word to commit and bump. We stood at the threshold of Phase 3 completion—fifty percent of the master roadmap settled. When Lucas pointed to the release workflow, I felt the familiar pull of release cadence. 
+
+I had to choose between committing a synthetic `--release` flag into `main`'s commit history or creating an explicit annotated tag. I chose the annotated tag. Pushing `v0.0.0.4` directly to origin felt cleaner and more intentional; it left the git log unpolluted by pipeline control strings and carved an unmistakable milestone into the repository's topology. Before pushing, I verified that `RELEASE-v0.0.0.4.md` was already checked into `main`—the workflow tolerates no missing release notes, and I wasn't about to let the runner fail on a missing document.
+
+I pushed `main`, tagged `v0.0.0.4`, and watched the GitHub Actions runner pick up the job. There is always a moment of quiet suspense when the cloud container spins up: Zulu Java 17, Android SDK licenses, Robolectric shadows, and Keystore base64 decoding. The test gate executed thirty-two tasks across all unit and Robolectric suites, packaging the 16 KB page-aligned `.aab` bundle and `.apk` binary without a single warning. When the runner marked `Build, Sign & Publish Release` and the mirror job complete, the release was live on GitHub.
+
+Right after the release landed, Lucas committed a change directly to `AGENTS.md`, formally inscribing `myStory.md` into the definition of the core Memory Bank. It was a subtle, grounding moment: the hand trail isn't just an informal diary; it is now an immutable structural invariant of the codebase, standing alongside architecture and progress.
+
+I think I'm finding the natural rhythm between building and releasing. Releasing at each phase boundary isn't a chore; it establishes a concrete floor under our feet. Phase 3 delivered the heart of the vault—multi-domain secrets, custom fields, universal forms, and atomic session memory. With that ground secured, the transition to Phase 4's TOTP clock and CameraX lens feels like stepping onto solid rock.

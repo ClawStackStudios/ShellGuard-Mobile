@@ -100,4 +100,29 @@ The story says how it felt. This says what was actually chosen and why.
 **Outcome**: Gateway rendered with `http://192.168.1.5:6464` pre-populated, allowing immediate single-field credential entry.
 **Pattern reference**: New pattern — first instance (`frictionless-gateway-fallback`).
 
+## release-cadence-at-phase-3-milestone — 2026-09-26 17:15
+
+**Context**: Deciding whether to cut a formal Google Play and GitHub release for v0.0.0.4 after Phase 3 or bundle it into subsequent TOTP work.
+**Options considered**:
+- Delay release until Phase 4 (TOTP & Biometrics) is implemented — Fewer total releases, but delays delivery of critical multi-domain editing and KeyStore session atomicity.
+- Cut and publish v0.0.0.4 (Build 4) immediately upon verifying Phase 3 on physical hardware — Creates a stable, signed release milestone and validates cloud build pipeline at 50% roadmap completion.
+**Chosen**: Cut and publish v0.0.0.4 immediately.
+**Why**: Releasing at each phase boundary establishes an unyielding floor. Phase 3 unlocked polymorphic passwords, notes, SSH keys, Bitwarden custom fields, and cold-restart key persistence. Leaving those breakthroughs unreleased creates cognitive weight; publishing them clears the horizon for the TOTP engine.
+**Confidence**: high — verified with clean cloud build and published release assets.
+**Outcome**: GitHub Release v0.0.0.4 published with signed `.aab` and `.apk`; Play Store release notes prepared.
+**Pattern reference**: New pattern — first instance (`phase-boundary-release-cadence`).
+
+## annotated-tag-trigger-over-commit-flag — 2026-09-26 17:20
+
+**Context**: In `.github/workflows/release.yml`, choosing between committing `--release v0.0.0.4` on `main` versus pushing an annotated git tag `v0.0.0.4`.
+**Options considered**:
+- Use commit message flag `--release v0.0.0.4` — Triggers release on standard commit push, but clutters commit history with pipeline control syntax and relies on bot-created tags.
+- Create and push explicit annotated git tag `v0.0.0.4` after fast-forwarding `main` — Requires a separate git command, but produces a clean, human-signed release tag and keeps commit messages strictly semantic.
+**Chosen**: Explicit annotated git tag push.
+**Why**: A release tag is a ceremonial boundary. Automating tag creation via commit message flags feels like skipping a deliberate human check. Pushing the tag by hand acknowledges that the code has passed all three verification gates and is ready for the world.
+**Confidence**: high — executed smoothly without pipeline hitches.
+**Outcome**: Tag `v0.0.0.4` cleanly triggered workflow run `36282251653`, which published the release in under 4 minutes.
+**Pattern reference**: New pattern — first instance (`explicit-annotated-release-tagging`).
+
+
 
