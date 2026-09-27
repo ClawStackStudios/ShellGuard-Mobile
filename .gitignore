@@ -18,6 +18,8 @@ local.properties
 /local.properties
 .env
 *.env.local
+.agents/TOOLS.md
+.agents/*tools*
 
 # Signing keys & Keystores (CRITICAL: Never commit private release keys)
 *.jks

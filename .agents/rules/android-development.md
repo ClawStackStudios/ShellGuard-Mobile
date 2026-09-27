@@ -111,6 +111,7 @@ Master identity keys, session tokens, derived symmetric keys (`shellKey`), and P
 - **Key Re-Hydration Across Lifecycles**: Derived symmetric keys (`shellKey`) must be stored at rest in `EncryptedSharedPreferences` so they survive Android process terminations and cold restarts without prompting the user on every app launch. `getInMemoryShellKey()` must dynamically re-hydrate the in-memory cache from encrypted preferences if the RAM reference was cleared.
 - **Frictionless Gateway Fallback**: If an invalid session or missing key forces a redirect to the `GatewayScreen`, the client must preserve and pre-fill server connection parameters (`protocol`, `host`, `port`) so the user only needs to supply their key/file to restore access.
 - **Session Zeroization**: On explicit user lock or logout, both volatile RAM references AND persisted KeyStore preferences (`KEY_SHELL_KEY`, `KEY_SESSION_TOKEN`) must be actively zeroized.
+- *(Ratified Pattern: see [long-term/patterns.md § pattern: zero-knowledge-session-atomicity](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/memory-bank/long-term/patterns.md))*.
 
 ---
 
@@ -136,6 +137,9 @@ Master identity keys, session tokens, derived symmetric keys (`shellKey`), and P
   - `KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false)` to prevent predictive dictionary learning and third-party keyboard telemetry caching.
 - **Fail-Safe Navigation & Unconditional Exit Routes**:
   Every screen composable that renders an error, locked, or unauthenticated UI state MUST provide an explicit, accessible navigation exit route (`onBackClick` or close action) alongside any retry/re-auth action. Solitary "Retry" buttons that depend on pre-existing session state create fatal navigational traps when the underlying failure is terminal (e.g. cleared in-memory keys, expired session tokens). The return path to a safe parent surface (Dashboard or Gateway) must always remain visible and unobstructed.
+- **Splash Theme ActionBar Suppression & Theme Inheritance**:
+  `Theme.ShellGuard.Starting` uses `parent="Theme.SplashScreen"`. To ensure the window correctly transitions to `Theme.ShellGuard` (`NoActionBar`) without allocating a rogue platform ActionBar over Compose `TopAppBar` headers, `MainActivity.onCreate()` MUST invoke `installSplashScreen()` BEFORE `super.onCreate()`. In addition, `res/values/themes.xml` must explicitly declare `windowActionBar = false` and `windowNoTitle = true`.
+- *(Ratified Pattern: see [long-term/patterns.md § pattern: cwe-359-ime-protection-and-inset-isolation](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/memory-bank/long-term/patterns.md))*.
 
 ---
 
@@ -190,6 +194,10 @@ Android 15+ (API 35/36) mandates 16 KB page-aligned native binaries:
 - **Pre-DAO Fingerprint Deduplication**: Backup import engines must deduplicate incoming records by normalized `secret` + `title` fingerprint prior to DAO insertion, preventing duplicate UUID false negatives.
 - **Autofill `UriMatchMode` Invariants**: The autofill domain matcher supports 5 algorithms (`BASE_DOMAIN`, `HOST`, `EXACT`, `STARTS_WITH`, `NEVER`) enabling exact port matching for multi-tenant local home labs (`http://192.168.1.50:8080` vs `http://192.168.1.50:9000`).
 - **Android 11+ Inline Presentation**: Supports keyboard suggestion chips above Gboard/SwiftKey alongside standard popup dropdowns.
+- **Algorithmic TOTP Engine & CameraX Pipeline**:
+  - RFC 6238 TOTP engine supporting HMAC-SHA1/256/512, 6/8 digits, dynamic truncation (RFC 4226 §5.4), and Steam Guard 5-character alphanumeric token derivation.
+  - Sub-second reactive ticker coroutine Flow emitting progress for 60fps smooth Canvas countdown arcs with dynamic color interpolation (Cyan ➔ Amber ➔ Red).
+  - CameraX viewfinder bound to ML Kit `BarcodeScanning` via `ImageAnalysis.Analyzer` with custom reticle styling, flashlight toggle, and accessible gallery picker fallback.
 
 ---
 
