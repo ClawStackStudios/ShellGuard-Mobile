@@ -82,7 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - GitHub Actions automated release pipeline (`.github/workflows/release.yml`) with Python 3 keystore decoding and dual artifact packaging (`.aab` and `.apk`).
   - Pre-flight test suite expanded to 23 tests, passing 100% green. Published live GitHub Release `v0.0.0.3`.
 
-## [Unreleased] (Phase 3 Complete)
+## [0.0.0.4] - 2026-09-26 (Build 4) — Phase 3: Vault Domains, Universal Item Editor & Zero-Knowledge Session Atomicity
 
 ### Added
 - Phase 3: Vault Domains & Universal Item Editor (Tasks 05 & 06):

@@ -5,8 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-- Phase 3: Vault Domains & Universal Item Editor (Tasks 05 & 06).
+## [0.0.0.4] - 2026-09-26 (Build 4) — Phase 3: Vault Domains, Universal Item Editor & Zero-Knowledge Session Atomicity
+### Added
+- **Multi-Domain Vault Architecture (`VaultDomainModels`)**: Unified support across Passwords (Pearls), Secure Notes, and SSH Keys with polymorphic detail and editor projections.
+- **Bitwarden-Style Custom Fields Engine (`CustomField`)**: Supports 4 field types (`TEXT`, `HIDDEN`, `BOOLEAN`, `LINKED`) with JSON serialization and domain-bound ShellCryption AAD namespaces (`vault_*_custom:{id}`).
+- **Defensive Password History Tracking**: Automatic client-side versioning of password changes with ISO timestamps and encrypted history storage (`vault_pearls_history:{id}`).
+- **Universal Item Editor (`ItemFormScreen`, `ItemFormViewModel`)**: Single unified create/edit screen with pinned header/footer, domain selector, tags chip builder, custom field creator dialog, and `.imePadding().verticalScroll()` IME protection.
+- **Polymorphic Item Detail Views (`ItemDetailScreen`, `ItemDetailViewModel`)**: Rich polymorphic inspection views for passwords, notes, and SSH keys with sensitive clipboard auto-scrubbing (30s timer) and Claw Re-Prompt biometric gates.
+- **Zero-Knowledge Session Atomicity & KeyStore Key Persistence (`EncryptedDeviceVault`)**: Persisted derived 32-byte `shellKey` Base64 in Android KeyStore-backed `EncryptedSharedPreferences` (AES-256-GCM), adding dynamic RAM re-hydration to survive Android process terminations and cold restarts. Hardened `hasActiveSession()` to strictly require `getInMemoryShellKey() != null`, eliminating unauthenticated split-brain states.
+- **Frictionless Gateway Re-entry (`GatewayViewModel`)**: Pre-filled server parameters (`protocol`, `host`, `port`) from stored server URL when returning to Gateway upon lock/fallback.
+- **Accessible Fail-Safe Navigation**: Added high-contrast `Back` and `Retry` actions on item detail error screens to prevent user entrapment.
+
+### Verified
+- **Robolectric & Unit Tests**: 32/32 tests passing 100% green (`CustomFieldTest`, `SyncRepositoryTest`, `EncryptedDeviceVaultTest`, `ClawCryptoTest`, `ShellCryptionEngineTest`, `RoomDatabaseTest`).
+- **Physical Hardware Verification**: Verified live on Google Pixel (`sailfish`, Android 14 LineageOS) with full item decryption, Toggle Visibility password unmasking, and brutal cold-restart survival (`am force-stop` ➔ `am start`).
 
 ## [0.0.0.3] - 2026-09-26 (Build 3) — Phase 2: Ktor API Client, Bidirectional Sync, Vault Dashboard & IME Hardening
 ### Added

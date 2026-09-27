@@ -1,10 +1,10 @@
 ---
 roadmap_version: 1.0.0
 last_updated: 2026-09-26
-current_position: "Phase 2 Complete (Tasks 03 & 04) — Ktor API Client, Bidirectional Sync & Vault Dashboard verified green; ready for commit and Phase 3 execution"
+current_position: "Phase 3 Complete (Tasks 05 & 06) — Multi-Domain Data Layer, Custom Fields, Universal Editor & Zero-Knowledge Session Atomicity verified green; ready for Phase 4 execution"
 statistics:
   description: "Deterministic build roadmap for ShellGuard Mobile (Full Vault Android Client). Engineered strictly in synergistic 2-task phases where Task A delivers core functionality and Task B delivers the corresponding UI/UX component."
-  features_completed: "████░░░░░░ 33%"
+  features_completed: "█████░░░░░ 50%"
   features_in_progress: "░░░░░░░░░░ 0%"
 ---
 
@@ -73,13 +73,13 @@ statistics:
 > Phase Feature Set Overview:
 > Delivers the multi-domain data layer with support for custom fields, tags, and password history, paired immediately with the universal ItemFormScreen and polymorphic detail view renderers.
 
-- [ ] **Task 05: [Functionality] Multi-Domain Data Layer & Bitwarden-Style Custom Fields**
+- [x] **Task 05: [Functionality] Multi-Domain Data Layer & Bitwarden-Style Custom Fields**
   - Implement domain models for `CustomField` (`Text`, `Hidden`, `Checkbox`, `Linked`).
   - Implement JSON serialization and ShellCryption encryption for custom fields with per-item AAD namespaces.
   - Implement password history tracking and tag system.
   - *Success Criteria*: Custom fields roundtrip through encryption without schema pollution; linked fields resolve dynamically.
 
-- [ ] **Task 06: [UI Component] Universal ItemFormScreen & Polymorphic Detail Views**
+- [x] **Task 06: [UI Component] Universal ItemFormScreen & Polymorphic Detail Views**
   - Implement `ItemFormScreen.kt` supporting create/edit across Passwords, Secure Notes, and SSH Keys.
   - Dynamic Custom Fields editor allowing users to add, reorder, toggle visibility, and delete fields.
   - Implement `ItemDetailScreen.kt` rendering masked passwords with tap-to-copy, haptic feedback, eye visibility toggle, and note markdown preview.
