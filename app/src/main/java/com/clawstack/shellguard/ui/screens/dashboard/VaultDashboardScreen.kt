@@ -55,6 +55,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.clawstack.shellguard.ui.screens.settings.AutofillSettingsDialog
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -103,6 +104,7 @@ fun VaultDashboardScreen(
     val context = LocalContext.current
 
     var isMenuExpanded by remember { mutableStateOf(false) }
+    var showAutofillDialog by remember { mutableStateOf(false) }
 
     Surface(
         modifier = modifier
@@ -212,6 +214,16 @@ fun VaultDashboardScreen(
                                 onDismissRequest = { isMenuExpanded = false },
                                 modifier = Modifier.background(SurfaceContainerDark)
                             ) {
+                                DropdownMenuItem(
+                                    text = { Text("Autofill Settings", color = TextPrimary) },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.Security, contentDescription = null, tint = BrandClawCyan)
+                                    },
+                                    onClick = {
+                                        isMenuExpanded = false
+                                        showAutofillDialog = true
+                                    }
+                                )
                                 DropdownMenuItem(
                                     text = { Text("Lock Vault", color = TextPrimary) },
                                     leadingIcon = {
@@ -419,6 +431,12 @@ fun VaultDashboardScreen(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Add Item",
                     tint = if (syncStatus == SyncStatus.OFFLINE_READ_ONLY) TextPrimary.copy(alpha = 0.5f) else TextPrimary
+                )
+            }
+
+            if (showAutofillDialog) {
+                AutofillSettingsDialog(
+                    onDismissRequest = { showAutofillDialog = false }
                 )
             }
         }
