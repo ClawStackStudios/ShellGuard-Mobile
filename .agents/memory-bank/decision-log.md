@@ -1,8 +1,5 @@
 # Decision Log
 
-## 2026-09-24 — sensitive clipboard masking
-Mandated ClipDescription.EXTRA_IS_SENSITIVE for all password and TOTP copy actions to suppress visual previews in Android 13+ clipboard overlays, paired with auto-scrubbing.
-
 ## 2026-09-24 — quick settings and glance widgets
 Incorporated Android Quick Settings TileService and Jetpack Compose Glance widgets into the full client to provide instant access without opening the full vault UI.
 
@@ -59,6 +56,10 @@ Diagnosed "Error Loading Item: Vault locked or shellKey missing" on physical Pix
 
 ## 2026-09-27 — splash theme actionbar suppression & camera totp verification
 Resolved rogue native ActionBar overlapping Compose TopAppBar by invoking `installSplashScreen()` in `MainActivity.onCreate()` and declaring `windowActionBar=false` and `windowNoTitle=true` in `themes.xml`. Verified live on physical Google Pixel hardware across CameraX QR scanner, item creation with TOTP secret, and 30s countdown Canvas ring with Cyan to Amber color interpolation.
+
+## 2026-09-27 — specialized sub-agent fleet and opsec rebase scrub
+Converted Google Jules templates to native Android specialists (Bolt, Palette, Sentinel, Scribe), codified dynamic orchestration topologies, exempted markdown docs from test runs (mandating builds for VitePress docs), and rebase-scrubbed local TOOLS.md to eliminate physical hardware serial leakage while preserving the file locally.
+
 
 
 

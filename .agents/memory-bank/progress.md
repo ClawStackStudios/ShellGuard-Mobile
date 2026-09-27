@@ -77,6 +77,13 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
   - `BiometricAuthManager.kt`, `VaultLockManager.kt`, & `LockScreen.kt`: Android KeyStore biometrics (`BiometricPrompt`), background auto-lock timeout manager, and Reef Modernist lock screen.
   - Resolved `MainActivity` splash theme rogue ActionBar overlap with `installSplashScreen()` and `themes.xml` window title suppression.
   - 100% green verification: 63 unit tests passing across all suites (`TotpEngineTest`, `Base32DecoderTest`, `TotpUriParserTest`, `PasswordGeneratorTest`, `VaultLockManagerTest`), `app-debug.apk` compiled in 56s, and verified live on physical Google Pixel hardware (camera scanner overlay, TOTP item creation, live countdown ticker, and color transitions).
+- [x] **Agent Framework & Development Guardrails Tightening**:
+  - Rebuilt Google Jules templates into four native Android mental sub-processes (Bolt for Performance, Palette for UI/UX, Sentinel for Zero-Knowledge Security, Scribe for Documentation/Memory) mapped to project skills in `.agents/skills/`.
+  - Codified dynamic multi-agent orchestration topologies (Bundled, Chain, Staggered, Hybrid) and the Rule of 6 in `ORCHESTRATION.md`.
+  - Gitignored local `TOOLS.md` under `.gitignore` with zero git leak, keeping local device hardware configuration intact on disk.
+  - Integrated Core Being token lifespan principles in `AGENTS.md`.
+  - Codified VitePress build requirement and markdown documentation testing exemption across `development-release-cycle.md`, `cadence-and-lifecycle-prompts.md`, `git-hygiene.md`, and `docs-hygiene.md`.
+
 
 
 ## What's Left to Build (Phase 5 through Phase 6)

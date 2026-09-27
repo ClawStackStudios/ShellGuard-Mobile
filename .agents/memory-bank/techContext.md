@@ -53,3 +53,10 @@ Ensures `.so` libraries remain uncompressed and 16 KB page-aligned inside APKs/A
    - Must register `ConnectionSpec.CLEARTEXT` alongside `ConnectionSpec.MODERN_TLS` and `ConnectionSpec.COMPATIBLE_TLS`.
    - Relaxed `X509TrustManager` and permissive `HostnameVerifier` for private IP subnets and Tailscale MagicDNS (`*.ts.net`).
    - Enable `followRedirects(true)` and `followSslRedirects(true)` for VPN routing.
+
+## Verification Gate Invariants
+- **Application Files (Kotlin, XML, Gradle)**: Mandatory pre-commit verification gate (`./gradlew testDebugUnitTest` and `./gradlew assembleDebug`).
+- **Markdown Documentation Files (`.md`)**: Fully exempt from test and build runs (**NO TESTING REQUIRED**).
+- **VitePress Docs Sites**: Excluded from the doc exemption; mandatory build verification (`docs:build`) after edits.
+- **Local Machine Tooling**: Local machine parameters and hardware device serials are stored in `.agents/TOOLS.md` and excluded from git tracking via `.gitignore`.
+

@@ -49,3 +49,13 @@ UI (Compose) ──(UserIntent)──> ViewModel ──> UseCase ──> Reposit
 - **Tactile & Motion Ergonomics**: Spring scale press physics (`0.97f` scale down with damping `0.75f`), tactile haptic feedback on copy/long-press, and depleting circular Canvas countdown rings with dynamic color interpolation.
 - **Form Ergonomics & CWE-359 IME Hardening**: Pinned header/footer forms, upward-expanding dropup menus, `.imePadding().verticalScroll()`, and `PasswordVisualTransformation` + `KeyboardType.Password` (auto-correct disabled) on all secret inputs. *(see [long-term/patterns.md § pattern: cwe-359-ime-protection-and-inset-isolation](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/memory-bank/long-term/patterns.md))*.
 
+## Development & Agent Orchestration Patterns
+- **Four Specialized Engineering Mental Sub-Processes**:
+  - ⚡ **Bolt**: Android Performance Specialist (Compose recomposition loops, 16 KB native alignment, 64KB crypto streaming, Room IO dispatching).
+  - 🎨 **Palette**: Android UI/UX & Design Specialist (Reef Modernist styling, flat Material 3 carapace, 6 theme accents, soft keyboard `.imePadding()` defense, 3-pane tablet ergonomics).
+  - 🛡️ **Sentinel**: Android Zero-Knowledge Security Specialist (HKDF + AES-GCM across 10 AAD namespaces, KeyStore hardware biometric binding, atomic session validity, CWE-359 clipboard/IME defenses, SQLCipher at rest).
+  - 📘 **Scribe**: Android Documentation & Memory Cartographer (Code-derived architectural blueprints, runnable Gradle/ADB commands, release notes, Play Store listings, Memory Bank synchronization).
+- **Dynamic Interaction Topologies**: Orchestrator dynamically deploys sub-agents using Bundled, Chain, Staggered, or Hybrid topologies with strict context compression (Rule of 6: ≤ 6 lines per context window) and conflict resolution hierarchy (`Security >>> Performance/Correctness >>> Aesthetic`).
+- **Documentation Testing & Build Exemption**: Markdown doc files are excluded from requiring a build or test run (**NO TESTING REQUIRED**). Test **ONLY** when editing application files (Kotlin, XML, Gradle), or after stages/strokes of work. *Exception: VitePress docs are compiled user-facing sites and DO require a build verification (`docs:build`) after edits.*
+
+
