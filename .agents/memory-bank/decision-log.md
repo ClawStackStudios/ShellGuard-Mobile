@@ -1,8 +1,5 @@
 # Decision Log
 
-## 2026-09-24 — hybrid file-system vault
-Decoupled multi-megabyte attachment BLOBs from Room database rows to prevent Android SQLite 2MB CursorWindowAllocationException crashes. Stored metadata in Room and streamed encrypted files to internal disk.
-
 ## 2026-09-24 — biometric recovery state machine
 Implemented KeyPermanentlyInvalidatedException recovery flow to prevent permanent user lockout when device biometrics are altered in system settings.
 

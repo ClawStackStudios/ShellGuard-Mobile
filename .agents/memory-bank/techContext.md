@@ -33,8 +33,7 @@ packaging {
 Ensures `.so` libraries remain uncompressed and 16 KB page-aligned inside APKs/AABs for Android 15+.
 
 ## Network Invariants: Cleartext HTTP, LAN & Tailscale
-1. **Cleartext HTTP Policy**: → Consolidated to `long-term/constraints.md § constraint: cleartext-lan-and-tailscale-transport` (weight: 3, 2026-09-26)
-2. **Network Security Config (`res/xml/network_security_config.xml`)**:
+1. **Network Security Config (`res/xml/network_security_config.xml`)**:
    ```xml
    <?xml version="1.0" encoding="utf-8"?>
    <network-security-config>
@@ -47,10 +46,10 @@ Ensures `.so` libraries remain uncompressed and 16 KB page-aligned inside APKs/A
    </network-security-config>
    ```
    *Critical Invariant*: Android's `<domain>` tag does NOT support CIDR subnet notation (`192.168.0.0/16` or `100.64.0.0/10`). Declaring `<base-config cleartextTrafficPermitted="true" />` is strictly mandatory for raw IP address connections.
-3. **Manifest Binding**: `AndroidManifest.xml` must declare:
+2. **Manifest Binding**: `AndroidManifest.xml` must declare:
    - `android:networkSecurityConfig="@xml/network_security_config"`
    - `android:usesCleartextTraffic="true"`
-4. **OkHttp Engine Configuration**:
+3. **OkHttp Engine Configuration**:
    - Must register `ConnectionSpec.CLEARTEXT` alongside `ConnectionSpec.MODERN_TLS` and `ConnectionSpec.COMPATIBLE_TLS`.
    - Relaxed `X509TrustManager` and permissive `HostnameVerifier` for private IP subnets and Tailscale MagicDNS (`*.ts.net`).
    - Enable `followRedirects(true)` and `followSslRedirects(true)` for VPN routing.

@@ -33,7 +33,6 @@ UI (Compose) ──(UserIntent)──> ViewModel ──> UseCase ──> Reposit
 - **Claw Re-Prompt Guardrail**: Designated high-security items (`reprompt == true`) enforce a biometric or PIN re-verification gate before the user can reveal hidden secrets or copy them to the clipboard, even when the vault is already unlocked.
 - **Biometric Recovery State Machine**: Hardware biometric keys invalidated by new biometric enrollments (`KeyPermanentlyInvalidatedException`) automatically route to Master Password/PIN fallback to regenerate keys without user lockout or data loss.
 - **Zero-Knowledge Session Atomicity & KeyStore Key Persistence**: Active sessions atomically couple transport authorization (`sessionToken`) with cryptographic capability (`shellKey`). `hasActiveSession()` strictly verifies `getInMemoryShellKey() != null`. Derived 32-byte symmetric keys are persisted at rest in hardware KeyStore-backed `EncryptedSharedPreferences` (AES-256-GCM) with dynamic RAM re-hydration to survive Android process death without user lockout. Server connection parameters (`protocol`, `host`, `port`) are preserved and pre-filled upon session fallback to ensure frictionless re-entry.
-- **CWE-359 Sensitive Clipboard Masking**: → Consolidated to `long-term/patterns.md § pattern: cwe-359-sensitive-clipboard-masking` (weight: 3, 2026-09-26)
 - **Pre-DAO Fingerprint Deduplication**: `title | username | secret` hash comparison before database writes prevents duplicate false negatives.
 
 ## Autofill & System Integration Patterns
