@@ -1,7 +1,7 @@
 # Progress: ShellGuard Mobile
 
-## Current Status: Phase 4 Algorithmic TOTP Engine, CameraX Scanner, Password Generator & Biometrics Complete (Hardware Verified)
-All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold, Phase 1 (ShellCryption HKDF + Room SQLCipher, Gateway UI & Theme Engine), Phase 2 (Ktor API Client, Bidirectional Delta Sync, Master-Detail Dashboard, Base62 Identity Parity, IME Hardening), Phase 3 (Multi-Domain Vault, Polymorphic Universal Editor, Custom Fields, Password History, and Zero-Knowledge Session Atomicity), and Phase 4 (RFC 6238 TOTP Engine, CameraX ML Kit Scanner, Password Generator Sheet, and Biometric Vault Lifecycle) have been executed, compiled, and verified green with 100% test pass rate (63/63 tests) and verified live on physical Google Pixel hardware.
+## Current Status: Release v0.0.0.5 (Build 5) Published & Cloud Verified — Ready for Phase 5
+All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold, Phase 1 (ShellCryption HKDF + Room SQLCipher, Gateway UI & Theme Engine), Phase 2 (Ktor API Client, Bidirectional Delta Sync, Master-Detail Dashboard, Base62 Identity Parity, IME Hardening), Phase 3 (Multi-Domain Vault, Polymorphic Universal Editor, Custom Fields, Password History, and Zero-Knowledge Session Atomicity), and Phase 4 (RFC 6238 TOTP Engine, CameraX ML Kit Scanner, Password Generator Sheet, and Biometric Vault Lifecycle) have been executed, compiled, and verified green with 100% test pass rate (63/63 tests) and released to GitHub with signed AAB & APK assets.
 
 
 ## What Works (Documented, Designed & Scaffolded)
@@ -82,7 +82,14 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
   - Codified dynamic multi-agent orchestration topologies (Bundled, Chain, Staggered, Hybrid) and the Rule of 6 in `ORCHESTRATION.md`.
   - Gitignored local `TOOLS.md` under `.gitignore` with zero git leak, keeping local device hardware configuration intact on disk.
   - Integrated Core Being token lifespan principles in `AGENTS.md`.
-  - Codified VitePress build requirement and markdown documentation testing exemption across `development-release-cycle.md`, `cadence-and-lifecycle-prompts.md`, `git-hygiene.md`, and `docs-hygiene.md`.
+  - Codified markdown documentation testing exemption across `development-release-cycle.md`, `cadence-and-lifecycle-prompts.md`, `git-hygiene.md`, and `docs-hygiene.md`.
+- [x] **Release v0.0.0.5 (Build 5) — Phase 4 Shipped**:
+  - Published signed `shellguard-mobile-v0.0.0.5.aab` and `.apk` via automated GitHub Actions cloud release pipeline.
+  - Authored `RELEASE-v0.0.0.5.md` and prepended `<en-US>` release notes to `RELEASE-PLAY.md`.
+- [x] **Agent Cognitive Architecture & Remote Release Observability**:
+  - Decoupled Self (`brain/`) from Environment (`brain/project/`).
+  - Added `/migrate-to-brain` workflow for cross-repository memory architecture portability.
+  - Added `/follow-the-build` workflow for non-blocking GitHub Actions release monitoring and asset verification.
 
 
 

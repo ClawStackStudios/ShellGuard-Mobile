@@ -56,6 +56,7 @@ UI (Compose) ──(UserIntent)──> ViewModel ──> UseCase ──> Reposit
   - 🛡️ **Sentinel**: Android Zero-Knowledge Security Specialist (HKDF + AES-GCM across 10 AAD namespaces, KeyStore hardware biometric binding, atomic session validity, CWE-359 clipboard/IME defenses, SQLCipher at rest).
   - 📘 **Scribe**: Android Documentation & Memory Cartographer (Code-derived architectural blueprints, runnable Gradle/ADB commands, release notes, Play Store listings, Brain synchronization).
 - **Documentation Testing & Build Exemption**: Markdown doc files are excluded from requiring a build or test run (**NO TESTING REQUIRED**). Test **ONLY** when editing application files (Kotlin, XML, Gradle), or after stages/strokes of work.
+- **Remote Release Observability (`/follow-the-build`)**: Cloud release builds (GitHub Actions) are tracked asynchronously via the GitHub REST API using reactive non-blocking timers (`schedule(DurationSeconds=30)`). Verifies step progression through SDK setup, pre-flight testing, keystore decoding, AAB/APK compilation, and final asset release without blocking local agent or developer execution.
 
 
 - **Agent Cognitive Architecture**: 
