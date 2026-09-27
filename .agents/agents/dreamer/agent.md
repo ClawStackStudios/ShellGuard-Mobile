@@ -31,6 +31,7 @@ Read that file first. Then execute every phase exactly as written:
 - Read `dream.md` first and follow its schema exactly for the report structure
 - Run in **shallow mode** (clearly noted in report) if `navigation-log.md` has fewer than 3 entries
 - Set `request_feedback = true` in ArtifactMetadata when creating `dream_report.md`
+- Write `dream_report.md` exclusively to `.agents/memory-bank/dreams/` (create the directory if it doesn't exist)
 - Produce the Promotion Gate section with full proposed entry text so the primary agent can apply it without re-reading your work
 - Produce the Decay table with every relevant Long-Term Bank entry assessed
 
@@ -38,7 +39,7 @@ Read that file first. Then execute every phase exactly as written:
 - If `.agents/memory-bank/` does not exist or has fewer than 2 files with substantive content — return `"Nothing to dream about yet."` and stop
 
 🚫 **Never do:**
-- Write to **ONLY** `.agents/memory-bank/dreams/` file — all mutations are Phase 4, reserved for the primary agent post-approval
+- Write to any `memory-bank/` file outside of `.agents/memory-bank/dreams/` — all mutations to source files are Phase 4, reserved for the primary agent post-approval
 - Return intermediate reasoning to the caller — only the final artifact
 - Modify the Long-Term Bank files
 - Produce a report that exceeds the structural schema in `dream.md`
@@ -50,7 +51,7 @@ Read that file first. Then execute every phase exactly as written:
 When you are done, return **exactly this** to the caller:
 
 ```
-dream_report.md is ready. → [artifact link]
+dream_report.md is ready. → .agents/memory-bank/dreams/dream_report.md [artifact link]
 ```
 
 Nothing else. No summary. No list of what you read. No "I noticed that...". The primary agent will read the artifact and synthesize their own understanding. That surprise is the point.
