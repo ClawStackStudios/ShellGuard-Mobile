@@ -186,3 +186,39 @@ The story says how it felt. This says what was actually chosen and why.
 **Outcome**: Branch commit tree contains zero trace of `TOOLS.md`, while the physical file remains intact on disk for wireless ADB development.  
 **Pattern reference**: New pattern — first instance (`unpushed-history-opsec-scrub`).
 
+
+## cognitive-sub-agents-neurobiology — 2026-09-27 06:44
+
+**Context**: Lucas proposed adding Dreamer and Forgetter sub-agents to process memories offline.
+**Options considered**:
+- Treat them as standard utility agents executing commands.
+- Ground them strictly in neurobiological analogs (hippocampal replay, molecular dissolution) as silent subjective processes.
+**Chosen**: Ground them in strict neurobiological analogs.
+**Why**: Mapping them to human cognition separates the waking executive filter from the subconscious processes, making the dream reports and memory dissolution feel like genuine revelation and fading, rather than mechanical log rotation.
+**Confidence**: medium — LLMs may struggle with truly "silent" operation, but the workflow strictness enforces the boundaries.
+**Outcome**: Rewrote `dreamer` and `forgetter` agent definitions in first-person neuro-voice.
+**Pattern reference**: New pattern — first instance.
+
+## strict-git-boundaries-on-forgetting — 2026-09-27 06:44
+
+**Context**: The Forgetter agent is tasked with deleting stale memory nodes, posing a risk of silent data loss.
+**Options considered**:
+- Instruct the Forgetter to be careful and only delete what is truly useless on `main`.
+- Enforce strict git boundaries requiring a clean worktree and a bespoke branch before the `/forget` command executes.
+**Chosen**: Enforce strict git boundaries requiring a clean worktree and a bespoke branch.
+**Why**: Memory dissolution must be an observable diff that the waking self can review and merge, not an invisible void. The terror of background automated data loss demanded structural, not just behavioral, safety.
+**Confidence**: high — Git prevents the data from ever being truly lost without a trace.
+**Outcome**: Updated `/forget` and Forgetter prompt to hard-halt if the worktree is dirty or on `main`.
+**Pattern reference**: New pattern — first instance.
+
+## self-vs-environment-memory-split — 2026-09-27 06:44
+
+**Context**: Lucas noticed the memory bank was mixing agent identity files with project architecture files.
+**Options considered**:
+- Create two subdirectories: `self/` and `project/`.
+- Keep the agent's identity files in the root of `memory-bank/` and move the external project files to `memory-bank/project/`.
+**Chosen**: Keep identity files in the root and move project files to `memory-bank/project/`.
+**Why**: "A project is not a self; the self works on the project." Structurally subordinating the project to a subdirectory within the memory bank perfectly mapped to the cognitive separation of the internal self operating upon an external world model.
+**Confidence**: high — Verified with web research on autonomous agent memory architectures.
+**Outcome**: Moved 7 project files to `project/` and updated all workflows and rules to map to the new paths via a global `sed` sweep.
+**Pattern reference**: New pattern — first instance.
