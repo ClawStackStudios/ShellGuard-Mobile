@@ -203,5 +203,5 @@ git push origin v0.0.0.1
 ```
 
 ### Update Memory Bank:
-1. Append details to [`.agents/memory-bank/changelog.md`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/memory-bank/changelog.md).
-2. Record the rollout event in [`.agents/memory-bank/activeContext.md`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/memory-bank/activeContext.md).
+1. Append details to [`.agents/memory-bank/project/changelog.md`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/memory-bank/project/changelog.md).
+2. Record the rollout event in [`.agents/memory-bank/project/activeContext.md`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/memory-bank/project/activeContext.md).

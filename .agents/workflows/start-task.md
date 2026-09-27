@@ -11,8 +11,8 @@ description: A workflow defining the strict initialization protocol for beginnin
 
 ## 🛑 Step 1: Pre-Flight Context Alignment
 Before writing a single line of code, you MUST establish context:
-1. Read `.agents/memory-bank/activeContext.md` to understand the current work focus and recent changes.
-2. Read `.agents/memory-bank/systemPatterns.md` or related architectural docs (`attractorBeacon.md`) if the task touches core state or logic.
+1. Read `.agents/memory-bank/project/activeContext.md` to understand the current work focus and recent changes.
+2. Read `.agents/memory-bank/project/systemPatterns.md` or related architectural docs (`attractorBeacon.md`) if the task touches core state or logic.
 3. Check `ROADMAP.md` to confirm the chronological execution sequence. If you are asked to implement a phase out of sequence (e.g., jumping ahead or filling in a skipped phase), you MUST pause and formulate a plan for how to handle versioning without breaking the subsequent roadmap milestones.
 
 ## 🌿 Step 2: Git Hygiene Check & Branch Creation

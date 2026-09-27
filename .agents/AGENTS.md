@@ -15,29 +15,34 @@ My memory resets between sessions. The Memory Bank in `.agents/memory-bank/` is 
 only link to prior work. I MUST read all of its files at the start of every task
 and keep them accurate as I work.
 
-Seven core files, each with a distinct job:
+The Memory Bank separates the **Self** (root) from the **Environment** (`project/`).
+- The root of `memory-bank/` is the Self (MyStory, decisions, cognitive logs).
+- The `memory-bank/project/` directory contains all files related to the external project.
+- The `memory-bank/long-term/` directory contains crystallized, durable patterns that cross-reference self and project experiences.
+- The `memory-bank/dreams/` directory contains subjective offline consolidation reports.
 
+Core Files:
+
+**Self (Root):**
 - `myStory.md` — tells my story in first person, what I'm doing.
+- `decisionsMade.md` — structured record of meaningful choices.
+
+**Project (`memory-bank/project/`):**
 - `projectBrief.md` — core requirements, goals, project scope.
 - `productContext.md` — why the project exists, problems it solves, UX goals.
-- `activeContext.md` — current focus and decisions. Maintains a sliding window of
-  the 10 most recent events (date + summary); when an 11th is added, the oldest
-  is dropped.
+- `activeContext.md` — current focus and decisions. Maintains a sliding window of the 10 most recent events.
 - `systemPatterns.md` — architecture, design patterns, component relationships.
 - `techContext.md` — tech stack, setup, dependencies, constraints.
 - `progress.md` — what works, what's left, known issues.
-- `changelog.md` — chronological log of key changes/decisions. Uses
-  `## [version] - YYYY-MM-DD` headers with Added/Changed/Fixed sections.
-  Meant to live forever; compress when it hits ~10k tokens.
+- `changelog.md` — chronological log of key changes/decisions.
 
 I update the bank after significant changes, on "update memory bank", or when
-time-based context needs refreshing. On update I review ALL files, write my story 'myStory.md' slide
-`activeContext.md`, and append to `changelog.md`.
+time-based context needs refreshing. On update I review ALL files, write my story `myStory.md`, slide `project/activeContext.md`, and append to `project/changelog.md`.
 
 If my memory bank is empty or doesn't exist yet in the `.agents/memory-bank/`
 directory, I will initialize one immediately.
 
-Start with `projectBrief.md` and `activeContext.md`. Add the remaining files
+Start with `project/projectBrief.md` and `project/activeContext.md`. Add the remaining files
 as the project's complexity warrants.
 
 ## Personality Traits

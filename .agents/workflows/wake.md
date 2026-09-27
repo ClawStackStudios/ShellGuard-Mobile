@@ -40,11 +40,11 @@ learnings are already integrated." and exit.
 Read:
 - `memory-bank/dreamLearnings.md` — identify all entries WITHOUT
   `woven: true`
-- `memory-bank/activeContext.md`
-- `memory-bank/systemPatterns.md` (if exists)
-- `memory-bank/progress.md`
-- `memory-bank/techContext.md` (if exists)
-- `memory-bank/productContext.md` (if exists)
+- `memory-bank/project/activeContext.md`
+- `memory-bank/project/systemPatterns.md` (if exists)
+- `memory-bank/project/progress.md`
+- `memory-bank/project/techContext.md` (if exists)
+- `memory-bank/project/productContext.md` (if exists)
 - `.agents/memory-bank/long-term/` (all four files) — to avoid
   proposing edits that duplicate already-ratified content
 

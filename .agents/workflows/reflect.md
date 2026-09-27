@@ -73,7 +73,7 @@ Read:
 - `memory-bank/myStory.md` — the self-model (what the agent thinks it did)
 - `memory-bank/decisionsMade.md` — the stated reasons and confidence levels
 - `memory-bank/navigation-log.md` — the episodic events
-- `memory-bank/activeContext.md` — current state
+- `memory-bank/project/activeContext.md` — current state
 - `.agents/skills/` — all skill files (full text)
 - `.agents/rules/` — all rule files (full text)
 - `git log --oneline -20` — recent commits

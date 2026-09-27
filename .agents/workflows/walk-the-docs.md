@@ -84,9 +84,9 @@ Walk each anchor document sequentially and enforce bidirectional consistency wit
 ## 🧠 Phase 3: Memory Bank & Companion Log Attestation
 
 Walk and synchronize the agent semantic and episodic memory:
-- [ ] `.agents/memory-bank/activeContext.md`: Slide 10-event window, record current phase status.
-- [ ] `.agents/memory-bank/progress.md`: Mark phase done, update test metrics, update what's next.
-- [ ] `.agents/memory-bank/changelog.md`: Append version entry.
+- [ ] `.agents/memory-bank/project/activeContext.md`: Slide 10-event window, record current phase status.
+- [ ] `.agents/memory-bank/project/progress.md`: Mark phase done, update test metrics, update what's next.
+- [ ] `.agents/memory-bank/project/changelog.md`: Append version entry.
 - [ ] `.agents/memory-bank/raw_reflection_log.md`: Record learnings and difficulties.
 - [ ] `.agents/memory-bank/decision-log.md`: Record felt friction and architectural calibrations.
 

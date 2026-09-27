@@ -51,8 +51,8 @@ The memory bank is tracked in git. Every version of every file
 is already preserved in commit history. This means:
 
 - **Forgetting is safe.** Removing text from an active file
-  does not destroy it. `git log -p memory-bank/progress.md`
-  or `git show <commit>:memory-bank/progress.md` recovers
+  does not destroy it. `git log -p memory-bank/project/progress.md`
+  or `git show <commit>:memory-bank/project/progress.md` recovers
   the full original at any time.
 - **The archive is an index, not a backup.** The seeds in
   `dissolved.md` are compressed pointers. They tell the agent
