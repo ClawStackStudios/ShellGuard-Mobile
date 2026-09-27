@@ -5,6 +5,21 @@
 
 ---
 
+## `v0.0.0.5` — Phase 4: Algorithmic TOTP, CameraX Scanner & Biometrics (Build 5)
+
+```xml
+<en-US>
+• Algorithmic TOTP: RFC 6238 codes with dynamic truncation & smooth Canvas countdown ring.
+• CameraX QR Scanner: ML Kit barcode detection to bind otpauth:// secrets to pearls.
+• Password Generator: Cryptographic passwords and passphrases with custom character sets.
+• Biometric Lifecycle: KeyStore biometric challenge and auto-lock on app background.
+• Splash Theme Parity: Android 12+ splash screen with clean TopAppBar layout.
+• 100% Passing Test Oracle: 63 unit & Robolectric tests verified.
+</en-US>
+```
+
+---
+
 ## `v0.0.0.4` — Phase 3: Vault Domains, Universal Item Editor & Session Atomicity (Build 4)
 
 ```xml

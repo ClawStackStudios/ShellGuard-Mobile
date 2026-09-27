@@ -141,3 +141,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Antigravity Brain Alignment**: Renamed `.agents/memory-bank/` to `.agents/brain/` across the entire codebase to match Google Antigravity harness patterns.
   - **Long-Term Memory Harmonization**: Renamed rule to `long-term-memory.md` and unified references to `decision-log.md` (episodic log) and Long-Term Memory throughout all workflows and agent prompts.
   - **Migration Automation**: Added `.agents/workflows/migrate-to-brain.md` providing scripted, safe cross-repository migration capabilities for other projects.
+
+- Release v0.0.0.5 (Build 5) — Phase 4: TOTP Engine & Biometric Security Lifecycle:
+  - **RFC 6238 TOTP Engine**: HMAC-SHA1/256/512 dynamic truncation, 6/8 digits, and Steam Guard support.
+  - **Reactive Canvas Arc**: 60fps countdown Canvas timer with Cyan to Amber to Red dynamic interpolation.
+  - **CameraX + ML Kit QR Scanner**: Barcode scanning with custom reticle and gallery picker fallback.
+  - **Password Generator**: Cryptographic random generator supporting length, character sets, and passphrases.
+  - **KeyStore Biometric Lifecycle**: Background auto-lock timeout and hardware biometric authentication challenge.
+  - **Splash Theme Parity**: Pre-`super.onCreate()` splash install and ActionBar suppression.
