@@ -5,6 +5,21 @@
 
 ---
 
+## `v0.0.0.6` — Phase 5: Autofill Framework, AutoSpill Defense & Adversary Hardening (Build 6)
+
+```xml
+<en-US>
+• System Autofill: Seamless credential autofill for apps & browsers with inline keyboard chips.
+• AutoSpill Defense: Web domain isolation protecting credentials in WebViews from host app leaks.
+• Biometric Auth Gate: BiometricPrompt & PIN challenge for locked vaults & sensitive items.
+• TOTP Auto-Copy: Sensitive clipboard copy with 30s auto-scrub.
+• Fail-Closed Security: Zero-knowledge cryptographic hardening verified by adversarial audit.
+• 100% Passing Test Oracle: Full suite verified.
+</en-US>
+```
+
+---
+
 ## `v0.0.0.5` — Phase 4: Algorithmic TOTP, CameraX Scanner & Biometrics (Build 5)
 
 ```xml

@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.0.6] - 2026-09-27 (Build 6) — Phase 5: Android Autofill Framework, AutoSpill Defense & Adversary Remediations
+### Added
+- **System-Level Autofill Service (`ShellGuardAutofillService`)**: System service extending Android `AutofillService` with `BIND_AUTOFILL_SERVICE` and metadata configuration.
+- **Resilient Form Parser (`AutofillStructureParser`)**: 4-tier ranked heuristic detection (hints ➔ HTML attributes ➔ input types ➔ ID/content description heuristics) with 64-level tree recursion ceiling.
+- **AutoSpill & WebView Isolation Defense**: Web domain hierarchy propagation in `AutofillStructureParser` ensuring credentials inside WebViews are strictly isolated from hostile native host fields (mitigating Black Hat 2023 AutoSpill CWE-200 / CWE-1021).
+- **Domain Matcher & Home Lab Port Isolation (`DomainMatcher`, `UriMatchMode`)**: eTLD+1 multi-part ccTLD extraction (`co.uk`, `com.au`), automatic promotion of `BASE_DOMAIN` to `EXACT` host/port matching for IP addresses/localhost, and strict two-way `androidapp://` package matching.
+- **Transparent Biometric Gate (`AutofillAuthActivity`)**: Lightweight `FragmentActivity` gate with `BiometricPrompt` and PIN fallback for locked vaults and Claw Re-Prompt items.
+- **Bitwarden-Parity TOTP Auto-Copy**: Automatically copies TOTP verification codes to sensitive clipboard (`EXTRA_IS_SENSITIVE = true`) with a 30s background scrubbing timer.
+- **Autofill System Settings Guidance (`AutofillManagerHelper`, `AutofillSettingsDialog`)**: Native provider status inspection (`hasEnabledAutofillServices()`), one-tap deep-link intent (`Settings.ACTION_REQUEST_SET_AUTOFILL_SERVICE`), and dialog with dynamic `ON_RESUME` refresh in `VaultDashboardScreen`.
+- **Responsive Cancellation & Defensive SaveInfo**: Evaluates `cancellationSignal.isCanceled` across coroutine boundaries and builds `SaveInfo(SAVE_DATA_TYPE_PASSWORD)` for registration/login capture.
+- **Adversary Sub-Agent (`.agents/agents/adversary/`)**: 30-year veteran cryptologist sub-agent persona codified for ruthless adversarial audits.
+
+### Fixed
+- **Fail-Closed Decryption Security**: Replaced dangerous fallback that emitted raw ciphertext strings (`pearl.secret`) on decryption exceptions with strict fail-closed termination.
+- **PendingIntent Collision Immunity**: Bound `PendingIntent` creation to unique data URIs (`shellguard://autofill/pearl/${pearl.id}`) with `FLAG_UPDATE_CURRENT` to prevent 32-bit `hashCode()` collision hijacking.
+- **Asymmetric Package Matching Bypass**: Strictly rejected cross-matching between native apps and web URLs in `DomainMatcher`.
+
+### Verified
+- **Unit & Robolectric Tests**: 100% green test execution across all suites (`DomainMatcherTest`, `AutofillStructureParserTest`, etc.).
+- **Build Compilation**: Clean APK generation verified via `./gradlew assembleDebug`.
+
+## [0.0.0.5] - 2026-09-27 (Build 5) — Phase 4: TOTP Engine, CameraX Scanner & Biometrics
+### Added
+- **RFC 6238 TOTP Engine (`TotpEngine`)**: Computes time-based authentication tokens with HMAC-SHA1/256/512, configurable 6 or 8 digits, dynamic truncation, and Steam Guard support.
+- **Base32 RFC 4648 Decoder (`Base32Decoder`)**: Robust secret decoding with whitespace and padding tolerance.
+- **CameraX ML Kit QR Scanner (`QrScannerScreen`)**: Barcode scanning with custom reticle styling, flashlight toggle, and gallery picker fallback.
+- **Password Generator (`PasswordGeneratorSheet`)**: Cryptographic random generator with sliders, character toggles, and passphrases.
+- **Hardware KeyStore Biometric Lifecycle**: Background auto-lock timeout manager and `BiometricPrompt` challenge.
+- **Reactive Canvas Countdown Ring**: 60fps smooth Canvas countdown arc with dynamic Cyan to Amber to Red color interpolation.
+
 ## [0.0.0.4] - 2026-09-26 (Build 4) — Phase 3: Vault Domains, Universal Item Editor & Zero-Knowledge Session Atomicity
 ### Added
 - **Multi-Domain Vault Architecture (`VaultDomainModels`)**: Unified support across Passwords (Pearls), Secure Notes, and SSH Keys with polymorphic detail and editor projections.
