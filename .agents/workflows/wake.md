@@ -10,6 +10,9 @@ into the temporal corpus, proposes specific edits to the appropriate
 temporal bank files, and produces a Wake Report artifact for user
 review.
 
+## Cognitive Alignment: Neocortical Integration
+If the Dreamer acts as the hippocampus, accelerating offline replay to extract patterns, the Wake is the **neocortical integration** phase. It takes the synthesized insights produced offline and wires them into the active working memory (temporal bank) so they are immediately accessible in the waking state.
+
 ## Relationship to /dream and /learn
 
 | | /learn | /dream | /wake |

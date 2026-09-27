@@ -10,6 +10,9 @@ narrative in `myStory.md` plus a structured decision record in
 `decisionsMade.md`. The agent proposes both as a Story Report artifact
 for user review before writing.
 
+## Cognitive Alignment: The Prefrontal Waking Self
+Where the Dreamer operates with the prefrontal cortex offline (no meta-awareness, purely associative), the **Story is the prefrontal cortex fully online**. It is highly self-aware, linear, and metacognitive. The story provides the conscious framework—the *self*—that the Dreamer will later process.
+
 ## Why This Exists
 
 The agent has a record of what's true (temporal bank), what happened

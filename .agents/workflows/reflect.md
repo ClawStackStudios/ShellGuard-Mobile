@@ -10,6 +10,9 @@ identifies top-level patterns from the delta, and proposes
 updates to the memory bank AND to `.agents/skills/` and
 `.agents/rules/` where gaps or seams exist.
 
+## Cognitive Alignment: Prediction Error Minimization
+Reflection is the active calibration of the executive filter. It measures **prediction error**—the gap between what the agent *claims* it did (the stated self) and physical reality (the git diff). By auditing rules, skills, and confidence calibration, it prevents the cognitive model from drifting away from ground truth.
+
 ## Why This Exists
 
 /dream is unconscious. It reads the memory bank and finds patterns

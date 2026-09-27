@@ -7,6 +7,9 @@ The user invoked /memory to sync the temporal Memory Bank with the
 current state of the project and check the long-term promotion gate.
 Produces a Memory Report artifact for user review.
 
+## Cognitive Alignment: Short-Term Encoding
+This workflow acts as the waking **hippocampal encoding** phase. It takes the immediate experiences, decisions, and state shifts of the current session and secures them in short-term storage (the temporal bank). Without this secure encoding, the Dreamer has no accurate episodic material to replay and consolidate.
+
 ## What It Does (and Doesn't)
 
 **Does:**
