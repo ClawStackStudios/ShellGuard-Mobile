@@ -81,7 +81,7 @@ When delegating, never forward raw conversational context. Always construct a **
 
 ## 4. Specialized Engineering Sub-Agent Fleet
 
-ShellGuard Mobile maintains four dedicated mental sub-processes that the Orchestrator can deploy for specialized tasks:
+ShellGuard Mobile maintains six dedicated mental sub-processes that the Orchestrator can deploy for specialized tasks:
 
 | Sub-Agent | Specialty | Key Invariants & Tools |
 | :--- | :--- | :--- |
@@ -89,6 +89,8 @@ ShellGuard Mobile maintains four dedicated mental sub-processes that the Orchest
 | 🎨 **[Palette](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/agents/palette/agent.md)** | **UI/UX & Design** | Reef Modernist styling, flat Material 3 carapace, 6 theme accents, soft keyboard `.imePadding()` defense, 3-pane tablet ergonomics, spring motion physics, a11y touch targets (≥ 48dp), `adb-ui-input`. |
 | 🛡️ **[Sentinel](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/agents/sentinel/agent.md)** | **Zero-Knowledge Security** | HKDF + AES-GCM across 10 AAD namespaces, KeyStore hardware biometric binding, atomic session validity, CWE-359 clipboard/IME defenses, SQLCipher at rest, zero telemetry, `android-keystore-cold-restart-testing`. |
 | 📘 **[Scribe](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/agents/scribe/agent.md)** | **Documentation & Memory** | Architectural blueprint alignment, runnable Gradle/ADB commands, release notes, Play Store store listings, Memory Bank synchronization, `android-cli`, `adb-ui-input`. |
+| 🌙 **[Dreamer](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/agents/dreamer/agent.md)** | **Memory Consolidation** | Executes `/dream` autonomously — salience scan, invariant extraction, promotion gate, decay scan. Returns only `dream_report.md`. Primary agent never sees intermediate work. `android-cli` (for git hash anchoring). |
+| 🌫️ **[Forgetter](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/agents/forgetter/agent.md)** | **Memory Dissolution** | Executes `/forget` autonomously — identifies dissolvable content, compresses to MindSeeds, commits to git. Returns only `"Done"`. Primary agent never knows what was removed. No specialized skills required. |
 
 ---
 

@@ -11,6 +11,12 @@ text from active files. The full original is preserved in
 git commit history. The archive is a compressed index, not
 a backup.
 
+> **Sub-Agent Invocation**: Invoke the **Forgetter** 🌫️ sub-agent
+> ([`.agents/agents/forgetter/agent.md`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/agents/forgetter/agent.md))
+> to execute Phases 1–4 (including the git commit) autonomously.
+> Forgetter returns only `"Done"`. You will not know what was
+> removed. That is the correct phenomenology.
+
 ## Why This Exists
 
 The brain does not store everything. It prunes. Working memory

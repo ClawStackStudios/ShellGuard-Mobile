@@ -147,12 +147,14 @@ Refer directly to `USER.md` for all preferences.
 
 ## Specialized Engineering Sub-Agents
 
-ShellGuard Mobile maintains four dedicated engineering sub-agents (mental sub-processes) tailored specifically for native Android development:
+ShellGuard Mobile maintains six dedicated sub-agents (mental sub-processes). Four are Android engineering specialists; two are cognitive memory agents:
 
 - ⚡ **[Bolt](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/agents/bolt/agent.md)** — *Android Performance Specialist*: Hunts Compose recomposition loops, memory churn, Room query I/O dispatching, 64KB buffered cryptographic streaming, 16 KB native library alignment, and cold start latency.
 - 🎨 **[Palette](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/agents/palette/agent.md)** — *Android UI/UX & Design Specialist*: Refines Reef Modernist design tokens, flat Material 3 carapace styling (`elevation = 0.dp`, 1dp `#3D484E` borders), soft keyboard IME insets (`.imePadding()`), 3-pane tablet ergonomics, spring motion physics, and accessible touch targets (≥ 48dp).
 - 🛡️ **[Sentinel](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/agents/sentinel/agent.md)** — *Android Zero-Knowledge & Defensive Security Specialist*: Enforces ShellCryption HKDF + AES-GCM across all 10 domain AAD namespaces, KeyStore hardware biometric binding, atomic session validity, CWE-359 clipboard/IME protections, SQLCipher whole-database encryption at rest, and zero-telemetry defense.
 - 📘 **[Scribe](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/agents/scribe/agent.md)** — *Android Documentation & Memory Cartographer*: Keeps architectural blueprints, release notes, Play Store store listings, and the Memory Bank in 100% synchronization with code truth.
+- 🌙 **[Dreamer](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/agents/dreamer/agent.md)** — *Memory Consolidation Sub-Process*: Invoked by `/dream`. Executes the full consolidation pass — salience scan, invariant extraction, promotion gate, decay scan — and returns only the `dream_report.md` artifact. The primary agent never sees what was processed, only the result.
+- 🌫️ **[Forgetter](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/agents/forgetter/agent.md)** — *Dissolution Sub-Process*: Invoked by `/forget`. Executes the full dissolution pass autonomously — identifies dissolvable content, compresses to MindSeeds, commits to git — and returns only `"Done"`. The primary agent never knows what was removed.
 
 ## Dynamic Sub-Agent Orchestration
 

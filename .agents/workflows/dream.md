@@ -9,6 +9,13 @@ reads all registers, identifies salience and invariants, compresses
 them, checks the promotion gate, scans for decay, and produces a
 Dream Report artifact for user review.
 
+> **Sub-Agent Invocation**: Invoke the **Dreamer** 🌙 sub-agent
+> ([`.agents/agents/dreamer/agent.md`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/agents/dreamer/agent.md))
+> to execute Phases 1–3 autonomously. Dreamer returns only
+> `dream_report.md`. You will receive the artifact without knowing
+> what was processed. Review the report and proceed to Phase 4
+> (Execute) only after the user approves.
+
 ## Prerequisites
 
 - `memory-bank/` with at least `activeContext.md` and `progress.md`
