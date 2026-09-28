@@ -101,7 +101,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `EncryptedDeviceVaultTest.kt`: Added 4 Robolectric unit tests for session key persistence, rehydration, and zeroization.
   - Pre-flight test suite expanded to 32 tests, passing 100% green. Verified on physical Google Pixel hardware with password unmasking and cold-restart survival.
 
-## [Unreleased] — Phase 4: Algorithmic TOTP Engine, CameraX Scanner, Password Generator & Biometrics
+## [0.0.0.5] - 2026-09-27 (Build 5) — Phase 4: Algorithmic TOTP Engine, CameraX Scanner, Password Generator & Biometrics
 
 ### Added
 - RFC 6238 TOTP Engine & Pure Kotlin RFC 4648 Base32 Decoder:

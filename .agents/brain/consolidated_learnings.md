@@ -27,8 +27,7 @@
 - For high-privilege credentials (root keys, bank logins), enforce a localized biometric/PIN gate before revealing hidden text or copying, even if the vault itself is currently unlocked.
 
 **Pattern: Base62 Sovereign Identity Key Parity**
-- **Rule**: ShellGuard master identity keys (`hu-`) and agent keys (`lb-`) are 67 characters total: 3-character prefix followed by 64 Base62 characters (`[0-9a-zA-Z]`).
-- **Anti-Pattern**: Enforcing `[0-9a-f]` hex regex causes false-negative rejections of genuine web-generated identity files and disables login forms.
+→ Consolidated to `long-term/patterns.md § pattern: base62-sovereign-key-parity` (weight: 3, 2026-09-27)
 
 **Pattern: IME Surface Composition & Double-Inset Hardening**
 - **Rule**: Never enforce `FLAG_SECURE` unconditionally in debug builds. On Adreno 5xx GPUs under Android 14, blending insecure system IME overlays over secure surfaces causes complete screen blackout.

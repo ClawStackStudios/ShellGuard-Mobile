@@ -4,7 +4,7 @@
 Self-hosters and privacy-conscious users running ShellGuard web servers need a native mobile companion that provides full secrets management on the go. While ShellGuard-TOTP provides 2FA codes, users require:
 1. Access to their entire vault (logins, notes, SSH keys) in their pocket.
 2. System-wide Autofill so they don't have to switch apps and copy-paste passwords.
-3. Offline editing capability that syncs automatically when reconnected to their home lab or Tailscale VPN.
+3. 100% offline vault accessibility (Bitwarden Read-Only model) with automatic delta synchronization upon reconnection.
 4. Seamless cryptographic parity with the web vault.
 
 ## Problems It Solves

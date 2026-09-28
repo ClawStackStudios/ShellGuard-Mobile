@@ -5,7 +5,7 @@
 - **Target SDK**: 36 (Android 16 Baklava), **Min SDK**: 24 (Android 7.0 Nougat).
 - **Package Name**: `com.clawstack.shellguard`.
 - **UI Framework**: Jetpack Compose + Material 3 + Compose Navigation.
-- **Dependency Injection**: Dagger Hilt (`2.51+`).
+- **Dependency Injection**: Frameworkless lazy dependency injection (`AppContainer` / `DefaultAppContainer`).
 - **Local Database**: AndroidX Room (`2.7.0`) with KSP.
 - **At-Rest Encryption**: SQLCipher for Android (`net.zetetic:sqlcipher-android:4.6.1`).
 - **Networking**: Ktor Client (`2.3.12`) with OkHttp engine & Kotlinx Serialization.

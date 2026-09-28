@@ -312,3 +312,39 @@ The cross-session failure analysis (/deep-learn) detected an **over-confidence b
 **Confidence**: high — monotonic ratchet prevents regression.
 **Outcome**: Materialized `.agents/rules/self-review-checklist.md` with 8 mapped questions.
 **Pattern reference**: New pattern — first instance (`operationalized-checklist-ratchet`).
+
+## dedicated-branch-for-offline-dreaming — 2026-09-27 23:15
+
+**Context**: Deciding whether to run the `/dream` offline memory consolidation directly on `fix/bidirectional-sync-reconciliation` alongside the release prep or isolate it on a dedicated branch.
+**Options considered**:
+- Run `/dream` directly on `fix/bidirectional-sync-reconciliation` — Keeps all pre-release changes in one place, but mixes subjective cognitive consolidation logs with strict release candidate commits.
+- Branch to `cognitive/dream-consolidation` for the dream pass — Adds branch switching and merging steps, but isolates cognitive consolidation artifacts and ensures memory operations can be reviewed independently before merging into the release.
+**Chosen**: Branch to `cognitive/dream-consolidation`.
+**Why**: Cognitive memory work is reflective, while a release candidate is operational. Mixing dream logs and long-term pattern promotions directly into a verified release branch muddies the commit pedigree. Isolating the dream keeps the release clean and the reflection pure.
+**Confidence**: high — clean separation maintained without risking release artifacts.
+**Outcome**: Created `cognitive/dream-consolidation`, executed dream workflow, and kept `fix/bidirectional-sync-reconciliation` pristine.
+**Pattern reference**: New pattern — first instance (`isolated-cognitive-branching`).
+
+## reconcile-documentation-to-codebase-truth — 2026-09-27 23:18
+
+**Context**: The Dreamer surfaced 3 contradictions where documentation claimed Dagger Hilt, offline editing, and an unreleased Phase 4, directly conflicting with physical codebase reality.
+**Options considered**:
+- Defer documentation fixes to a future cleanup chore — Keeps focus on releasing v0.0.0.7, but leaves declarative brain files in a known false state for future sessions.
+- Immediately patch `techContext.md`, `productContext.md`, and `changelog.md` as part of Dream Phase 4 — Reconciles discrepancies immediately, eliminating cognitive dissonance for any subsequent agent context load.
+**Chosen**: Immediately patch the documentation to reflect reality.
+**Why**: A brain file that lies to the agent is worse than no brain file at all. If the agent reads that Dagger Hilt is present or that offline editing is supported, it will make architectural choices against phantom capabilities. Healing the seam immediately restores ground truth.
+**Confidence**: high — verified against actual physical classes and git tags.
+**Outcome**: Updated `techContext.md` (DefaultAppContainer), `productContext.md` (Bitwarden Read-Only), and `changelog.md` (Phase 4 released).
+**Pattern reference**: `long-term/patterns.md § pattern: bitwarden-model-readonly-offline-caching`.
+
+## promote-base62-and-robolectric-to-long-term — 2026-09-27 23:20
+
+**Context**: `base62-sovereign-key-parity` and `robolectric-test-sdk-ceiling` reached their 3rd independent validation across multiple days and sessions.
+**Options considered**:
+- Keep them in `consolidated_learnings.md` — Avoids modifying long-term files, but leaves durable architectural invariants vulnerable to consolidation pruning.
+- Promote both into `long-term/patterns.md` and `long-term/constraints.md` with lightweight pointers in `consolidated_learnings.md` — Permanently crystallizes their history, costs, and shaped perspectives into the project's permanent memory.
+**Chosen**: Promote both to long-term memory.
+**Why**: Both of these lessons cost us multiple broken builds, physical device lockouts, and hours of debugging. Keeping them in the temporal register treats them like transient discoveries; carving them into long-term memory honors what they cost to learn.
+**Confidence**: high — verified across dozens of passing test suites and live Pixel hardware.
+**Outcome**: Ratified into `patterns.md` and `constraints.md`, with cross-reference pointers installed in `consolidated_learnings.md`.
+**Pattern reference**: `long-term/patterns.md § pattern: base62-sovereign-key-parity` and `long-term/constraints.md § constraint: robolectric-test-sdk-ceiling`.

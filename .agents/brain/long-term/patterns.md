@@ -73,3 +73,19 @@ All cryptographic and secret input fields (passwords, PINs, seeds, keys) must ap
 
 **Shaped perspective:** IME input on Android is an inter-process IPC boundary subject to GPU compositor limitations, keyboard service logging, and system inset negotiation. Failing to isolate root insets causes keyboard crushing, while unconditional `FLAG_SECURE` on legacy hardware drivers blanks out the entire window during text entry. Defensive UI design treats the keyboard overlay as a distinct external surface that must be isolated at both the view and window levels.
 
+---
+
+## pattern: base62-sovereign-key-parity
+**weight**: 3 | **last validated**: 2026-09-27 | **first observed**: 2026-09-26
+**pinned**: false
+**status**: hot
+
+ShellGuard master identity keys (`hu-`) and agent keys (`lb-`) use 64 alphanumeric Base62 characters (`[0-9a-zA-Z]`, 67 total string length). Enforcing lowercase hexadecimal validation (`[0-9a-f]`) falsely rejects authentic web-generated credentials and locks mobile users out of their vaults. All client regex patterns, form validators, and key decoders must accept the full Base62 character space.
+
+**History:**
+- 2026-09-26: Diagnosed disabled login button on physical Pixel despite valid JSON identity file loaded; traced to `[0-9a-f]` regex in `ClawCrypto` rejecting uppercase letters in web-generated `hu-` keys. Upgraded regex to Base62.
+- 2026-09-26: Held in accumulating register during first dream cycle (weight 2/3).
+- 2026-09-27: Re-validated during Phase 4 CameraX QR scanning, TOTP secret parsing, and codified as a load-bearing redline in `testOracle.md`.
+
+**Shaped perspective:** This holds because cryptographic identity formats are dictated by the sovereign web authority that mints them, not the downstream mobile consumer. It would break if the core ShellGuard cryptographic specification altered its key-generation entropy encoding away from Base62. What it costs to maintain is ensuring that any future input masks, validators, or QR parsers consistently test against mixed alphanumeric strings rather than assuming standard hex byte serialization.
+
