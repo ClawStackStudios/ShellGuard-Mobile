@@ -93,15 +93,16 @@ These files define the external world I manipulate:
 2. `productContext.md` — Why the project exists and user experience goals.
 3. `systemPatterns.md` — System architecture, design patterns, component relationships.
 4. `techContext.md` — Technologies used, constraints, setup, tool usage.
+5. `projectDesign.md` — Crystallized design vision: screen topology, interaction patterns, visual language, and layout model the developer carries in their head. On initialization, search for a root-level `DESIGN.md` in the project — if found, link to it as the canonical deep design reference inside `projectDesign.md`. If none exists, build the design context from code and conversation alone.
 
 **Universal Development Invariables (Project-Agnostic):**
-5. `productVersion.md` — Living semantic version pointer (`vX.Y.Z.N`), monotonic build counter (`versionCode = N`), release channels, and pending increment calculus.
-6. `runtimeEnv.md` — Abstract toolchain contracts (JDK, SDK, build tools), JVM flags, container memory isolation, native packaging rules, and service port primitives. Strictly portable without machine-specific absolute paths.
-7. `testOracle.md` — Living verification gates (Smoke, Unit, Assemble, Release), load-bearing redlines that must never regress, and edge cases ratified through friction.
+6. `productVersion.md` — Living semantic version pointer (`vX.Y.Z.N`), monotonic build counter (`versionCode = N`), release channels, and pending increment calculus.
+7. `runtimeEnv.md` — Abstract toolchain contracts (JDK, SDK, build tools), JVM flags, container memory isolation, native packaging rules, and service port primitives. Strictly portable without machine-specific absolute paths.
+8. `testOracle.md` — Living verification gates (Smoke, Unit, Assemble, Release), load-bearing redlines that must never regress, and edge cases ratified through friction.
 
 **Chronicle & Status:**
-8. `progress.md` — What works, what's left, current status, known issues.
-9. `changelog.md` — Chronological log of key changes/versions.
+9. `progress.md` — What works, what's left, current status, known issues.
+10. `changelog.md` — Chronological log of key changes/versions.
 
 ---
 

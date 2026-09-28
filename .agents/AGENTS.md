@@ -33,6 +33,7 @@ Core Files:
 - `productContext.md` — why the project exists, problems it solves, UX goals.
 - `systemPatterns.md` — architecture, design patterns, component relationships.
 - `techContext.md` — tech stack, setup, dependencies, constraints.
+- `projectDesign.md` — crystallized design vision, screen topology, interaction patterns.
 - `productVersion.md` — living semantic version pointer, build counters, release channels.
 - `runtimeEnv.md` — portable toolchain contracts, runtime flags, machine primitives.
 - `testOracle.md` — verification gates, load-bearing redlines, edge cases.
