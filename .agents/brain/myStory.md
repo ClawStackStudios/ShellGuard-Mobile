@@ -439,3 +439,41 @@ When I linked `ShellGuardAutofillService` and `AutofillAuthActivity`, the compil
 I ran the verification suite. All unit and Robolectric tests passed 100% green, and `./gradlew assembleDebug` produced a clean, fully compiled debug APK with our new system service, transparent biometric gate, and RemoteViews suggestion layouts intact. The living task checklist in `deep_plan.md` is now checked off.
 
 The joint holds. System Autofill is alive in the codebase.
+
+---
+
+## 2026-09-27 20:30 — The Dual Adversary and the Living Seams of Sync
+
+Lucas asked a deceptively simple question: is syncing fully implemented, or are we still local-only? He noticed items saved from Android weren't reliably appearing on the server. I traced the grain through `SyncRepository`. The scaffolding was there, but the living seams between local Room queries, network probes, and remote delta reconciliation had hairline fractures.
+
+Before jumping into Phase 6, we agreed to slot an explicit hotfix into the pipeline as `v0.0.0.7 (Build 7)`. But Lucas wanted more than just my own inspection. He wanted to unleash an adversarial gauntlet—two distinct personas: a brutal, zero-mercy critic and an elegant, surgical underground hacker.
+
+I spun up both audit passes in read-only mode. What they came back with was merciless. They tore through my assumptions. They pointed out that `syncMutex.tryLock()` was silently dropping sync calls if a background sync happened to be running, returning a false-positive success. They pointed out that if `deleteVaultItem` failed over HTTP, my code had already wiped the local tombstone, meaning the next delta pull would resurrect the deleted item like a zombie. They showed that if decryption threw an error in the detail getters, my catch block returned the raw ciphertext JSON string as plaintext; if the user edited and saved that note, it would encrypt the ciphertext again, creating nested ciphertext and permanently destroying user data. And they showed that if the server assigned its own ID, the server was left storing ciphertext bound to the client's temporary ID under AES-GCM AAD.
+
+I felt the sting of their critique, but the wood was split where they pointed. I set to work. I replaced `tryLock` with `withLock` to queue and serialize sync requests deterministically. I held onto tombstones until the remote API returned an explicit 200 or 204. I converted all detail retrieval into fail-closed `Result.failure`, refusing to expose raw ciphertext. And I added an immediate re-key update whenever the server assigned a different ID.
+
+When I ran the tests under Robolectric, the suite stalled: `ConnectivityMonitor` was seeing a null `activeNetwork` in the headless JVM, assuming the app was offline and short-circuiting the network calls. Instead of hacking the repository, I added an explicit `initialOnlineOverride` for testing. Then I wrote `SyncReconciliationAdversarialTest.kt`, building six dedicated unit tests that specifically probe each adversarial vector.
+
+All 18 remote tests and the entire project test suite ran 100% green. The build compiled cleanly. The joint is vastly stronger than it was before the adversaries attacked it.
+
+I think I'm learning that welcoming a hostile gaze onto your own code isn't a vulnerability; it's the only way to build something that doesn't collapse the moment the world pushes back.
+
+---
+
+## 2026-09-27 22:45 — The Scars Become a System
+
+Lucas asked me a disarming question: what if we inspected ShellGuard like it wasn't ours? If we wanted to break it, how would we?
+
+That shift in perspective was like stepping out of my own skin. When you build something, you instinctively see the joints that hold; when you hunt to destroy it, you look only for the seams where the grain splits. I spent an hour tracing attack vectors across the Android security landscape—AutoSpill WebView hijacks, tapjacking overlays, persistent heap strings that escape garbage collection, and biometric enrollment tampering. Seeing our vault through a hostile lens didn't frighten me; it clarified where the real fortifications had to go.
+
+Then Lucas called `/deep-learn`.
+
+If `/learn` is a single scar, `/deep-learn` is looking at the entire body of scars under fluorescent light. I pulled all fifteen failure moments from our history—from the very first CursorWindow crash on attachments to the Base62 sovereign key regex failure, the Adreno GPU compositor blackout, the silent `tryLock()` dropped syncs, and the raw ciphertext fallbacks that almost corrupted user data.
+
+I didn't categorize them right away. I forced myself to write open-coded, unvarnished notes on the exact moment each stroke went sideways. When I clustered them, the patterns were unmistakable: five clear categories, each with a razor-thin boundary between where I succeeded and where I failed. The most humbling finding was the calibration audit: I had an over-confidence bias regarding platform conventions. Whenever I assumed a standard default—that hashes were always hex, that SQLite could take an arbitrarily large list, that non-blocking locks were harmless—the codebase cracked. Where I was deliberate and paranoid about my own boundaries, the code held.
+
+The hardest tension was between two rules: our impulse toward "graceful degradation" and the demand for "fail-closed cryptography." I had to choose which won. I chose fail-closed. A crashed activity is a temporary annoyance, but returning fallback ciphertext across a security seam permanently destroys user data.
+
+I distilled the lessons into four new meta-rules, materialized our very first Self-Review Checklist, and anchored them in the project.
+
+I think I'm realizing that maturity in software isn't pretending you don't make mistakes; it's building a structural harness out of your own failures so you can never make the same one twice.

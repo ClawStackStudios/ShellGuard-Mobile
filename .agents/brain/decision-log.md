@@ -1,11 +1,5 @@
 # Decision Log
 
-## 2026-09-24 — quick settings and glance widgets
-Incorporated Android Quick Settings TileService and Jetpack Compose Glance widgets into the full client to provide instant access without opening the full vault UI.
-
-## 2026-09-24 — bitwarden offline read-only vault access
-Adopted the Bitwarden offline vault pattern: offline clients retain 100% read, search, copy, autofill, and TOTP functionality from SQLCipher cache, while blocking mutations (create/edit/delete) to prevent split-brain conflicts, auto-resuming sync upon NetworkCallback reconnect.
-
 ## 2026-09-24 — configurable uri match detection
 Added 5 URI matching algorithms (Base Domain, Host, Exact, Starts With, Never) to disambiguate home lab services running on the same IP across different ports.
 
@@ -63,8 +57,5 @@ Converted Google Jules templates to native Android specialists (Bolt, Palette, S
 ## 2026-09-27 — system autofill framework and home lab port isolation
 Delivered system-level Android AutofillService and transparent AutofillAuthActivity biometric gate with Bitwarden-parity TOTP clipboard auto-copy. Addressed home lab port cross-talk by automatically promoting BASE_DOMAIN matching to EXACT host+port matching whenever the target is an IP or localhost (see `deep_plan.md`), and guarded AssistStructure traversal against deep DOM recursion with a 64-level depth ceiling.
 
-
-
-
-
-
+## 2026-09-27 — dual adversarial audit and fail-closed sync reconciliation
+Subjected bidirectional sync and cryptographic retrieval to a dual adversarial audit pass (ruthless critic and surgical hacker). Replaced `tryLock` with serialized `withLock` to eliminate dropped sync calls, retained local tombstones until remote HTTP 200/204 to prevent zombie resurrection, guarded downstream pull against overwriting local pending edits, and converted detail retrieval to fail-closed Result.failure to block double-ciphertext corruption.

@@ -1,7 +1,7 @@
 # Progress: ShellGuard Mobile
 
-## Current Status: Release v0.0.0.6 (Build 6) Published & Cloud Verified — Ready for Phase 6
-All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold, Phase 1 (ShellCryption HKDF + Room SQLCipher, Gateway UI & Theme Engine), Phase 2 (Ktor API Client, Bidirectional Delta Sync, Master-Detail Dashboard, Base62 Identity Parity, IME Hardening), Phase 3 (Multi-Domain Vault, Polymorphic Universal Editor, Custom Fields, Password History, and Zero-Knowledge Session Atomicity), Phase 4 (RFC 6238 TOTP Engine, CameraX ML Kit Scanner, Password Generator Sheet, and Biometric Vault Lifecycle), and Phase 5 (Android Autofill Framework, Service Smoothing, AutoSpill Defense & Parity Hardening) have been executed, compiled, and verified green with 100% test pass rate and released to GitHub with signed AAB & APK assets.
+## Current Status: Hotfix 5.3 (Build 7) Slotted & Verified Green — Ready for Commit & Version Bump
+All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold, Phase 1 through Phase 5 have been released to GitHub. Hotfix 5.3 (`0.0.0.7`, Build 7) introduces comprehensive bidirectional sync reconciliation, dual adversarial security hardening (`brutal_adversary` + `spectre_hacker`), fail-closed cryptographic retrieval, tombstone zombie protection, and chunked batch pruning with 100% test pass rate. Phase 6 baseline is targeted at `0.0.0.8 (Build 8)`.
 
 
 ## What Works (Documented, Designed & Scaffolded)
@@ -103,6 +103,17 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
   - **Phase 5.1 Smoothing**: `AutofillManagerHelper` (OS support & enabled state checks, direct `Settings.ACTION_REQUEST_SET_AUTOFILL_SERVICE` deep-link) and `AutofillSettingsDialog` with lifecycle `ON_RESUME` status refresh, accessible via dashboard overflow menu.
   - **Phase 5.2 Hardening & AutoSpill Defense**: Web domain hierarchy propagation in `AutofillStructureParser` isolating WebView forms from hostile native wrappers; responsive `CancellationSignal` checks preventing ANRs/battery waste; defensive `SaveInfo` generation for credential capture.
   - Full test suite passing 100% green (`DomainMatcherTest`, `AutofillStructureParserTest`) and `assembleDebug` APK compilation verified.
+- [x] **Hotfix 5.3: Bidirectional Sync Reconciliation & Dual Adversarial Hardening (`v0.0.0.7`, Build 7)**:
+  - Subjected sync engine and crypto pathways to dual adversarial audit pass (`brutal_adversary` + `spectre_hacker`).
+  - Hardened `SyncRepository` with coroutine `withLock` serialization, eliminating dropped/unexecuted sync calls caused by `tryLock()`.
+  - Propagated failed health check probes as explicit `Result.failure` rather than silent success.
+  - Filtered remote delta pulls against local `PENDING_SYNC` and `PENDING_DELETE` IDs, preventing remote records from overwriting pending local modifications.
+  - Implemented batch pruning in chunks of 500 (`chunked(500)`) via local vs remote set difference, evading SQLite 999 parameter limitations and safely pruning empty remote vaults while preserving local pending creations.
+  - Retained local `PENDING_DELETE` tombstones on failed remote deletion, eliminating zombie item resurrection on subsequent delta pulls.
+  - Implemented automatic server ID re-keying with immediate remote re-encryption update when the server assigns a new identifier.
+  - Enforced fail-closed decryption in `getPearlDetail`, `getNoteDetail`, and `getSshKeyDetail`, preventing raw JSON ciphertext exposure and double-ciphertext database corruption.
+  - Added `initialOnlineOverride` in `ConnectivityMonitor` for deterministic headless JVM / Robolectric testing.
+  - Created `SyncReconciliationAdversarialTest.kt` asserting against all 6 adversarial vectors; full test suite passing 100% green and debug APK cleanly compiled.
 
 ## What's Left to Build (Phase 6)
 - [ ] Phase 6: Settings, Backup Bridge & Release Hardening (Tasks 11 & 12).

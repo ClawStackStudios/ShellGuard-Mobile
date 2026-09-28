@@ -80,6 +80,7 @@ UI (Compose) ──(UserIntent)──> ViewModel ──> UseCase ──> Reposit
 
 ### A. Room Database & SQLCipher
 All structured user data (pearls, notes, keys, audit logs, caches) is stored in Room 2.7+ encrypted at rest via SQLCipher whole-database encryption.
+- **Bounded SQLite Chunking (999 Parameter Invariant)**: Whenever executing Room queries, deletions, or batch lookups referencing dynamic collections (`IN (:ids)` or `NOT IN (:ids)`), the collection MUST be chunked into batches of ≤ 500 items (`collection.chunked(500)`). Passing collections exceeding 999 items triggers fatal `SQLiteException` (too many SQL variables), and passing empty collections to `NOT IN` creates SQLite syntax errors. Batch operations must use in-memory set differences partitioned across 500-item chunks.
 
 ### B. Hybrid File-System Vault (CWE-400 CursorWindow Defense)
 - Android enforces a hard **2MB `CursorWindow` limit** on SQLite query rows.
@@ -112,6 +113,18 @@ Master identity keys, session tokens, derived symmetric keys (`shellKey`), and P
 - **Frictionless Gateway Fallback**: If an invalid session or missing key forces a redirect to the `GatewayScreen`, the client must preserve and pre-fill server connection parameters (`protocol`, `host`, `port`) so the user only needs to supply their key/file to restore access.
 - **Session Zeroization**: On explicit user lock or logout, both volatile RAM references AND persisted KeyStore preferences (`KEY_SHELL_KEY`, `KEY_SESSION_TOKEN`) must be actively zeroized.
 - *(Ratified Pattern: see [long-term/patterns.md § pattern: zero-knowledge-session-atomicity](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/brain/long-term/patterns.md))*.
+
+### G. Fail-Closed Cryptography vs. UI Graceful Degradation
+- **Fail-Closed Boundary**: Cryptographic operations, key derivations, and session authentications MUST strictly fail closed. If field decryption fails, the operation must return `Result.failure` or throw an explicit security exception. It must **NEVER** degrade gracefully by returning raw JSON ciphertext strings, empty dummy secrets, or unauthenticated session tokens. Returning raw ciphertext strings causes downstream edits to re-encrypt the ciphertext envelope, producing nested ciphertext and permanently destroying user data.
+- **UI Exception Presentation**: While the cryptographic and domain layers strictly fail closed, the presentation layer may handle the resulting `Result.failure` gracefully by displaying a non-blocking error badge or retry card with an unconditional navigation exit route.
+
+### H. Two-Phase Reconciliation Invariants
+- **Confirmed Remote ACK Before Release**: Local `PENDING_DELETE` tombstones must NEVER be purged from Room until the remote server returns an explicit HTTP 200 or 204 response. Purging tombstones prematurely causes failed network requests to resurrect deleted records on subsequent delta pulls.
+- **Mutex Queuing Over tryLock()**: Multi-domain sync pipelines must use coroutine mutex serialization (`syncMutex.withLock`) rather than non-blocking `tryLock()`. `tryLock()` silently drops concurrent user-initiated mutations or test executions with false-positive success.
+- **Conflict-Aware Downstream Ingestion**: Incoming remote sync entities must be filtered against local `PENDING_SYNC` and `PENDING_DELETE` IDs to ensure remote delta pulls do not overwrite fresh local modifications.
+
+### I. Testable Platform Abstractions
+- **Constructor Test Hooks**: Any component wrapping Android OS system singletons (`ConnectivityManager`, `TelephonyManager`, `BiometricManager`) MUST provide explicit constructor test parameters (`initialOnlineOverride: Boolean? = null`) or test-hook mutators. Never assume Robolectric or headless JVM stubs reflect valid connected states.
 
 ---
 

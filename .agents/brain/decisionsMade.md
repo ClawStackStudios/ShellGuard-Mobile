@@ -258,3 +258,57 @@ The story says how it felt. This says what was actually chosen and why.
 **Confidence**: high — verified in unit tests (`DomainMatcherTest`).
 **Outcome**: Implemented in `DomainMatcher.kt` and tested against differing ports on `192.168.1.50`.
 **Pattern reference**: New pattern — first instance (`home-lab-port-isolation`).
+
+## sync-mutex-withlock-serialization — 2026-09-27 20:30
+
+**Context**: Concurrent calls to `SyncRepository.syncAll()` were dropping without error because `tryLock()` returned false during active background synchronization.
+**Options considered**:
+- Return `Result.failure` when busy and force every caller (UI or tests) to implement retry logic.
+- Switch from `tryLock()` to coroutine `withLock` to queue and serialize sync requests deterministically.
+**Chosen**: Switch to `withLock` serialization.
+**Why**: User-initiated mutations and foreground sync triggers cannot be dropped into a silent void. Serializing guarantees sequential execution without race conditions or missed synchronization rounds.
+**Confidence**: high — verified across all Robolectric unit and adversarial test suites.
+**Outcome**: Implemented in `SyncRepository.kt`.
+**Pattern reference**: New pattern — first instance (`sync-mutex-serialization`).
+
+## fail-closed-decryption-in-detail-getters — 2026-09-27 20:30
+
+**Context**: Detail retrieval methods fell back to returning raw JSON ciphertext strings as unauthenticated plaintext when decryption threw an exception.
+**Options considered**:
+- Return raw ciphertext with an error flag.
+- Fail closed by wrapping in `runCatching` and returning `Result.failure`.
+**Chosen**: Fail closed with `Result.failure`.
+**Why**: Exposing raw ciphertext as editable cleartext allows subsequent saves to re-encrypt the ciphertext envelope, producing nested ciphertext and irreversibly corrupting user credentials. Failing closed preserves data integrity.
+**Confidence**: high — validated against `brutal_adversary` and `spectre_hacker` audit findings.
+**Outcome**: Implemented across `getPearlDetail`, `getNoteDetail`, and `getSshKeyDetail`.
+**Pattern reference**: New pattern — first instance (`fail-closed-crypto-retrieval`).
+
+## Calibration Note — 2026-09-27
+
+The cross-session failure analysis (/deep-learn) detected an **over-confidence bias on platform format and concurrency defaults**. Stated or implicit high confidence regarding standard platform defaults (assuming hash representations are always hex, assuming non-blocking locks like `tryLock` are safe for background tasks, assuming SQLite collections can be arbitrarily large) resulted in live rework. Conversely, confidence was well-calibrated or slightly under-confident when executing deliberate architectural boundaries.
+
+**Suggested adjustment**: When dealing with platform encoding formats (Base62 vs Hex), SQLite parameter limits, and coroutine synchronization, verify the concrete platform wire specification and hardware constraints before implementing, defaulting to lower stated confidence until wire tests pass green.
+
+## fail-closed-priority-over-graceful-degradation — 2026-09-27 22:38
+
+**Context**: Resolving the architectural conflict between `android-development.md`'s general UI graceful degradation and cryptographic fail-closed invariants.
+**Options considered**:
+- Allow domain models to return empty or fallback values to prevent UI exceptions.
+- Mandate that cryptographic, key derivation, and session operations strictly fail closed with `Result.failure`, subordinating UI graceful degradation to the presentation layer.
+**Chosen**: Subordinate graceful degradation to presentation layer; domain/crypto operations strictly fail closed.
+**Why**: A crashed app is an annoyance; a silently corrupted vault or exposed ciphertext is a betrayal. When secrets are at stake, failure must be absolute and unambiguous.
+**Confidence**: high — validated across multiple historical failure modes.
+**Outcome**: Ratified in `.agents/rules/meta-rules.md` and `.agents/rules/android-development.md` §3 G.
+**Pattern reference**: New pattern — first instance (`fail-closed-security-boundaries`).
+
+## operationalized-checklist-ratchet — 2026-09-27 22:40
+
+**Context**: Synthesizing the 5 failure categories from `/deep-learn` into actionable pre-commit developer behavior.
+**Options considered**:
+- Distribute 15 individual micro-rules across multiple rule markdown files.
+- Consolidate all failure checks into a single living, numbered `Self-Review Checklist (v1)` executed before each commit.
+**Chosen**: Single living `self-review-checklist.md` (v1).
+**Why**: Rules that live in ten different files get skimmed and forgotten under deadline pressure. A single, ruthless checklist with checkable boxes turns abstract memory into concrete tactile muscle.
+**Confidence**: high — monotonic ratchet prevents regression.
+**Outcome**: Materialized `.agents/rules/self-review-checklist.md` with 8 mapped questions.
+**Pattern reference**: New pattern — first instance (`operationalized-checklist-ratchet`).
