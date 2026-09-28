@@ -1,10 +1,7 @@
 ---
-description: "Integrated Task Handoff System - Seamlessly transfers task context, state, and learnings between sessions using brain and continuous learning integration"
-author: "Devin AI + https://github.com/acidgreenservers"
-version: 1.0
+trigger: always_on
+description: Seamlessly transfers task context, state, and learnings between sessions using brain and continuous learning integration
 globs: ["*"]
-tags: ["task-handoff", "brain", "continuous-learning", "session-management", "context-transfer"]
-Notes: This task handoff rule integrates seamlessly with the existing brain system and continuous improvement protocol. The rule follows the behavioral/instructional pattern with directive language and verification steps, ensuring reliable context preservation and learning capture across session boundaries.
 ---
 
 # Integrated Task Handoff System
@@ -192,4 +189,4 @@ Handoff_Package_Prepared: true
 
 
 
-**This integrated handoff system ensures seamless task continuity while capturing valuable learnings and maintaining comprehensive context through the brain and continuous learning systems.** 
+**This integrated handoff system ensures seamless task continuity while capturing valuable learnings and maintaining comprehensive context through the brain and continuous learning systems.**

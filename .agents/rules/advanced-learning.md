@@ -40,7 +40,7 @@ This companion module enhances the existing continuous learning system with soph
 
 **MUST** create and maintain enhanced learning structures:
 
-### `brain/advanced-learning/predictive-patterns.md`
+### `brain/learning/predictive-patterns.md`
 
 
 ## Predictive Pattern Library
@@ -58,7 +58,7 @@ This companion module enhances the existing continuous learning system with soph
 - **Common Principle**: Consistent error handling and response structure
 - **Transferable Insights**: Validation patterns, response formatting
 
-### `brain/advanced-learning/knowledge-synthesis.md`
+### `brain/learning/knowledge-synthesis.md`
 
 ## Cross-Domain Knowledge Synthesis
 
@@ -76,7 +76,7 @@ This companion module enhances the existing continuous learning system with soph
 - **Current State**: Pyramid testing approach optimal
 - **Next Evolution**: AI-assisted test generation emerging
 
-### `brain/advanced-learning/meta-learning.md`
+### `brain/learning/meta-learning.md`
 ## Meta-Learning Optimization
 
 ### Learning Process Improvements
