@@ -150,7 +150,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **KeyStore Biometric Lifecycle**: Background auto-lock timeout and hardware biometric authentication challenge.
   - **Splash Theme Parity**: Pre-`super.onCreate()` splash install and ActionBar suppression.
 
-## [Unreleased] - Phase 5, 5.1 & 5.2
+## [0.0.0.6] - 2026-09-27 (Build 6)
 
 ### Added
 - **System Autofill Framework & Architecture (Phase 5)**:
@@ -170,3 +170,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Multi-stage `CancellationSignal.isCanceled` evaluations across async coroutine boundaries in `ShellGuardAutofillService`.
   - Configured defensive `SaveInfo` generation (`SAVE_DATA_TYPE_PASSWORD`) enabling native form saving prompts on login/registration.
   - Expanded unit tests in `AutofillStructureParserTest` verifying WebView state tracking.
+
+## [0.0.0.7] - 2026-09-27 (Build 7) — Hotfix 5.3: Bidirectional Sync Reconciliation & Dual Adversarial Hardening
+
+### Added
+- **Bidirectional Sync Reconciliation (`SyncRepository`)**: Complete push, pull, and reconciliation engine syncing local Room mutations with the central ShellGuard server.
+- **Dual Adversarial Audit Pass**: Subjected sync and crypto engines to ruthless critic (`brutal_adversary`) and surgical hacker (`spectre_hacker`) audits, uncovering and hardening 7 critical edge cases.
+- **Dedicated Adversarial Test Suite (`SyncReconciliationAdversarialTest`)**: 6 comprehensive unit tests asserting against concurrent sync dropping, health probe failure propagation, conflict-aware pull, tombstone retention, serverId re-key re-encryption, and fail-closed crypto retrieval.
+- **Synthesized Meta-Rules (`meta-rules.md`)**: Codified 4 durable cross-session rules (`fail-closed-security-boundaries`, `two-phase-reconciliation-invariants`, `testable-platform-abstraction`, `bounded-sqlite-chunking`).
+- **Self-Review Checklist v1 (`self-review-checklist.md`)**: 8-point pre-commit verification checklist.
+
+### Fixed
+- **Mutex Serialization**: Replaced `tryLock()` with `withLock` in `SyncRepository` to serialize requests and eliminate dropped syncs.
+- **Zombie Item Resurrection**: Retained local tombstones until remote HTTP 200/204 confirmation.
+- **Downstream Conflict Protection**: Excluded pending local IDs from downstream remote delta upserts.
+- **SQLite 999 Parameter Evading**: Chunked batch pruning in 500-item chunks.
+- **Fail-Closed Detail Retrieval**: Detail getters fail closed with `Result.failure`, blocking double-ciphertext corruption.

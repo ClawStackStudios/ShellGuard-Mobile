@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.0.7] - 2026-09-27 (Build 7) — Hotfix 5.3: Bidirectional Sync Reconciliation & Dual Adversarial Hardening
+### Added
+- **Bidirectional Sync Reconciliation (`SyncRepository`)**: Complete push, pull, and reconciliation engine syncing local Room mutations (creations, edits, deletions) with the central ShellGuard server.
+- **Dual Adversarial Audit Pass**: Subjected sync and crypto engines to ruthless infrastructure critic (`brutal_adversary`) and surgical cryptologist hacker (`spectre_hacker`) audits, uncovering and hardening 7 critical edge cases.
+- **Dedicated Adversarial Test Suite (`SyncReconciliationAdversarialTest`)**: 6 comprehensive unit tests asserting against concurrent sync dropping, health probe failure propagation, conflict-aware pull, tombstone retention, serverId re-key re-encryption, and fail-closed crypto retrieval.
+- **Synthesized Meta-Rules (`meta-rules.md`)**: Codified 4 durable cross-session architectural rules (`fail-closed-security-boundaries`, `two-phase-reconciliation-invariants`, `testable-platform-abstraction`, `bounded-sqlite-chunking`).
+- **Self-Review Checklist v1 (`self-review-checklist.md`)**: 8-point pre-commit verification checklist mapping to the 5 core error taxonomy categories.
+
+### Fixed
+- **Mutex Serialization**: Replaced `syncMutex.tryLock()` with `syncMutex.withLock` to serialize sync requests and eliminate silent dropped syncs caused by overlapping probes.
+- **Zombie Item Resurrection**: Retained local `PENDING_DELETE` tombstones until remote HTTP 200/204 response is confirmed, preventing un-deleted server records from resurrecting on delta pulls.
+- **Downstream Conflict Protection**: Excluded local `PENDING_SYNC` and `PENDING_DELETE` IDs from downstream remote delta upserts to prevent overwriting fresh local edits.
+- **SQLite 999 Parameter Limit Evading**: Implemented batch pruning in 500-item chunks (`chunked(500)`) via local vs remote ID set differences in `VaultPearlDao`, `SecureNoteDao`, and `SshKeyDao`.
+- **Server ID Re-Key Re-Encryption**: Automatically re-encrypts ciphertext under `{domain}:{serverId}` and pushes an update when the server assigns a new identifier.
+- **Fail-Closed Detail Retrieval**: Detail getters (`getPearlDetail`, `getNoteDetail`, `getSshKeyDetail`) fail closed with `Result.failure` on decryption errors, preventing raw JSON ciphertext exposure and double-ciphertext database corruption.
+- **Headless Network Mocking**: Added `initialOnlineOverride` and `setOnlineForTesting` in `ConnectivityMonitor` to prevent Robolectric's null network capabilities from falsely short-circuiting sync into offline mode.
+
+### Verified
+- **100% Green Test Oracle**: 18 remote & adversarial unit tests passing (`BUILD SUCCESSFUL`), and clean `./gradlew assembleDebug` APK generation.
+
 ## [0.0.0.6] - 2026-09-27 (Build 6) — Phase 5: Android Autofill Framework, AutoSpill Defense & Adversary Remediations
 ### Added
 - **System-Level Autofill Service (`ShellGuardAutofillService`)**: System service extending Android `AutofillService` with `BIND_AUTOFILL_SERVICE` and metadata configuration.

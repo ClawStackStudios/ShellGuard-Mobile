@@ -5,6 +5,21 @@
 
 ---
 
+## `v0.0.0.7` — Hotfix 5.3: Bidirectional Sync Reconciliation & Adversarial Hardening (Build 7)
+
+```xml
+<en-US>
+• Bidirectional Sync: Saved items push, pull, and reconcile seamlessly with server.
+• Adversarial Hardening: Dual-adversary audit pass resolved 7 sync & crypto edge cases.
+• Fail-Closed Crypto: Guaranteed protection against double-ciphertext data corruption.
+• Zombie Item Immunity: Tombstone retention prevents deleted items from resurrecting.
+• Batch Pruning: Evades SQLite 999 parameter limits on large vaults.
+• 100% Green Test Suite: 18 remote & adversarial unit tests verified.
+</en-US>
+```
+
+---
+
 ## `v0.0.0.6` — Phase 5: Autofill Framework, AutoSpill Defense & Adversary Hardening (Build 6)
 
 ```xml
