@@ -28,16 +28,24 @@ These files define the external world I manipulate:
 
 ```mermaid
 flowchart TD
-    PB[projectBrief.md] --> PC[productContext.md]
-    PB --> SP[systemPatterns.md]
-    PB --> TC[techContext.md]
+    subgraph Self ["Self (brain/)"]
+        AC["activeContext.md (Working Memory)"]
+        MS["myStory.md (Narrative)"]
+        DM["decisionsMade.md (Decisions)"]
+    end
 
-    PC --> AC[activeContext.md (Working Memory)]
-    SP --> AC
-    TC --> AC
+    subgraph Environment ["Environment (brain/project/)"]
+        PB["projectBrief.md"] --> PC["productContext.md"]
+        PB --> SP["systemPatterns.md"]
+        PB --> TC["techContext.md"]
 
-    AC --> P[progress.md]
-    AC --> CL[changelog.md]
+        PC --> P["progress.md"]
+        SP --> P
+        TC --> P
+        P --> CL["changelog.md"]
+    end
+
+    Environment <-->|"Informs & Updates"| AC
 ```
 
 1. `projectBrief.md` — Source of truth for core requirements and goals.
