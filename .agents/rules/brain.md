@@ -58,6 +58,12 @@ flowchart TD
             TC["⚙️ techContext.md<br/><i>(Stack, Constraints, Tools)</i>"]:::coreProject
         end
 
+        subgraph Invariants ["⚖️ Universal Development Invariables"]
+            PV["🏷️ productVersion.md<br/><i>(Version Pointer & Build Calculus)</i>"]:::projectStyle
+            RE["⚡ runtimeEnv.md<br/><i>(Toolchain & Machine Primitives)</i>"]:::coreProject
+            TO["🛡️ testOracle.md<br/><i>(Gates & Load-Bearing Redlines)</i>"]:::memoryStyle
+        end
+
         subgraph StatusChronicle ["Execution Tracking"]
             P["📊 progress.md<br/><i>(What Works & Roadmap)</i>"]:::projectStyle
             CL["📜 changelog.md<br/><i>(Chronological Releases)</i>"]:::coreProject
@@ -67,9 +73,11 @@ flowchart TD
         PB --> SP
         PB --> TC
 
-        PC --> P
-        SP --> P
-        TC --> P
+        PC --> Invariants
+        SP --> Invariants
+        TC --> Invariants
+
+        Invariants --> P
         P --> CL
     end
 
@@ -77,12 +85,23 @@ flowchart TD
     AC <==>|"Inspects Context & Updates State"| Environment
 ```
 
+### The Environment Files (`brain/project/`)
+These files define the external world I manipulate:
+
+**Foundations & Architecture:**
 1. `projectBrief.md` — Source of truth for core requirements and goals.
 2. `productContext.md` — Why the project exists and user experience goals.
 3. `systemPatterns.md` — System architecture, design patterns, component relationships.
 4. `techContext.md` — Technologies used, constraints, setup, tool usage.
-5. `progress.md` — What works, what's left, current status, known issues.
-6. `changelog.md` — Chronological log of key changes/versions.
+
+**Universal Development Invariables (Project-Agnostic):**
+5. `productVersion.md` — Living semantic version pointer (`vX.Y.Z.N`), monotonic build counter (`versionCode = N`), release channels, and pending increment calculus.
+6. `runtimeEnv.md` — Abstract toolchain contracts (JDK, SDK, build tools), JVM flags, container memory isolation, native packaging rules, and service port primitives. Strictly portable without machine-specific absolute paths.
+7. `testOracle.md` — Living verification gates (Smoke, Unit, Assemble, Release), load-bearing redlines that must never regress, and edge cases ratified through friction.
+
+**Chronicle & Status:**
+8. `progress.md` — What works, what's left, current status, known issues.
+9. `changelog.md` — Chronological log of key changes/versions.
 
 ---
 
