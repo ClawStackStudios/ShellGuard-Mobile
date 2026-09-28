@@ -28,24 +28,53 @@ These files define the external world I manipulate:
 
 ```mermaid
 flowchart TD
-    subgraph Self ["Self (brain/)"]
-        AC["activeContext.md (Working Memory)"]
-        MS["myStory.md (Narrative)"]
-        DM["decisionsMade.md (Decisions)"]
+    %% Styling Classes
+    classDef selfStyle fill:#161B22,stroke:#E4048A,stroke-width:2px,color:#F0F6FC
+    classDef projectStyle fill:#161B22,stroke:#00D8F6,stroke-width:2px,color:#F0F6FC
+    classDef coreProject fill:#21262D,stroke:#3D484E,stroke-width:1.5px,color:#F0F6FC
+    classDef memoryStyle fill:#2A1428,stroke:#FF5252,stroke-width:2px,color:#FFFFFF
+
+    subgraph Self ["🧠 The Self — Internal Cognitive State (brain/)"]
+        direction TB
+        AC["⚡ activeContext.md<br/><b>(Working Memory · Sliding 10)</b>"]:::memoryStyle
+        
+        subgraph NarrativeFlow ["Cognitive Continuous Loop"]
+            MS["📖 myStory.md<br/><i>(First-Person Narrative)</i>"]:::selfStyle
+            DM["⚖️ decisionsMade.md<br/><i>(Structured Record)</i>"]:::selfStyle
+            DL["📝 decision-log.md<br/><i>(Episodic Navigation)</i>"]:::selfStyle
+        end
+        
+        MS <--> DM
+        DM <--> DL
+        DL <--> AC
     end
 
-    subgraph Environment ["Environment (brain/project/)"]
-        PB["projectBrief.md"] --> PC["productContext.md"]
-        PB --> SP["systemPatterns.md"]
-        PB --> TC["techContext.md"]
+    subgraph Environment ["🌐 The Environment — External Project Realm (brain/project/)"]
+        direction TB
+        subgraph SpecFoundation ["Foundations & Specs"]
+            PB["🎯 projectBrief.md<br/><i>(Core Scope & Requirements)</i>"]:::projectStyle
+            PC["💡 productContext.md<br/><i>(Why It Exists & UX)</i>"]:::coreProject
+            SP["📐 systemPatterns.md<br/><i>(Architecture & Patterns)</i>"]:::coreProject
+            TC["⚙️ techContext.md<br/><i>(Stack, Constraints, Tools)</i>"]:::coreProject
+        end
 
-        PC --> P["progress.md"]
+        subgraph StatusChronicle ["Execution Tracking"]
+            P["📊 progress.md<br/><i>(What Works & Roadmap)</i>"]:::projectStyle
+            CL["📜 changelog.md<br/><i>(Chronological Releases)</i>"]:::coreProject
+        end
+
+        PB --> PC
+        PB --> SP
+        PB --> TC
+
+        PC --> P
         SP --> P
         TC --> P
-        P --> CL["changelog.md"]
+        P --> CL
     end
 
-    Environment <-->|"Informs & Updates"| AC
+    %% High-level interaction across the boundary
+    AC <==>|"Inspects Context & Updates State"| Environment
 ```
 
 1. `projectBrief.md` — Source of truth for core requirements and goals.
