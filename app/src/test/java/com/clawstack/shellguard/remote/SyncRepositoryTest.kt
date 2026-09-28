@@ -169,7 +169,9 @@ class SyncRepositoryTest {
         database.vaultPearlDao().upsertAll(listOf(pearl1, pearl2))
 
         val remoteActiveIds = listOf("item-keep")
-        database.vaultPearlDao().pruneDeletedRemoteItems(testOwnerUuid, remoteActiveIds)
+        val localSynced = database.vaultPearlDao().getSyncedItemIds(testOwnerUuid)
+        val obsoleteIds = localSynced - remoteActiveIds.toSet()
+        database.vaultPearlDao().deleteBatch(testOwnerUuid, obsoleteIds)
 
         val remaining = database.vaultPearlDao().observeAll(testOwnerUuid).first()
         assertEquals(1, remaining.size)

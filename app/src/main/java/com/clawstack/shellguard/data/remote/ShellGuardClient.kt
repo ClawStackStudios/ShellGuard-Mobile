@@ -31,7 +31,7 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class ShellGuardClient(
+open class ShellGuardClient(
     val baseUrl: String,
     val onUnauthorized: (() -> Unit)? = null,
     injectedClient: HttpClient? = null
@@ -44,7 +44,7 @@ class ShellGuardClient(
     /**
      * 1. Public Health Check (GET /api/health)
      */
-    suspend fun getHealth(): Result<Boolean> = withContext(Dispatchers.IO) {
+    open suspend fun getHealth(): Result<Boolean> = withContext(Dispatchers.IO) {
         runCatching {
             val response: HttpResponse = client.get("api/health")
             response.status == HttpStatusCode.OK
@@ -54,7 +54,7 @@ class ShellGuardClient(
     /**
      * 2. Authentication Handshake (POST /api/auth/token)
      */
-    suspend fun authenticate(keyHash: String, uuid: String? = null): Result<SessionData> = withContext(Dispatchers.IO) {
+    open suspend fun authenticate(keyHash: String, uuid: String? = null): Result<SessionData> = withContext(Dispatchers.IO) {
         runCatching {
             val requestBody = TokenRequest(type = "human", keyHash = keyHash, uuid = uuid?.takeIf { it.isNotBlank() })
             val response: HttpResponse = client.post("api/auth/token") {
@@ -79,7 +79,7 @@ class ShellGuardClient(
     /**
      * 3. Fetch Vault Items / Pearls (GET /api/vault)
      */
-    suspend fun fetchVault(sessionToken: String): Result<List<PearlDto>> = withContext(Dispatchers.IO) {
+    open suspend fun fetchVault(sessionToken: String): Result<List<PearlDto>> = withContext(Dispatchers.IO) {
         runCatching {
             val response: HttpResponse = client.get("api/vault") {
                 header(HttpHeaders.Authorization, "Bearer $sessionToken")
@@ -98,7 +98,7 @@ class ShellGuardClient(
     /**
      * 4. Create Vault Item (POST /api/vault)
      */
-    suspend fun createVaultItem(sessionToken: String, request: CreateVaultItemRequest): Result<PearlDto> = withContext(Dispatchers.IO) {
+    open suspend fun createVaultItem(sessionToken: String, request: CreateVaultItemRequest): Result<PearlDto> = withContext(Dispatchers.IO) {
         runCatching {
             val response: HttpResponse = client.post("api/vault") {
                 header(HttpHeaders.Authorization, "Bearer $sessionToken")
@@ -123,7 +123,7 @@ class ShellGuardClient(
     /**
      * 5. Update Vault Item (PUT /api/vault/:id)
      */
-    suspend fun updateVaultItem(sessionToken: String, id: String, request: CreateVaultItemRequest): Result<PearlDto> = withContext(Dispatchers.IO) {
+    open suspend fun updateVaultItem(sessionToken: String, id: String, request: CreateVaultItemRequest): Result<PearlDto> = withContext(Dispatchers.IO) {
         runCatching {
             val response: HttpResponse = client.put("api/vault/$id") {
                 header(HttpHeaders.Authorization, "Bearer $sessionToken")
@@ -148,7 +148,7 @@ class ShellGuardClient(
     /**
      * 6. Delete Vault Item (DELETE /api/vault/:id)
      */
-    suspend fun deleteVaultItem(sessionToken: String, id: String): Result<Boolean> = withContext(Dispatchers.IO) {
+    open suspend fun deleteVaultItem(sessionToken: String, id: String): Result<Boolean> = withContext(Dispatchers.IO) {
         runCatching {
             val response: HttpResponse = client.delete("api/vault/$id") {
                 header(HttpHeaders.Authorization, "Bearer $sessionToken")
@@ -160,7 +160,7 @@ class ShellGuardClient(
     /**
      * 7. Fetch Secure Notes (GET /api/notes)
      */
-    suspend fun fetchNotes(sessionToken: String): Result<List<SecureNoteDto>> = withContext(Dispatchers.IO) {
+    open suspend fun fetchNotes(sessionToken: String): Result<List<SecureNoteDto>> = withContext(Dispatchers.IO) {
         runCatching {
             val response: HttpResponse = client.get("api/notes") {
                 header(HttpHeaders.Authorization, "Bearer $sessionToken")
@@ -179,7 +179,7 @@ class ShellGuardClient(
     /**
      * 8. Fetch SSH Keys (GET /api/keys)
      */
-    suspend fun fetchKeys(sessionToken: String): Result<List<SshKeyDto>> = withContext(Dispatchers.IO) {
+    open suspend fun fetchKeys(sessionToken: String): Result<List<SshKeyDto>> = withContext(Dispatchers.IO) {
         runCatching {
             val response: HttpResponse = client.get("api/keys") {
                 header(HttpHeaders.Authorization, "Bearer $sessionToken")
@@ -198,7 +198,7 @@ class ShellGuardClient(
     /**
      * 9. Create Note (POST /api/notes)
      */
-    suspend fun createNote(sessionToken: String, request: CreateNoteRequest): Result<SecureNoteDto> = withContext(Dispatchers.IO) {
+    open suspend fun createNote(sessionToken: String, request: CreateNoteRequest): Result<SecureNoteDto> = withContext(Dispatchers.IO) {
         runCatching {
             val response: HttpResponse = client.post("api/notes") {
                 header(HttpHeaders.Authorization, "Bearer $sessionToken")
@@ -223,7 +223,7 @@ class ShellGuardClient(
     /**
      * 10. Update Note (PUT /api/notes/:id)
      */
-    suspend fun updateNote(sessionToken: String, id: String, request: CreateNoteRequest): Result<SecureNoteDto> = withContext(Dispatchers.IO) {
+    open suspend fun updateNote(sessionToken: String, id: String, request: CreateNoteRequest): Result<SecureNoteDto> = withContext(Dispatchers.IO) {
         runCatching {
             val response: HttpResponse = client.put("api/notes/$id") {
                 header(HttpHeaders.Authorization, "Bearer $sessionToken")
@@ -248,7 +248,7 @@ class ShellGuardClient(
     /**
      * 11. Delete Note (DELETE /api/notes/:id)
      */
-    suspend fun deleteNote(sessionToken: String, id: String): Result<Boolean> = withContext(Dispatchers.IO) {
+    open suspend fun deleteNote(sessionToken: String, id: String): Result<Boolean> = withContext(Dispatchers.IO) {
         runCatching {
             val response: HttpResponse = client.delete("api/notes/$id") {
                 header(HttpHeaders.Authorization, "Bearer $sessionToken")
@@ -260,7 +260,7 @@ class ShellGuardClient(
     /**
      * 12. Create SSH Key (POST /api/keys)
      */
-    suspend fun createSshKey(sessionToken: String, request: CreateSshKeyRequest): Result<SshKeyDto> = withContext(Dispatchers.IO) {
+    open suspend fun createSshKey(sessionToken: String, request: CreateSshKeyRequest): Result<SshKeyDto> = withContext(Dispatchers.IO) {
         runCatching {
             val response: HttpResponse = client.post("api/keys") {
                 header(HttpHeaders.Authorization, "Bearer $sessionToken")
@@ -285,7 +285,7 @@ class ShellGuardClient(
     /**
      * 13. Update SSH Key (PUT /api/keys/:id)
      */
-    suspend fun updateSshKey(sessionToken: String, id: String, request: CreateSshKeyRequest): Result<SshKeyDto> = withContext(Dispatchers.IO) {
+    open suspend fun updateSshKey(sessionToken: String, id: String, request: CreateSshKeyRequest): Result<SshKeyDto> = withContext(Dispatchers.IO) {
         runCatching {
             val response: HttpResponse = client.put("api/keys/$id") {
                 header(HttpHeaders.Authorization, "Bearer $sessionToken")
@@ -310,7 +310,7 @@ class ShellGuardClient(
     /**
      * 14. Delete SSH Key (DELETE /api/keys/:id)
      */
-    suspend fun deleteSshKey(sessionToken: String, id: String): Result<Boolean> = withContext(Dispatchers.IO) {
+    open suspend fun deleteSshKey(sessionToken: String, id: String): Result<Boolean> = withContext(Dispatchers.IO) {
         runCatching {
             val response: HttpResponse = client.delete("api/keys/$id") {
                 header(HttpHeaders.Authorization, "Bearer $sessionToken")

@@ -48,6 +48,9 @@ interface VaultPearlDao {
     @Query("SELECT COUNT(*) FROM vault_pearls WHERE owner_uuid = :ownerUuid AND sync_state != 'PENDING_DELETE'")
     suspend fun getItemCount(ownerUuid: String): Int
 
-    @Query("DELETE FROM vault_pearls WHERE owner_uuid = :ownerUuid AND id NOT IN (:activeRemoteIds)")
-    suspend fun pruneDeletedRemoteItems(ownerUuid: String, activeRemoteIds: List<String>)
+    @Query("SELECT id FROM vault_pearls WHERE owner_uuid = :ownerUuid AND sync_state = 'SYNCED'")
+    suspend fun getSyncedItemIds(ownerUuid: String): List<String>
+
+    @Query("DELETE FROM vault_pearls WHERE owner_uuid = :ownerUuid AND id IN (:ids)")
+    suspend fun deleteBatch(ownerUuid: String, ids: List<String>)
 }

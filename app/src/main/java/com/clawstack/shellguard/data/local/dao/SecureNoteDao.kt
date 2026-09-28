@@ -21,6 +21,9 @@ interface SecureNoteDao {
     @Query("SELECT * FROM vault_secure_notes WHERE owner_uuid = :ownerUuid AND sync_state = 'PENDING_SYNC'")
     suspend fun getPendingSyncItems(ownerUuid: String): List<SecureNoteEntity>
 
+    @Query("SELECT * FROM vault_secure_notes WHERE owner_uuid = :ownerUuid AND sync_state = 'PENDING_DELETE'")
+    suspend fun getPendingDeleteItems(ownerUuid: String): List<SecureNoteEntity>
+
     @Upsert
     suspend fun upsert(item: SecureNoteEntity)
 
@@ -39,6 +42,9 @@ interface SecureNoteDao {
     @Query("SELECT COUNT(*) FROM vault_secure_notes WHERE owner_uuid = :ownerUuid AND sync_state != 'PENDING_DELETE'")
     fun observeItemCount(ownerUuid: String): Flow<Int>
 
-    @Query("DELETE FROM vault_secure_notes WHERE owner_uuid = :ownerUuid AND id NOT IN (:activeRemoteIds)")
-    suspend fun pruneDeletedRemoteItems(ownerUuid: String, activeRemoteIds: List<String>)
+    @Query("SELECT id FROM vault_secure_notes WHERE owner_uuid = :ownerUuid AND sync_state = 'SYNCED'")
+    suspend fun getSyncedItemIds(ownerUuid: String): List<String>
+
+    @Query("DELETE FROM vault_secure_notes WHERE owner_uuid = :ownerUuid AND id IN (:ids)")
+    suspend fun deleteBatch(ownerUuid: String, ids: List<String>)
 }

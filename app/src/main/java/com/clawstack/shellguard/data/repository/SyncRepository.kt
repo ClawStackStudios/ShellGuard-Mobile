@@ -26,6 +26,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 enum class SyncStatus {
@@ -62,6 +64,7 @@ class SyncRepository(
     private val cryptoEngine: ShellCryptionEngine = ShellCryptionEngine,
     private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 ) {
+    private val syncMutex = Mutex()
     private val _syncStatus = MutableStateFlow(
         if (connectivityMonitor.isOnline.value) SyncStatus.ONLINE_SYNCED else SyncStatus.OFFLINE_READ_ONLY
     )
@@ -150,22 +153,23 @@ class SyncRepository(
      * Execute full bidirectional sync (Upstream push + Downstream delta pull)
      */
     suspend fun syncAll(ownerUuid: String): Result<Unit> = withContext(Dispatchers.IO) {
-        val serverUrl = deviceVault.getServerUrl()
-        val sessionToken = deviceVault.getSessionToken()
+        syncMutex.withLock {
+            try {
+                val serverUrl = deviceVault.getServerUrl()
+            val sessionToken = deviceVault.getSessionToken()
 
-        if (serverUrl.isNullOrBlank() || sessionToken.isNullOrBlank()) {
-            _syncStatus.value = SyncStatus.OFFLINE_READ_ONLY
-            return@withContext Result.failure(IllegalStateException("No active server URL or session token"))
-        }
+            if (serverUrl.isNullOrBlank() || sessionToken.isNullOrBlank()) {
+                _syncStatus.value = SyncStatus.OFFLINE_READ_ONLY
+                return@withContext Result.failure(IllegalStateException("No active server URL or session token"))
+            }
 
-        if (!connectivityMonitor.isOnline.value) {
-            _syncStatus.value = SyncStatus.OFFLINE_READ_ONLY
-            return@withContext Result.success(Unit)
-        }
+            if (!connectivityMonitor.isOnline.value) {
+                _syncStatus.value = SyncStatus.OFFLINE_READ_ONLY
+                return@withContext Result.success(Unit)
+            }
 
-        _syncStatus.value = SyncStatus.SYNCING
+            _syncStatus.value = SyncStatus.SYNCING
 
-        try {
             val client = clientProvider(serverUrl)
 
             // Health probe
@@ -173,16 +177,30 @@ class SyncRepository(
             if (healthCheck.isFailure || healthCheck.getOrNull() != true) {
                 Log.w("SyncRepository", "Server health check failed. Entering OfflineReadOnly.")
                 _syncStatus.value = SyncStatus.OFFLINE_READ_ONLY
-                return@withContext Result.success(Unit)
+                return@withContext Result.failure(IllegalStateException("Server health probe failed"))
             }
 
-            // Downstream delta pull
-            val pearlsResult = client.fetchVault(sessionToken)
-            if (pearlsResult.isSuccess) {
-                val remotePearls = pearlsResult.getOrThrow()
-                val remoteIds = remotePearls.map { it.id }
+            // Upstream push of pending changes prior to downstream pull
+            val shellKey = deviceVault.getInMemoryShellKey()
+            pushPendingChanges(ownerUuid, client, sessionToken, shellKey)
 
-                val entities = remotePearls.map { dto ->
+            // Downstream delta pull - Pearls
+            val pearlsResult = client.fetchVault(sessionToken)
+            if (pearlsResult.isFailure) {
+                _syncStatus.value = SyncStatus.SYNC_ERROR
+                return@withContext Result.failure(pearlsResult.exceptionOrNull() ?: Exception("Failed to fetch pearls"))
+            }
+            val remotePearls = pearlsResult.getOrThrow()
+            val remotePearlIds = remotePearls.map { it.id }.toSet()
+
+            // Conflict check: Don't overwrite local pending changes
+            val pendingPearlSyncIds = database.vaultPearlDao().getPendingSyncItems(ownerUuid).map { it.id }.toSet()
+            val pendingPearlDeleteIds = database.vaultPearlDao().getPendingDeleteItems(ownerUuid).map { it.id }.toSet()
+            val conflictingPearlIds = pendingPearlSyncIds + pendingPearlDeleteIds
+
+            val pearlEntitiesToUpsert = remotePearls
+                .filter { it.id !in conflictingPearlIds }
+                .map { dto ->
                     VaultPearlEntity(
                         id = dto.id,
                         ownerUuid = dto.owner_uuid,
@@ -206,19 +224,33 @@ class SyncRepository(
                         remoteUpdatedAt = System.currentTimeMillis()
                     )
                 }
-                database.vaultPearlDao().upsertAll(entities)
-                if (remoteIds.isNotEmpty()) {
-                    database.vaultPearlDao().pruneDeletedRemoteItems(ownerUuid, remoteIds)
-                }
+            if (pearlEntitiesToUpsert.isNotEmpty()) {
+                database.vaultPearlDao().upsertAll(pearlEntitiesToUpsert)
+            }
+
+            // Prune deleted remote items in safe chunks (prevent SQLite 999 limit)
+            val localSyncedPearlIds = database.vaultPearlDao().getSyncedItemIds(ownerUuid).toSet()
+            val obsoletePearlIds = localSyncedPearlIds - remotePearlIds
+            obsoletePearlIds.chunked(500).forEach { batch ->
+                database.vaultPearlDao().deleteBatch(ownerUuid, batch)
             }
 
             // Downstream notes pull
             val notesResult = client.fetchNotes(sessionToken)
-            if (notesResult.isSuccess) {
-                val remoteNotes = notesResult.getOrThrow()
-                val remoteNoteIds = remoteNotes.map { it.id }
+            if (notesResult.isFailure) {
+                _syncStatus.value = SyncStatus.SYNC_ERROR
+                return@withContext Result.failure(notesResult.exceptionOrNull() ?: Exception("Failed to fetch notes"))
+            }
+            val remoteNotes = notesResult.getOrThrow()
+            val remoteNoteIds = remoteNotes.map { it.id }.toSet()
 
-                val noteEntities = remoteNotes.map { dto ->
+            val pendingNoteSyncIds = database.secureNoteDao().getPendingSyncItems(ownerUuid).map { it.id }.toSet()
+            val pendingNoteDeleteIds = database.secureNoteDao().getPendingDeleteItems(ownerUuid).map { it.id }.toSet()
+            val conflictingNoteIds = pendingNoteSyncIds + pendingNoteDeleteIds
+
+            val noteEntitiesToUpsert = remoteNotes
+                .filter { it.id !in conflictingNoteIds }
+                .map { dto ->
                     SecureNoteEntity(
                         id = dto.id,
                         ownerUuid = dto.owner_uuid,
@@ -235,19 +267,32 @@ class SyncRepository(
                         remoteUpdatedAt = System.currentTimeMillis()
                     )
                 }
-                database.secureNoteDao().upsertAll(noteEntities)
-                if (remoteNoteIds.isNotEmpty()) {
-                    database.secureNoteDao().pruneDeletedRemoteItems(ownerUuid, remoteNoteIds)
-                }
+            if (noteEntitiesToUpsert.isNotEmpty()) {
+                database.secureNoteDao().upsertAll(noteEntitiesToUpsert)
+            }
+
+            val localSyncedNoteIds = database.secureNoteDao().getSyncedItemIds(ownerUuid).toSet()
+            val obsoleteNoteIds = localSyncedNoteIds - remoteNoteIds
+            obsoleteNoteIds.chunked(500).forEach { batch ->
+                database.secureNoteDao().deleteBatch(ownerUuid, batch)
             }
 
             // Downstream keys pull
             val keysResult = client.fetchKeys(sessionToken)
-            if (keysResult.isSuccess) {
-                val remoteKeys = keysResult.getOrThrow()
-                val remoteKeyIds = remoteKeys.map { it.id }
+            if (keysResult.isFailure) {
+                _syncStatus.value = SyncStatus.SYNC_ERROR
+                return@withContext Result.failure(keysResult.exceptionOrNull() ?: Exception("Failed to fetch SSH keys"))
+            }
+            val remoteKeys = keysResult.getOrThrow()
+            val remoteKeyIds = remoteKeys.map { it.id }.toSet()
 
-                val keyEntities = remoteKeys.map { dto ->
+            val pendingKeySyncIds = database.sshKeyDao().getPendingSyncItems(ownerUuid).map { it.id }.toSet()
+            val pendingKeyDeleteIds = database.sshKeyDao().getPendingDeleteItems(ownerUuid).map { it.id }.toSet()
+            val conflictingKeyIds = pendingKeySyncIds + pendingKeyDeleteIds
+
+            val keyEntitiesToUpsert = remoteKeys
+                .filter { it.id !in conflictingKeyIds }
+                .map { dto ->
                     SshKeyEntity(
                         id = dto.id,
                         ownerUuid = dto.owner_uuid,
@@ -264,13 +309,17 @@ class SyncRepository(
                         remoteUpdatedAt = System.currentTimeMillis()
                     )
                 }
-                database.sshKeyDao().upsertAll(keyEntities)
-                if (remoteKeyIds.isNotEmpty()) {
-                    database.sshKeyDao().pruneDeletedRemoteItems(ownerUuid, remoteKeyIds)
-                }
+            if (keyEntitiesToUpsert.isNotEmpty()) {
+                database.sshKeyDao().upsertAll(keyEntitiesToUpsert)
             }
 
-            // Update SyncMetadata
+            val localSyncedKeyIds = database.sshKeyDao().getSyncedItemIds(ownerUuid).toSet()
+            val obsoleteKeyIds = localSyncedKeyIds - remoteKeyIds
+            obsoleteKeyIds.chunked(500).forEach { batch ->
+                database.sshKeyDao().deleteBatch(ownerUuid, batch)
+            }
+
+            // Update SyncMetadata only after all operations succeed
             database.syncMetadataDao().upsert(
                 SyncMetadataEntity(
                     ownerUuid = ownerUuid,
@@ -287,6 +336,284 @@ class SyncRepository(
             Result.failure(e)
         }
     }
+}
+
+    private suspend fun pushPendingChanges(
+        ownerUuid: String,
+        client: ShellGuardClient,
+        sessionToken: String,
+        shellKey: ByteArray?
+    ) {
+        // 1. Drain pending deletes first - only remove local tombstone if remote delete succeeded
+        val pendingDeletePearls = database.vaultPearlDao().getPendingDeleteItems(ownerUuid)
+        for (item in pendingDeletePearls) {
+            var remoteDeleted = true
+            if (item.remoteUpdatedAt > 0L) {
+                try {
+                    val res = client.deleteVaultItem(sessionToken, item.id)
+                    remoteDeleted = res.isSuccess && (res.getOrNull() == true)
+                } catch (e: Exception) {
+                    Log.w("SyncRepository", "Failed to delete remote pearl ${item.id}", e)
+                    remoteDeleted = false
+                }
+            }
+            if (remoteDeleted) {
+                database.vaultPearlDao().deleteById(ownerUuid, item.id)
+            }
+        }
+
+        val pendingDeleteNotes = database.secureNoteDao().getPendingDeleteItems(ownerUuid)
+        for (item in pendingDeleteNotes) {
+            var remoteDeleted = true
+            if (item.remoteUpdatedAt > 0L) {
+                try {
+                    val res = client.deleteNote(sessionToken, item.id)
+                    remoteDeleted = res.isSuccess && (res.getOrNull() == true)
+                } catch (e: Exception) {
+                    Log.w("SyncRepository", "Failed to delete remote note ${item.id}", e)
+                    remoteDeleted = false
+                }
+            }
+            if (remoteDeleted) {
+                database.secureNoteDao().deleteById(ownerUuid, item.id)
+            }
+        }
+
+        val pendingDeleteKeys = database.sshKeyDao().getPendingDeleteItems(ownerUuid)
+        for (item in pendingDeleteKeys) {
+            var remoteDeleted = true
+            if (item.remoteUpdatedAt > 0L) {
+                try {
+                    val res = client.deleteSshKey(sessionToken, item.id)
+                    remoteDeleted = res.isSuccess && (res.getOrNull() == true)
+                } catch (e: Exception) {
+                    Log.w("SyncRepository", "Failed to delete remote ssh key ${item.id}", e)
+                    remoteDeleted = false
+                }
+            }
+            if (remoteDeleted) {
+                database.sshKeyDao().deleteById(ownerUuid, item.id)
+            }
+        }
+
+        // 2. Drain pending syncs (Creates / Updates) for Pearls
+        val pendingSyncPearls = database.vaultPearlDao().getPendingSyncItems(ownerUuid)
+        for (item in pendingSyncPearls) {
+            try {
+                val request = CreateVaultItemRequest(
+                    id = item.id,
+                    title = item.title,
+                    username = item.username.ifBlank { null },
+                    url = item.url.ifBlank { null },
+                    category = item.category.ifBlank { null },
+                    notes = item.notes.ifBlank { null },
+                    secret = item.secret,
+                    totp_secret = item.totpSecret.ifBlank { null },
+                    type = item.type,
+                    custom_fields = item.customFields.ifBlank { null },
+                    tags = item.tags,
+                    reprompt = item.reprompt
+                )
+
+                val pushResult = if (item.remoteUpdatedAt > 0L) {
+                    client.updateVaultItem(sessionToken, item.id, request)
+                } else {
+                    client.createVaultItem(sessionToken, request)
+                }
+
+                if (pushResult.isSuccess) {
+                    val serverDto = pushResult.getOrNull()
+                    var finalId = item.id
+                    var finalSecret = item.secret
+                    var finalTotp = item.totpSecret
+                    var finalCustom = item.customFields
+                    var finalHistory = item.passwordHistory
+
+                    if (serverDto != null && serverDto.id.isNotBlank() && serverDto.id != item.id && shellKey != null) {
+                        val serverId = serverDto.id
+                        try {
+                            val plainSecret = cryptoEngine.decryptField(item.secret, shellKey, ShellCryptionEngine.AadNamespace.pearlSecret(item.id))
+                            finalSecret = cryptoEngine.encryptField(plainSecret, shellKey, ShellCryptionEngine.AadNamespace.pearlSecret(serverId))
+
+                            if (item.totpSecret.isNotBlank()) {
+                                val plainTotp = cryptoEngine.decryptField(item.totpSecret, shellKey, ShellCryptionEngine.AadNamespace.pearlTotp(item.id))
+                                finalTotp = cryptoEngine.encryptField(plainTotp, shellKey, ShellCryptionEngine.AadNamespace.pearlTotp(serverId))
+                            }
+                            if (item.customFields.isNotBlank()) {
+                                val plainCustom = cryptoEngine.decryptField(item.customFields, shellKey, ShellCryptionEngine.AadNamespace.pearlCustomFields(item.id))
+                                finalCustom = cryptoEngine.encryptField(plainCustom, shellKey, ShellCryptionEngine.AadNamespace.pearlCustomFields(serverId))
+                            }
+                            if (item.passwordHistory.isNotBlank()) {
+                                val plainHistory = cryptoEngine.decryptField(item.passwordHistory, shellKey, ShellCryptionEngine.AadNamespace.pearlPasswordHistory(item.id))
+                                finalHistory = cryptoEngine.encryptField(plainHistory, shellKey, ShellCryptionEngine.AadNamespace.pearlPasswordHistory(serverId))
+                            }
+
+                            // Re-update server so remote vault stores ciphertext matching serverId
+                            val reEncryptReq = request.copy(
+                                id = serverId,
+                                secret = finalSecret,
+                                totp_secret = finalTotp.ifBlank { null },
+                                custom_fields = finalCustom.ifBlank { null }
+                            )
+                            client.updateVaultItem(sessionToken, serverId, reEncryptReq)
+
+                            database.vaultPearlDao().deleteById(ownerUuid, item.id)
+                            finalId = serverId
+                        } catch (e: Exception) {
+                            Log.e("SyncRepository", "Failed to re-key item to server ID $serverId", e)
+                        }
+                    }
+
+                    database.vaultPearlDao().upsert(
+                        item.copy(
+                            id = finalId,
+                            secret = finalSecret,
+                            totpSecret = finalTotp,
+                            customFields = finalCustom,
+                            passwordHistory = finalHistory,
+                            syncState = "SYNCED",
+                            remoteUpdatedAt = System.currentTimeMillis()
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                Log.w("SyncRepository", "Failed to push pending pearl ${item.id}", e)
+            }
+        }
+
+        // 3. Drain pending syncs for Secure Notes
+        val pendingSyncNotes = database.secureNoteDao().getPendingSyncItems(ownerUuid)
+        for (item in pendingSyncNotes) {
+            try {
+                val request = CreateNoteRequest(
+                    id = item.id,
+                    title = item.title,
+                    content = item.content,
+                    category = item.category.ifBlank { null },
+                    custom_fields = item.customFields.ifBlank { null },
+                    tags = item.tags,
+                    reprompt = item.reprompt
+                )
+
+                val pushResult = if (item.remoteUpdatedAt > 0L) {
+                    client.updateNote(sessionToken, item.id, request)
+                } else {
+                    client.createNote(sessionToken, request)
+                }
+
+                if (pushResult.isSuccess) {
+                    val serverDto = pushResult.getOrNull()
+                    var finalId = item.id
+                    var finalContent = item.content
+                    var finalCustom = item.customFields
+
+                    if (serverDto != null && serverDto.id.isNotBlank() && serverDto.id != item.id && shellKey != null) {
+                        val serverId = serverDto.id
+                        try {
+                            val plainContent = cryptoEngine.decryptField(item.content, shellKey, ShellCryptionEngine.AadNamespace.secureNoteContent(item.id))
+                            finalContent = cryptoEngine.encryptField(plainContent, shellKey, ShellCryptionEngine.AadNamespace.secureNoteContent(serverId))
+
+                            if (item.customFields.isNotBlank()) {
+                                val plainCustom = cryptoEngine.decryptField(item.customFields, shellKey, ShellCryptionEngine.AadNamespace.secureNoteCustomFields(item.id))
+                                finalCustom = cryptoEngine.encryptField(plainCustom, shellKey, ShellCryptionEngine.AadNamespace.secureNoteCustomFields(serverId))
+                            }
+
+                            val reEncryptReq = request.copy(
+                                id = serverId,
+                                content = finalContent,
+                                custom_fields = finalCustom.ifBlank { null }
+                            )
+                            client.updateNote(sessionToken, serverId, reEncryptReq)
+
+                            database.secureNoteDao().deleteById(ownerUuid, item.id)
+                            finalId = serverId
+                        } catch (e: Exception) {
+                            Log.e("SyncRepository", "Failed to re-key note to server ID $serverId", e)
+                        }
+                    }
+
+                    database.secureNoteDao().upsert(
+                        item.copy(
+                            id = finalId,
+                            content = finalContent,
+                            customFields = finalCustom,
+                            syncState = "SYNCED",
+                            remoteUpdatedAt = System.currentTimeMillis()
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                Log.w("SyncRepository", "Failed to push pending note ${item.id}", e)
+            }
+        }
+
+        // 4. Drain pending syncs for SSH Keys
+        val pendingSyncKeys = database.sshKeyDao().getPendingSyncItems(ownerUuid)
+        for (item in pendingSyncKeys) {
+            try {
+                val request = CreateSshKeyRequest(
+                    id = item.id,
+                    title = item.title,
+                    key_value = item.keyValue,
+                    username = item.username.ifBlank { null },
+                    category = item.category.ifBlank { null },
+                    custom_fields = item.customFields.ifBlank { null },
+                    tags = item.tags,
+                    reprompt = item.reprompt
+                )
+
+                val pushResult = if (item.remoteUpdatedAt > 0L) {
+                    client.updateSshKey(sessionToken, item.id, request)
+                } else {
+                    client.createSshKey(sessionToken, request)
+                }
+
+                if (pushResult.isSuccess) {
+                    val serverDto = pushResult.getOrNull()
+                    var finalId = item.id
+                    var finalKey = item.keyValue
+                    var finalCustom = item.customFields
+
+                    if (serverDto != null && serverDto.id.isNotBlank() && serverDto.id != item.id && shellKey != null) {
+                        val serverId = serverDto.id
+                        try {
+                            val plainKey = cryptoEngine.decryptField(item.keyValue, shellKey, ShellCryptionEngine.AadNamespace.sshKeyPrivate(item.id))
+                            finalKey = cryptoEngine.encryptField(plainKey, shellKey, ShellCryptionEngine.AadNamespace.sshKeyPrivate(serverId))
+
+                            if (item.customFields.isNotBlank()) {
+                                val plainCustom = cryptoEngine.decryptField(item.customFields, shellKey, ShellCryptionEngine.AadNamespace.sshKeyCustomFields(item.id))
+                                finalCustom = cryptoEngine.encryptField(plainCustom, shellKey, ShellCryptionEngine.AadNamespace.sshKeyCustomFields(serverId))
+                            }
+
+                            val reEncryptReq = request.copy(
+                                id = serverId,
+                                key_value = finalKey,
+                                custom_fields = finalCustom.ifBlank { null }
+                            )
+                            client.updateSshKey(sessionToken, serverId, reEncryptReq)
+
+                            database.sshKeyDao().deleteById(ownerUuid, item.id)
+                            finalId = serverId
+                        } catch (e: Exception) {
+                            Log.e("SyncRepository", "Failed to re-key ssh key to server ID $serverId", e)
+                        }
+                    }
+
+                    database.sshKeyDao().upsert(
+                        item.copy(
+                            id = finalId,
+                            keyValue = finalKey,
+                            customFields = finalCustom,
+                            syncState = "SYNCED",
+                            remoteUpdatedAt = System.currentTimeMillis()
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                Log.w("SyncRepository", "Failed to push pending ssh key ${item.id}", e)
+            }
+        }
+    }
 
     // ══════════════════════════════════════════════════════════════════════════
     // Multi-Domain Decrypted CRUD Operations (Task 05)
@@ -298,36 +625,22 @@ class SyncRepository(
             val shellKey = deviceVault.getInMemoryShellKey() ?: throw IllegalStateException("Vault locked or shellKey missing")
             val entity = database.vaultPearlDao().getById(ownerUuid, id) ?: throw NoSuchElementException("Pearl not found: $id")
 
-            val secretPlain = try {
+            val secretPlain = if (entity.secret.isNotBlank()) {
                 cryptoEngine.decryptField(entity.secret, shellKey, ShellCryptionEngine.AadNamespace.pearlSecret(id))
-            } catch (e: Exception) {
-                entity.secret
-            }
+            } else ""
 
             val totpPlain = if (entity.totpSecret.isNotBlank()) {
-                try {
-                    cryptoEngine.decryptField(entity.totpSecret, shellKey, ShellCryptionEngine.AadNamespace.pearlTotp(id))
-                } catch (_: Exception) {
-                    entity.totpSecret
-                }
+                cryptoEngine.decryptField(entity.totpSecret, shellKey, ShellCryptionEngine.AadNamespace.pearlTotp(id))
             } else ""
 
             val customFields = if (entity.customFields.isNotBlank()) {
-                try {
-                    val decryptedJson = cryptoEngine.decryptField(entity.customFields, shellKey, ShellCryptionEngine.AadNamespace.pearlCustomFields(id))
-                    CustomFieldSerializer.deserializeFields(decryptedJson)
-                } catch (_: Exception) {
-                    CustomFieldSerializer.deserializeFields(entity.customFields)
-                }
+                val decryptedJson = cryptoEngine.decryptField(entity.customFields, shellKey, ShellCryptionEngine.AadNamespace.pearlCustomFields(id))
+                CustomFieldSerializer.deserializeFields(decryptedJson)
             } else emptyList()
 
             val history = if (entity.passwordHistory.isNotBlank()) {
-                try {
-                    val decryptedJson = cryptoEngine.decryptField(entity.passwordHistory, shellKey, ShellCryptionEngine.AadNamespace.pearlPasswordHistory(id))
-                    CustomFieldSerializer.deserializeHistory(decryptedJson)
-                } catch (_: Exception) {
-                    CustomFieldSerializer.deserializeHistory(entity.passwordHistory)
-                }
+                val decryptedJson = cryptoEngine.decryptField(entity.passwordHistory, shellKey, ShellCryptionEngine.AadNamespace.pearlPasswordHistory(id))
+                CustomFieldSerializer.deserializeHistory(decryptedJson)
             } else emptyList()
 
             val tags = CustomFieldSerializer.deserializeTags(entity.tags)
@@ -391,12 +704,18 @@ class SyncRepository(
 
             var syncState = "PENDING_SYNC"
             var remoteUpdatedAt = pearl.remoteUpdatedAt
+            var currentId = id
+            var finalSecret = encryptedSecret
+            var finalTotp = encryptedTotp
+            var finalCustomFields = encryptedCustomFields
+            var finalHistory = encryptedHistory
 
             val serverUrl = deviceVault.getServerUrl()
             val sessionToken = deviceVault.getSessionToken()
             if (connectivityMonitor.isOnline.value && !serverUrl.isNullOrBlank() && !sessionToken.isNullOrBlank()) {
                 val client = clientProvider(serverUrl)
                 val request = CreateVaultItemRequest(
+                    id = currentId,
                     title = pearl.title,
                     username = pearl.username.ifBlank { null },
                     url = pearl.url.ifBlank { null },
@@ -411,7 +730,7 @@ class SyncRepository(
                 )
 
                 val pushResult = if (existing != null && pearl.remoteUpdatedAt > 0L) {
-                    client.updateVaultItem(sessionToken, id, request)
+                    client.updateVaultItem(sessionToken, currentId, request)
                 } else {
                     client.createVaultItem(sessionToken, request)
                 }
@@ -419,25 +738,50 @@ class SyncRepository(
                 if (pushResult.isSuccess) {
                     syncState = "SYNCED"
                     remoteUpdatedAt = System.currentTimeMillis()
+                    val serverDto = pushResult.getOrNull()
+                    if (serverDto != null && serverDto.id.isNotBlank() && serverDto.id != currentId) {
+                        val serverId = serverDto.id
+                        finalSecret = cryptoEngine.encryptField(pearl.secret, shellKey, ShellCryptionEngine.AadNamespace.pearlSecret(serverId))
+                        if (pearl.totpSecret.isNotBlank()) {
+                            finalTotp = cryptoEngine.encryptField(pearl.totpSecret, shellKey, ShellCryptionEngine.AadNamespace.pearlTotp(serverId))
+                        }
+                        if (pearl.customFields.isNotEmpty()) {
+                            finalCustomFields = cryptoEngine.encryptField(customFieldsJson, shellKey, ShellCryptionEngine.AadNamespace.pearlCustomFields(serverId))
+                        }
+                        if (updatedHistory.isNotEmpty()) {
+                            finalHistory = cryptoEngine.encryptField(historyJson, shellKey, ShellCryptionEngine.AadNamespace.pearlPasswordHistory(serverId))
+                        }
+
+                        val reEncryptReq = request.copy(
+                            id = serverId,
+                            secret = finalSecret,
+                            totp_secret = finalTotp.ifBlank { null },
+                            custom_fields = finalCustomFields.ifBlank { null }
+                        )
+                        client.updateVaultItem(sessionToken, serverId, reEncryptReq)
+
+                        database.vaultPearlDao().deleteById(ownerUuid, currentId)
+                        currentId = serverId
+                    }
                 }
             }
 
             val entity = VaultPearlEntity(
-                id = id,
+                id = currentId,
                 ownerUuid = ownerUuid,
                 title = pearl.title,
-                secret = encryptedSecret,
+                secret = finalSecret,
                 username = pearl.username,
                 url = pearl.url,
                 type = pearl.type,
                 category = pearl.category,
                 notes = pearl.notes,
-                totpSecret = encryptedTotp,
+                totpSecret = finalTotp,
                 attachments = "[]",
-                customFields = encryptedCustomFields,
+                customFields = finalCustomFields,
                 tags = tagsJson,
                 uris = "[]",
-                passwordHistory = encryptedHistory,
+                passwordHistory = finalHistory,
                 reprompt = pearl.reprompt,
                 syncState = syncState,
                 createdAt = pearl.createdAt.ifBlank { System.currentTimeMillis().toString() },
@@ -455,19 +799,13 @@ class SyncRepository(
             val shellKey = deviceVault.getInMemoryShellKey() ?: throw IllegalStateException("Vault locked or shellKey missing")
             val entity = database.secureNoteDao().getById(ownerUuid, id) ?: throw NoSuchElementException("Note not found: $id")
 
-            val contentPlain = try {
+            val contentPlain = if (entity.content.isNotBlank()) {
                 cryptoEngine.decryptField(entity.content, shellKey, ShellCryptionEngine.AadNamespace.secureNoteContent(id))
-            } catch (e: Exception) {
-                entity.content
-            }
+            } else ""
 
             val customFields = if (entity.customFields.isNotBlank()) {
-                try {
-                    val decryptedJson = cryptoEngine.decryptField(entity.customFields, shellKey, ShellCryptionEngine.AadNamespace.secureNoteCustomFields(id))
-                    CustomFieldSerializer.deserializeFields(decryptedJson)
-                } catch (_: Exception) {
-                    CustomFieldSerializer.deserializeFields(entity.customFields)
-                }
+                val decryptedJson = cryptoEngine.decryptField(entity.customFields, shellKey, ShellCryptionEngine.AadNamespace.secureNoteCustomFields(id))
+                CustomFieldSerializer.deserializeFields(decryptedJson)
             } else emptyList()
 
             val tags = CustomFieldSerializer.deserializeTags(entity.tags)
@@ -507,12 +845,16 @@ class SyncRepository(
 
             var syncState = "PENDING_SYNC"
             var remoteUpdatedAt = note.remoteUpdatedAt
+            var currentId = id
+            var finalContent = encryptedContent
+            var finalCustomFields = encryptedCustomFields
 
             val serverUrl = deviceVault.getServerUrl()
             val sessionToken = deviceVault.getSessionToken()
             if (connectivityMonitor.isOnline.value && !serverUrl.isNullOrBlank() && !sessionToken.isNullOrBlank()) {
                 val client = clientProvider(serverUrl)
                 val request = CreateNoteRequest(
+                    id = currentId,
                     title = note.title,
                     content = encryptedContent,
                     category = note.category.ifBlank { null },
@@ -522,7 +864,7 @@ class SyncRepository(
                 )
 
                 val pushResult = if (existing != null && note.remoteUpdatedAt > 0L) {
-                    client.updateNote(sessionToken, id, request)
+                    client.updateNote(sessionToken, currentId, request)
                 } else {
                     client.createNote(sessionToken, request)
                 }
@@ -530,17 +872,35 @@ class SyncRepository(
                 if (pushResult.isSuccess) {
                     syncState = "SYNCED"
                     remoteUpdatedAt = System.currentTimeMillis()
+                    val serverDto = pushResult.getOrNull()
+                    if (serverDto != null && serverDto.id.isNotBlank() && serverDto.id != currentId) {
+                        val serverId = serverDto.id
+                        finalContent = cryptoEngine.encryptField(note.content, shellKey, ShellCryptionEngine.AadNamespace.secureNoteContent(serverId))
+                        if (note.customFields.isNotEmpty()) {
+                            finalCustomFields = cryptoEngine.encryptField(customFieldsJson, shellKey, ShellCryptionEngine.AadNamespace.secureNoteCustomFields(serverId))
+                        }
+
+                        val reEncryptReq = request.copy(
+                            id = serverId,
+                            content = finalContent,
+                            custom_fields = finalCustomFields.ifBlank { null }
+                        )
+                        client.updateNote(sessionToken, serverId, reEncryptReq)
+
+                        database.secureNoteDao().deleteById(ownerUuid, currentId)
+                        currentId = serverId
+                    }
                 }
             }
 
             val entity = SecureNoteEntity(
-                id = id,
+                id = currentId,
                 ownerUuid = ownerUuid,
                 title = note.title,
-                content = encryptedContent,
+                content = finalContent,
                 category = note.category,
                 attachments = "[]",
-                customFields = encryptedCustomFields,
+                customFields = finalCustomFields,
                 tags = tagsJson,
                 reprompt = note.reprompt,
                 syncState = syncState,
@@ -559,19 +919,13 @@ class SyncRepository(
             val shellKey = deviceVault.getInMemoryShellKey() ?: throw IllegalStateException("Vault locked or shellKey missing")
             val entity = database.sshKeyDao().getById(ownerUuid, id) ?: throw NoSuchElementException("SSH Key not found: $id")
 
-            val keyPlain = try {
+            val keyPlain = if (entity.keyValue.isNotBlank()) {
                 cryptoEngine.decryptField(entity.keyValue, shellKey, ShellCryptionEngine.AadNamespace.sshKeyPrivate(id))
-            } catch (e: Exception) {
-                entity.keyValue
-            }
+            } else ""
 
             val customFields = if (entity.customFields.isNotBlank()) {
-                try {
-                    val decryptedJson = cryptoEngine.decryptField(entity.customFields, shellKey, ShellCryptionEngine.AadNamespace.sshKeyCustomFields(id))
-                    CustomFieldSerializer.deserializeFields(decryptedJson)
-                } catch (_: Exception) {
-                    CustomFieldSerializer.deserializeFields(entity.customFields)
-                }
+                val decryptedJson = cryptoEngine.decryptField(entity.customFields, shellKey, ShellCryptionEngine.AadNamespace.sshKeyCustomFields(id))
+                CustomFieldSerializer.deserializeFields(decryptedJson)
             } else emptyList()
 
             val tags = CustomFieldSerializer.deserializeTags(entity.tags)
@@ -612,12 +966,16 @@ class SyncRepository(
 
             var syncState = "PENDING_SYNC"
             var remoteUpdatedAt = key.remoteUpdatedAt
+            var currentId = id
+            var finalKey = encryptedKey
+            var finalCustomFields = encryptedCustomFields
 
             val serverUrl = deviceVault.getServerUrl()
             val sessionToken = deviceVault.getSessionToken()
             if (connectivityMonitor.isOnline.value && !serverUrl.isNullOrBlank() && !sessionToken.isNullOrBlank()) {
                 val client = clientProvider(serverUrl)
                 val request = CreateSshKeyRequest(
+                    id = currentId,
                     title = key.title,
                     key_value = encryptedKey,
                     username = key.username.ifBlank { null },
@@ -628,7 +986,7 @@ class SyncRepository(
                 )
 
                 val pushResult = if (existing != null && key.remoteUpdatedAt > 0L) {
-                    client.updateSshKey(sessionToken, id, request)
+                    client.updateSshKey(sessionToken, currentId, request)
                 } else {
                     client.createSshKey(sessionToken, request)
                 }
@@ -636,17 +994,35 @@ class SyncRepository(
                 if (pushResult.isSuccess) {
                     syncState = "SYNCED"
                     remoteUpdatedAt = System.currentTimeMillis()
+                    val serverDto = pushResult.getOrNull()
+                    if (serverDto != null && serverDto.id.isNotBlank() && serverDto.id != currentId) {
+                        val serverId = serverDto.id
+                        finalKey = cryptoEngine.encryptField(key.keyValue, shellKey, ShellCryptionEngine.AadNamespace.sshKeyPrivate(serverId))
+                        if (key.customFields.isNotEmpty()) {
+                            finalCustomFields = cryptoEngine.encryptField(customFieldsJson, shellKey, ShellCryptionEngine.AadNamespace.sshKeyCustomFields(serverId))
+                        }
+
+                        val reEncryptReq = request.copy(
+                            id = serverId,
+                            key_value = finalKey,
+                            custom_fields = finalCustomFields.ifBlank { null }
+                        )
+                        client.updateSshKey(sessionToken, serverId, reEncryptReq)
+
+                        database.sshKeyDao().deleteById(ownerUuid, currentId)
+                        currentId = serverId
+                    }
                 }
             }
 
             val entity = SshKeyEntity(
-                id = id,
+                id = currentId,
                 ownerUuid = ownerUuid,
                 title = key.title,
-                keyValue = encryptedKey,
+                keyValue = finalKey,
                 username = key.username,
                 category = key.category,
-                customFields = encryptedCustomFields,
+                customFields = finalCustomFields,
                 tags = tagsJson,
                 reprompt = key.reprompt,
                 syncState = syncState,
@@ -664,22 +1040,52 @@ class SyncRepository(
             val ownerUuid = deviceVault.getOwnerUuid() ?: throw IllegalStateException("No owner UUID")
             val serverUrl = deviceVault.getServerUrl()
             val sessionToken = deviceVault.getSessionToken()
+            val isOnline = connectivityMonitor.isOnline.value && !serverUrl.isNullOrBlank() && !sessionToken.isNullOrBlank()
 
-            // If online, call remote delete endpoint
-            if (connectivityMonitor.isOnline.value && !serverUrl.isNullOrBlank() && !sessionToken.isNullOrBlank()) {
-                val client = clientProvider(serverUrl)
-                when (domain) {
-                    VaultItemDomain.PASSWORD -> client.deleteVaultItem(sessionToken, id)
-                    VaultItemDomain.NOTE -> client.deleteNote(sessionToken, id)
-                    VaultItemDomain.SSH_KEY -> client.deleteSshKey(sessionToken, id)
+            var remoteDeleteSucceeded = false
+            if (isOnline) {
+                val client = clientProvider(serverUrl!!)
+                val result = when (domain) {
+                    VaultItemDomain.PASSWORD -> client.deleteVaultItem(sessionToken!!, id)
+                    VaultItemDomain.NOTE -> client.deleteNote(sessionToken!!, id)
+                    VaultItemDomain.SSH_KEY -> client.deleteSshKey(sessionToken!!, id)
                 }
+                remoteDeleteSucceeded = result.isSuccess && (result.getOrNull() == true)
             }
 
-            // Delete locally from Room
-            when (domain) {
-                VaultItemDomain.PASSWORD -> database.vaultPearlDao().deleteById(ownerUuid, id)
-                VaultItemDomain.NOTE -> database.secureNoteDao().deleteById(ownerUuid, id)
-                VaultItemDomain.SSH_KEY -> database.sshKeyDao().deleteById(ownerUuid, id)
+            if (remoteDeleteSucceeded) {
+                when (domain) {
+                    VaultItemDomain.PASSWORD -> database.vaultPearlDao().deleteById(ownerUuid, id)
+                    VaultItemDomain.NOTE -> database.secureNoteDao().deleteById(ownerUuid, id)
+                    VaultItemDomain.SSH_KEY -> database.sshKeyDao().deleteById(ownerUuid, id)
+                }
+            } else {
+                when (domain) {
+                    VaultItemDomain.PASSWORD -> {
+                        val existing = database.vaultPearlDao().getById(ownerUuid, id)
+                        if (existing != null && existing.remoteUpdatedAt > 0L) {
+                            database.vaultPearlDao().markForDeletion(ownerUuid, id)
+                        } else {
+                            database.vaultPearlDao().deleteById(ownerUuid, id)
+                        }
+                    }
+                    VaultItemDomain.NOTE -> {
+                        val existing = database.secureNoteDao().getById(ownerUuid, id)
+                        if (existing != null && existing.remoteUpdatedAt > 0L) {
+                            database.secureNoteDao().markForDeletion(ownerUuid, id)
+                        } else {
+                            database.secureNoteDao().deleteById(ownerUuid, id)
+                        }
+                    }
+                    VaultItemDomain.SSH_KEY -> {
+                        val existing = database.sshKeyDao().getById(ownerUuid, id)
+                        if (existing != null && existing.remoteUpdatedAt > 0L) {
+                            database.sshKeyDao().markForDeletion(ownerUuid, id)
+                        } else {
+                            database.sshKeyDao().deleteById(ownerUuid, id)
+                        }
+                    }
+                }
             }
         }
     }

@@ -73,6 +73,7 @@ data class PearlDto(
 
 @Serializable
 data class CreateVaultItemRequest(
+    val id: String? = null,
     val title: String,
     val username: String? = null,
     val url: String? = null,
@@ -118,6 +119,7 @@ data class SecureNoteDto(
 
 @Serializable
 data class CreateNoteRequest(
+    val id: String? = null,
     val title: String,
     val content: String = "",
     val category: String? = null,
@@ -157,6 +159,7 @@ data class SshKeyDto(
 
 @Serializable
 data class CreateSshKeyRequest(
+    val id: String? = null,
     val title: String,
     val key_value: String = "",
     val username: String? = null,
