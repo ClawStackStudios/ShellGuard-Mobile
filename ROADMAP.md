@@ -125,7 +125,21 @@ statistics:
 
 ---
 
-## Phase 6: Settings, Backup Bridge & Release Hardening [Baseline: v0.0.1.0 (Build 7) — Milestone 1]
+## Hotfix 5.3: Bidirectional Sync Reconciliation & Pruning Fix [Baseline: v0.0.0.7 (Build 7)]
+
+> Hotfix Objective:
+> Reconcile offline/local mutations with remote servers without data loss, prevent Room DAO pruning of pending local entities, and implement full upstream queue flushing in `SyncRepository`.
+
+- [ ] **Task 10.1: [Bugfix & Hardening] Room Pruning Immunity & Upstream Delta Reconciliation**
+  - Fix `pruneDeletedRemoteItems` in `VaultPearlDao`, `SecureNoteDao`, and `SshKeyDao` to exempt records with `sync_state != 'SYNCED'` (`sync_state == 'PENDING_SYNC'`).
+  - Implement upstream queue push in `SyncRepository.syncAll`: drain pending creates, updates, and deletes to remote endpoints prior to downstream delta pull.
+  - Reconcile client UUIDs with server entity IDs preserving HKDF AAD encryption contracts.
+  - Adversarial audit and failure test suite covering network drops, tag mismatches, and offline edits.
+  - *Success Criteria*: Items created offline or on device persist through sync pulls; upstream changes push cleanly to remote; unit tests verify zero local data loss.
+
+---
+
+## Phase 6: Settings, Backup Bridge & Release Hardening [Baseline: v0.0.0.8 (Build 8) — Milestone 1]
 
 > Phase Feature Set Overview:
 > Delivers the categorized settings hub, `.sgvault.bak` full encrypted backup engine, and `.sgtotp.bak` companion bridge, paired immediately with adaptive launcher icons, Android 12+ splash screen, and 16 KB page alignment.

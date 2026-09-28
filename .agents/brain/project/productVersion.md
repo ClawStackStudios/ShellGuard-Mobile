@@ -26,7 +26,8 @@
 | `0.0.0.6` | `6` | `v0.0.0.6` | 2026-09-27 | Phase 5: Autofill Framework, Service Smoothing & AutoSpill Hardening | Published |
 
 ## Pending Delta (Next Release Target)
-- **Target Phase**: Phase 6: Settings, Backup Bridge, Theme Customization & Production Polish (Tasks 11 & 12)
+- **Immediate Target**: Hotfix 5.3: Bidirectional Sync Reconciliation & Room Pruning Fix
 - **Target Version**: `0.0.0.7` (Build 7)
-- **Anticipated Tier**: PATCH (`X.Y.Z+1.0`)
+- **Anticipated Tier**: REVISION / HOTFIX (`X.Y.Z.N+1`)
+- **Shifted Target**: Phase 6: Settings, Backup Bridge, Theme Customization & Production Polish (Tasks 11 & 12) ➔ `0.0.0.8` (Build 8)
 - **Blast Radius Protection**: Do NOT update version numbers in `app/build.gradle.kts`, `README.md`, or `CHANGELOG.md` until implementation and verification pass 100% green.
