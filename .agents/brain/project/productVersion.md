@@ -24,7 +24,7 @@
 | `0.0.0.4` | `4` | `v0.0.0.4` | 2026-09-26 | Phase 3: Vault Domains & Universal Editor | Published |
 | `0.0.0.5` | `5` | `v0.0.0.5` | 2026-09-27 | Phase 4: TOTP Engine & Biometric Security Lifecycle | Published |
 | `0.0.0.6` | `6` | `v0.0.0.6` | 2026-09-27 | Phase 5: Autofill Framework, Service Smoothing & AutoSpill Hardening | Published |
-| `0.0.0.7` | `7` | `v0.0.0.7` | 2026-09-27 | Hotfix 5.3: Bidirectional Sync Reconciliation & Dual Adversarial Hardening | Staged |
+| `0.0.0.7` | `7` | `v0.0.0.7` | 2026-10-03 | Hotfix 5.3: Bidirectional Sync Reconciliation & Dual Adversarial Hardening | Published |
 
 ## Pending Delta (Next Release Target)
 - **Immediate Target**: Phase 6: Settings, Backup Bridge, Theme Customization & Production Polish (Tasks 11 & 12)
