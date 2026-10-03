@@ -72,7 +72,9 @@ class SyncRepositoryTest {
 
     @After
     fun tearDown() {
+        syncRepository.cancelScope()
         database.close()
+        context.getSharedPreferences("shellguard_device_vault_test", Context.MODE_PRIVATE).edit().clear().commit()
     }
 
     @Test

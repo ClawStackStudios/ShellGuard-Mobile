@@ -1,8 +1,5 @@
 # Decision Log
 
-## 2026-09-24 — configurable uri match detection
-Added 5 URI matching algorithms (Base Domain, Host, Exact, Starts With, Never) to disambiguate home lab services running on the same IP across different ports.
-
 ## 2026-09-24 — claw re-prompt
 Introduced per-item re-authentication flag requiring biometric or PIN confirmation to view or copy high-security credentials, even when the vault is already open.
 
@@ -59,3 +56,6 @@ Delivered system-level Android AutofillService and transparent AutofillAuthActiv
 
 ## 2026-09-27 — dual adversarial audit and fail-closed sync reconciliation
 Subjected bidirectional sync and cryptographic retrieval to a dual adversarial audit pass (ruthless critic and surgical hacker). Replaced `tryLock` with serialized `withLock` to eliminate dropped sync calls, retained local tombstones until remote HTTP 200/204 to prevent zombie resurrection, guarded downstream pull against overwriting local pending edits, and converted detail retrieval to fail-closed Result.failure to block double-ciphertext corruption.
+
+## 2026-10-03 — connectivity transition guard & test coroutine lifecycle
+Diagnosed ComparisonFailure on CI runner in `SyncReconciliationAdversarialTest.testZombieResurrectionPreventedWhenRemoteDeleteFails`. Traced to `SyncRepository.init` collecting `connectivityMonitor.isOnline` and immediately launching an unshielded `syncAll` before test mocks were armed. Constrained the collector to transition events (`isOnline && !wasOnline`), introduced `cancelScope()`, and enforced clean shared preference and scope teardown across test fixtures.

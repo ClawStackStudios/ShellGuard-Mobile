@@ -20,6 +20,7 @@ import com.clawstack.shellguard.domain.models.SshKeyDetail
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -71,19 +72,28 @@ class SyncRepository(
     val syncStatus: StateFlow<SyncStatus> = _syncStatus.asStateFlow()
 
     init {
-        // Automatically probe and pull when connectivity returns
+        // Automatically probe and pull when connectivity returns (transition from offline to online)
         coroutineScope.launch {
+            var wasOnline = connectivityMonitor.isOnline.value
             connectivityMonitor.isOnline.collect { isOnline ->
-                if (isOnline) {
+                if (isOnline && !wasOnline) {
                     val ownerUuid = deviceVault.getOwnerUuid()
                     if (!ownerUuid.isNullOrBlank() && deviceVault.hasActiveSession()) {
                         syncAll(ownerUuid)
                     }
-                } else {
+                } else if (!isOnline) {
                     _syncStatus.value = SyncStatus.OFFLINE_READ_ONLY
                 }
+                wasOnline = isOnline
             }
         }
+    }
+
+    /**
+     * Cancel background repository coroutines (for testing teardown or lifecycle termination).
+     */
+    fun cancelScope() {
+        coroutineScope.cancel()
     }
 
     /**

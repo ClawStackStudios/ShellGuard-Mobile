@@ -138,7 +138,9 @@ class SyncReconciliationAdversarialTest {
 
     @After
     fun tearDown() {
+        syncRepository.cancelScope()
         database.close()
+        context.getSharedPreferences("shellguard_device_vault_test", Context.MODE_PRIVATE).edit().clear().commit()
     }
 
     /**
@@ -148,6 +150,8 @@ class SyncReconciliationAdversarialTest {
      */
     @Test
     fun testZombieResurrectionPreventedWhenRemoteDeleteFails() = runBlocking {
+        fakeClient.deletePearlResult = Result.failure(Exception("500 Server Internal Error"))
+
         val pearlId = "pearl-zombie-target"
         val encryptedSecret = ShellCryptionEngine.encryptField(
             "SecretToDie",
@@ -179,7 +183,6 @@ class SyncReconciliationAdversarialTest {
                 type = "password"
             )
         )
-        fakeClient.deletePearlResult = Result.failure(Exception("500 Server Internal Error"))
 
         // Run sync
         val syncResult = syncRepository.syncAll(testOwnerUuid)
