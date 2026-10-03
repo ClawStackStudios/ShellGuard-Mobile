@@ -104,4 +104,36 @@
 - **Rule**: Standard markdown doc edits (`.md`, Brain, specs) are fully exempt from Gradle build and test suites (**NO TESTING REQUIRED**). Test only when editing application files (Kotlin, XML, Gradle) or completing milestones.
 - *Rationale*: Eliminates 20-30s test execution tax on prose and rule updates while preserving rigorous gates for application bytecode.
 
+## Git & Release Automation Standards
+**Pattern: Conventional Commits & Keep a Changelog 1.1.0 Pipeline**
+- **Syntax**: `<type>[optional scope][optional !]: <summary>` coupled with two-layer `User:` / `AI:` attribution.
+- **Mapping**:
+  - `feat` ➔ `### Added`
+  - `refactor` / `perf` ➔ `### Changed`
+  - `revert` ➔ `### Removed`
+  - `fix` ➔ `### Fixed`
+  - `security` ➔ `### Security`
+  - `feat!` / `BREAKING CHANGE:` ➔ Major SemVer increment.
+- **Comparison Links**: All changelogs require full range comparison anchors (`vPrev...vCurr`) to facilitate automated release note tooling (e.g., `git-cliff`, `semantic-release`).
+
+**Pattern: Dual-Tier Release Notes Architecture**
+- **Public Layer**: Visual, emoji-anchored, concise notes for GitHub Releases and Google Play Store distribution (`RELEASE-PLAY.md` under 500 chars).
+- **Internal Layer**: Strict engineering manifest (`RELEASE-vX.Y.Z.N.md`) documenting AAD integrity, Room schema versioning, dependency drift tables, and verified test gates.
+
+**Pattern: Autosquash & Interactive History Curation with Safety Anchors**
+- **Protocol**: During iterative task strokes, use `git commit --fixup <hash>` to capture targeted corrections without manual commit message rewriting.
+- **Safety**: Always create `git branch backup/<branch>-pre-rebase` before running `git rebase -i --autosquash $(git merge-base HEAD main)`.
+- **Attribution**: Ensure squashed commits preserve the canonical two-layer attribution format (`User:` / `AI:`).
+- *Rationale*: Delivers clean, bisectable commit spines on `main` without risking loss of in-flight work during rebases.
+
+**Pattern: Automated Gradle Test-Driven Git Bisect**
+- **Protocol**: Automate regression identification by pairing `git bisect` with headless Gradle test execution:
+  `git bisect run ./gradlew testDebugUnitTest --tests "<TargetClassTest>"`.
+- **Precondition**: Requires a 100% clean working directory before starting bisect to prevent false positives.
+- *Rationale*: Reduces bug localization time from hours of manual checkouts to automated binary search in minutes.
+
+**Pattern: Worktree Isolation for Parallel Hotfixes & Subagents**
+- **Protocol**: Use `git worktree add ../<dir> -b <branch>` for concurrent tasks rather than `git stash` on dirty trees.
+- *Rationale*: Eliminates stash merge collisions, preserves IDE build caches, and allows concurrent agents to work in separate physical directories against the same repository.
+
 

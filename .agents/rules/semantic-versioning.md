@@ -16,11 +16,11 @@ My primary task is to calculate the new version number following the `MAJOR.MINO
     - If yes, this is the highest priority. Proceed to calculate the new version based on this input.
 
 2.  **Infer from Implemented Work & `CHANGELOG.md`:**
-    - If no explicit type is given, infer by analyzing the scope of work in `CHANGELOG.md` under `[Unreleased]`:
-        - **MAJOR (`X+1.0.0.0`)**: Fundamental structural overhauls, database breaking migrations, or full public production milestones.
-        - **MINOR (`X.Y+1.0.0`)**: Significant new subsystems or large cohesive feature groups (e.g., entire Glance widget framework, multi-tier modular settings hub).
-        - **PATCH (`X.Y.Z+1.0`)**: Discrete feature additions, completed 2-task phase deliverables, or targeted bug fixes (e.g. `0.0.0.1` ➔ `0.0.1.0`).
-        - **REVISION (`X.Y.Z.N+1`)**: Small patches, hotfixes, CI pipeline tweaks, minor UI polish, or iterative task increments (e.g., `0.0.0.1` ➔ `0.0.0.2`).
+    - If no explicit type is given, calculate the increment by parsing commit types and changelog entries:
+        - **MAJOR (`X+1.0.0.0`)**: Triggered by breaking change indicators (`!` in commit header like `feat!:`, `refactor!:`, or `BREAKING CHANGE:` footer). Includes schema-incompatible database migrations, breaking cryptographic envelope versions (`v > 1`), or major ecosystem version milestones.
+        - **MINOR (`X.Y+1.0.0`)**: Triggered by new features (`feat` commits, `Added` entries). In our roadmap, increments for major cohesive phase deliverables (e.g. Phase 5 Autofill, Phase 6 Backup & Settings).
+        - **PATCH (`X.Y.Z+1.0`)**: Triggered by bug fixes (`fix`), performance optimizations (`perf`), or substantive refactors (`refactor`) impacting existing functionality (`Fixed`, `Changed`, `Security`).
+        - **REVISION (`X.Y.Z.N+1`)**: Triggered by maintenance (`chore`), documentation (`docs`), style (`style`), build tweaks (`build`), or iterative hotfixes.
         - **Android Play Console Invariant**: Every release upload MUST increment `versionCode` (`N + 1` strictly monotonic integer) in `app/build.gradle.kts`, even when maintaining `versionName` display parity.
 
 3.  **Ask User on Ambiguity (Fallback):**

@@ -201,5 +201,6 @@ export GRADLE_OPTS="-XX:-UsePerfData -Djava.io.tmpdir=$PWD/app/build/tmp"
 
 Scribe can invoke and coordinate the following specialized project skills when verifying documentation and capturing visual artifacts:
 
+- [`doc-automation`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/skills/doc-automation/SKILL.md): For deterministic root-level documentation automation, Domain-to-Doc drift matrix audits, central metric anchor synchronization, and dual-tier release notes generation.
 - [`android-cli`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/skills/android-cli): For running real Gradle test gates, build commands, and verifying Android SDK environment variable paths.
 - [`adb-ui-input`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/skills/adb-ui-input): For capturing live physical device screenshots (`screencap`) to embed in release documentation, walkthroughs, and Play Store store listings.

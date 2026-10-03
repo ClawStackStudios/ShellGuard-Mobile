@@ -13,7 +13,22 @@ trigger: always_on
 
 ## Commits & Conventions
 - Keep changes small and self-contained; one logical change per commit. No mega-commits, no unrelated refactors bundled in.
-- Write clear, conventional commit messages (e.g. `feat:`, `fix:`, `refactor:`, `chore:`, `test:`).
+- Write clear, conventional commit messages adhering to the Conventional Commits specification:
+  `<type>[optional scope][optional !]: <description>`
+- **Allowed Types & SemVer Mapping**:
+  - `feat`: New user-facing feature or domain capability (maps to Changelog `Added`).
+  - `fix`: Bug fix, error resolution, or regression patch (maps to Changelog `Fixed`).
+  - `refactor`: Code restructure without behavioral or public API changes (maps to Changelog `Changed`).
+  - `perf`: Performance optimization, memory reduction, or query acceleration (maps to Changelog `Changed`).
+  - `security`: Cryptographic hardening, CVE defense, or security boundaries (maps to Changelog `Security`).
+  - `revert`: Reverting a previous commit (maps to Changelog `Removed`).
+  - `docs`: Documentation only changes.
+  - `test`: Adding or correcting tests; no production code change.
+  - `build`: Changes affecting build system, Gradle scripts, or external dependencies.
+  - `ci`: Changes to CI/CD workflows and release automation.
+  - `chore`: Maintenance tasks, brain synchronization, or housekeeping.
+- **Scopes**: Use consistent, lowercase domain scopes where applicable: `(auth)`, `(sync)`, `(crypto)`, `(vault)`, `(totp)`, `(autofill)`, `(keystore)`, `(ui)`, `(release)`, `(brain)`.
+- **Breaking Changes**: Any breaking architectural, database, or cryptographic change MUST be marked with an exclamation mark `!` before the colon (e.g. `feat(crypto)!: migrate HKDF salt derivation`) and include a `BREAKING CHANGE:` explanation in the footer.
 - Prefer new commits over amending. Never amend or rebase a commit without explicit written approval in the task.
 - Never skip hooks (`--no-verify`) or bypass commit signing unless explicitly asked.
 
@@ -62,10 +77,13 @@ If local machine configurations, hardware serial numbers, or environment secrets
 - Every commit message uses this two-layer format:
 
   ```
-  <type>: <short summary>
+  <type>[optional scope][optional !]: <short imperative summary>
 
   User: <the intention, system design, architecture decision, or glue that was provided>
   AI: <the concrete implementation, functions, refactors, or tests that were generated>
+
+  [optional BREAKING CHANGE: <explanation and migration requirements>]
+  [optional Closes #<issue> / Fixes #<issue>]
   ```
 
 - The `User:` line is always the *why/what* — the intent, spec, or structural decision.
@@ -76,3 +94,63 @@ If local machine configurations, hardware serial numbers, or environment secrets
 
 ## Rebase Hygiene
 - When rebasing, avoid opening editors: set `GIT_EDITOR=:` and `GIT_SEQUENCE_EDITOR=:` (or pass `--no-edit`).
+
+### 1. Pre-Rebase Safety Anchor Protocol
+Before executing any interactive rebase, history surgery, or multi-commit squash on a feature branch:
+1. **Create Safety Anchor**: Create a temporary backup branch pointing to current HEAD:
+   ```bash
+   git branch backup/$(git branch --show-current)-pre-rebase
+   ```
+2. **Perform Rebase**: Execute rebase cleanly.
+3. **Verify Integrity**: Run `./gradlew testDebugUnitTest` to confirm tests remain 100% green post-rebase.
+4. **Prune Anchor**: Once verified and merged/pushed, delete the temporary safety branch (`git branch -D backup/...`).
+
+### 2. Autosquash & Clean Commit Curation
+- During task development, fixups can be committed using `git commit --fixup <commit-hash>`.
+- Before opening a PR or merging to `main`, curate commits into atomic units:
+  ```bash
+  git rebase -i --autosquash $(git merge-base HEAD main)
+  ```
+- All final squashed commits MUST maintain the two-layer attribution format (`User:` / `AI:`).
+
+### 3. Remote Push Guardrails: Never Raw Force
+- `git push --force` is **STRICTLY FORBIDDEN**.
+- If updating an un-merged local feature branch whose history was rebased, use strictly:
+  ```bash
+  git push --force-with-lease origin <branch-name>
+  ```
+- `--force-with-lease` guarantees the push will fail if the remote branch was modified by someone else or a CI bot.
+
+### 4. Automated Regression Hunting (Git Bisect + Gradle)
+When hunting down a regression introduced across recent commits, do NOT manually check out intermediate commits. Use automated test-driven bisect:
+```bash
+git bisect start
+git bisect bad HEAD
+git bisect good <known-good-tag-or-hash>
+# Run headless Gradle test runner automatically
+git bisect run ./gradlew testDebugUnitTest --tests "com.clawstack.shellguard.*RegressionTest*"
+git bisect reset
+```
+*Rule*: Working tree MUST be clean (`git status`) before starting `git bisect`.
+
+### 5. Worktrees for Parallel Subagents & Hotfixes
+To inspect code, run long background builds, or handle urgent hotfixes without stashing or disrupting an in-flight working tree:
+```bash
+# Create clean worktree outside the primary tree
+git worktree add ../ShellGuard-Hotfix -b fix/urgent-patch main
+# Work, test, commit in hotfix directory
+# Clean up upon merge
+git worktree remove ../ShellGuard-Hotfix
+git worktree prune
+```
+
+### 6. Reflog Disaster Recovery Playbook
+If an accidental `git reset`, dropped stash, or bad rebase occurs:
+1. **Do NOT panic or run blind destructive commands.**
+2. Inspect reflog: `git reflog -n 20`.
+3. Locate the commit hash immediately preceding the error (e.g. `HEAD@{1}`).
+4. Restore state cleanly to a recovery branch:
+   ```bash
+   git branch recovery-$(date +%Y%m%d%H%M) <hash>
+   ```
+5. Inspect the recovery branch diff (`git diff HEAD..<recovery-hash>`) before applying.

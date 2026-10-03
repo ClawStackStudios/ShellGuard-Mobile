@@ -8,7 +8,7 @@
 
 [![Version](https://img.shields.io/badge/version-v0.0.0.7%20(Build%207)-E4048A?style=for-the-badge&logo=android&logoColor=white)](CHANGELOG.md)
 [![Android](https://img.shields.io/badge/Android-API%2024%E2%80%9336-3DDC84?style=for-the-badge&logo=android&logoColor=white)](app/build.gradle.kts)
-[![Security](https://img.shields.io/badge/Storage-SQLCipher%20AES--256-00BCD4?style=for-the-badge&logo=shield&logoColor=white)](project/crypto-and-keystore.md)
+[![Security Policy](https://img.shields.io/badge/Security-Policy-00BCD4?style=for-the-badge&logo=shield&logoColor=white)](SECURITY.md)
 [![16KB Ready](https://img.shields.io/badge/Kernel-16%20KB%20Page--Size-7952B3?style=for-the-badge)](project/16kb-page-size-alignment-guide.md)
 [![License](https://img.shields.io/badge/License-GPL%203.0-yellow.svg?style=for-the-badge)](LICENSE)
 
@@ -23,6 +23,7 @@
   <a href="#-executive-summary--product-vision">Vision</a> •
   <a href="#-key-features--capabilities">Key Features</a> •
   <a href="#-system-architecture">Architecture</a> •
+  <a href="SECURITY.md">Security Policy</a> •
   <a href="#-tech-stack">Tech Stack</a> •
   <a href="#-building--running">Build & Test</a> •
   <a href="#-documentation-index">Docs</a>
@@ -205,6 +206,7 @@ adb shell am start -n com.clawstack.shellguard/.MainActivity
 |---|---|
 | [**`CONTRIBUTING.md`**](CONTRIBUTING.md) | Developer onboarding guide, local environment setup, verification loops, and git conventions. |
 | [**`ARCHITECTURE.md`**](ARCHITECTURE.md) | Client mode architecture, client-server relationship boundaries, and threat model. |
+| [**`SECURITY.md`**](SECURITY.md) | Security policy, threat model invariants, and responsible disclosure SLAs. |
 | [**`DESIGN.md`**](DESIGN.md) | Comprehensive Material 3 design system tokens, color palettes, and motion specs. |
 | [**`ROADMAP.md`**](ROADMAP.md) | Multi-phase development roadmap tracking completed features and upcoming milestones. |
 | [**`CHANGELOG.md`**](CHANGELOG.md) | Chronological version release history adhering to Keep a Changelog standards. |
@@ -227,6 +229,8 @@ adb shell am start -n com.clawstack.shellguard/.MainActivity
 3. **Bitwarden-Model Read-Only Offline Caching**: Disconnected clients retain 100% read, search, copy, and autofill functionality while blocking mutations to eliminate split-brain synchronization divergence.
 4. **Hybrid File-System Vault**: Sensitive file attachments never enter SQLite rows, eliminating 2MB `CursorWindowAllocationException` crashes through 64KB bounded streaming.
 5. **Base62 Sovereign Key Validation**: ClawKey identity strings strictly adhere to the 67-character Base62 specification (`hu-[0-9a-zA-Z]{64}` / `lb-[0-9a-zA-Z]{64}`).
+
+For our full security policy, cryptographic specifications, and responsible disclosure SLAs, see [**`SECURITY.md`**](SECURITY.md).
 
 ---
 

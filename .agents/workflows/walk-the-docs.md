@@ -5,7 +5,7 @@ description: Deterministic workflow to walk the documentation, verify all claims
 # 🚶‍♂️ Walk the Docs Workflow
 
 > **Philosophy:** The codebase is the physical reality and sole source of structural truth. The documentation must bow to the code with systemic precision.
-> **Pair With:** `.agents/rules/docs-hygiene.md`, `.agents/rules/git-hygiene.md`, and `.agents/rules/cadence-and-lifecycle-prompts.md`.
+> **Pair With:** [`.agents/skills/doc-automation/SKILL.md`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/skills/doc-automation/SKILL.md), `.agents/rules/docs-hygiene.md`, `.agents/rules/git-hygiene.md`, and `.agents/rules/cadence-and-lifecycle-prompts.md`.
 
 ---
 
