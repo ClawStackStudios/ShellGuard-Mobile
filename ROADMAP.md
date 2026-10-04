@@ -1,10 +1,10 @@
 ---
 roadmap_version: 1.0.0
-last_updated: 2026-09-27
-current_position: "Phase 4 Complete (Tasks 07 & 08) — Baseline v0.0.0.5 (Build 5): Algorithmic TOTP Engine, CameraX Scanner, Password Generator & Biometrics verified 100% green; ready for Phase 5"
+last_updated: 2026-10-03
+current_position: "Hotfix 5.4 Complete (Tasks 10.1 & 10.2) — Baseline v0.0.0.8 (Build 8): Web Interoperability & Secure Note Parity verified 100% green; ready for Phase 6"
 statistics:
   description: "Deterministic build roadmap for ShellGuard Mobile (Full Vault Android Client). Engineered strictly in synergistic 2-task phases where Task A delivers core functionality and Task B delivers the corresponding UI/UX component."
-  features_completed: "███████░░░ 67%"
+  features_completed: "████████░░ 86%"
   features_in_progress: "░░░░░░░░░░ 0%"
 ---
 
@@ -130,7 +130,7 @@ statistics:
 > Hotfix Objective:
 > Reconcile offline/local mutations with remote servers without data loss, prevent Room DAO pruning of pending local entities, and implement full upstream queue flushing in `SyncRepository`.
 
-- [ ] **Task 10.1: [Bugfix & Hardening] Room Pruning Immunity & Upstream Delta Reconciliation**
+- [x] **Task 10.1: [Bugfix & Hardening] Room Pruning Immunity & Upstream Delta Reconciliation**
   - Fix `pruneDeletedRemoteItems` in `VaultPearlDao`, `SecureNoteDao`, and `SshKeyDao` to exempt records with `sync_state != 'SYNCED'` (`sync_state == 'PENDING_SYNC'`).
   - Implement upstream queue push in `SyncRepository.syncAll`: drain pending creates, updates, and deletes to remote endpoints prior to downstream delta pull.
   - Reconcile client UUIDs with server entity IDs preserving HKDF AAD encryption contracts.
@@ -139,7 +139,22 @@ statistics:
 
 ---
 
-## Phase 6: Settings, Backup Bridge & Release Hardening [Baseline: v0.0.0.8 (Build 8) — Milestone 1]
+## Hotfix 5.4: Web Interoperability & Secure Note Parity [Baseline: v0.0.0.8 (Build 8)]
+
+> Hotfix Objective:
+> Resolve deserialization crashes on Web UI items storing unencrypted empty JSON arrays ("[]"), introduce envelope structural validation, and achieve 1:1 visual and cryptographic parity with Web Client by masking Secure Notes by default with the Eye-beside-Copy cluster and biometric re-prompt gating.
+
+- [x] **Task 10.2: [Bugfix & UI Parity] Web UI Empty Array Deserialization & Secure Note Masking Parity**
+  - Implement `ShellCryptionEngine.isEncryptedEnvelope` to validate envelope structures prior to AES-GCM decryption.
+  - Normalize downstream delta pulls and detail getters in `SyncRepository` to gracefully handle unencrypted JSON arrays.
+  - Mask Secure Notes by default in `ItemDetailScreen` with monospace bullets (`••••••••••••••••••••••••••••••••`) and "Tap or click eye to reveal" prompt.
+  - Elevate note header with canonical Eye-beside-Copy action cluster and enforce `state.reprompt` biometric challenges before reveal or copy.
+  - Add one-tap copy button to login item notes and ratify Redline 8 in `testOracle.md`.
+  - *Success Criteria*: Items minted on Web UI sync and render without exception; Secure Notes open masked by default; 83/83 unit and Robolectric tests pass 100% green; verified live on Google Pixel hardware.
+
+---
+
+## Phase 6: Settings, Backup Bridge & Release Hardening [Baseline: v0.0.0.9 (Build 9) — Milestone 1]
 
 > Phase Feature Set Overview:
 > Delivers the categorized settings hub, `.sgvault.bak` full encrypted backup engine, and `.sgtotp.bak` companion bridge, paired immediately with adaptive launcher icons, Android 12+ splash screen, and 16 KB page alignment.

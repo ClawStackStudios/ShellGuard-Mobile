@@ -10,9 +10,9 @@ We actively maintain and provide security patches for the latest release and the
 
 | Version | Supported | Status |
 | :--- | :--- | :--- |
-| `0.0.0.7` (Build 7) | ✅ Yes | Current Hotfix / Release Candidate |
-| `0.0.0.6` (Build 6) | ⚠️ Maintenance | Security critical patches only |
-| `< 0.0.0.6` | ❌ No | End of Life — upgrade to latest release |
+| `0.0.0.8` (Build 8) | ✅ Yes | Current Hotfix / Release Candidate |
+| `0.0.0.7` (Build 7) | ⚠️ Maintenance | Security critical patches only |
+| `< 0.0.0.7` | ❌ No | End of Life — upgrade to latest release |
 
 ---
 
@@ -46,6 +46,7 @@ All contributions, audits, and security evaluations must be grounded in ShellGua
 ### 5. Memory Hygiene & Leak Defenses
 - **Window Capture Shielding**: `FLAG_SECURE` is active in production builds, blocking OS screen recording, screenshots, and task switcher thumbnail retention.
 - **Sensitive Clipboard Masking (CWE-359)**: Password and secret copy actions declare `ClipDescription.EXTRA_IS_SENSITIVE = true` to suppress visual system previews on Android 13+, accompanied by a 30-second coroutine background scrub.
+- **Masked Secret Display & Biometric Re-Prompt Invariant**: Sensitive secrets (passwords and secure notes) render masked by default with bullet glyphs (`••••••••••••••••`) alongside adjacent Eye-beside-Copy controls. When `reprompt = true`, toggling visibility to reveal or copying the payload MUST challenge the user via biometric or device credential prompt before releasing the secret.
 - **IME Hardening**: All secret text inputs use `KeyboardType.Password` with `autoCorrectEnabled = false` to block third-party predictive keyboard scraping.
 - **Zero External Telemetry**: Zero analytics, crash reporters, or tracking SDKs. All audit events log exclusively to the local encrypted `audit_logs` table.
 

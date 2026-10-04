@@ -17,8 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Web UI Empty JSON Array Deserialization**: Resolved `Unexpected JSON token at offset 0: Expected start of the object '{'. but had '[' instead` exception when loading items minted in the Web UI where `password_history` or `custom_fields` were stored as unencrypted empty JSON arrays (`"[]"`).
 - **Detail Getter & Pull Sanitization (`SyncRepository`)**: Gracefully normalizes raw JSON arrays into empty collections while preserving fail-closed cryptographic boundaries.
 
-### Verified
-- **100% Green Test Oracle**: 83 unit and Robolectric tests passing (`BUILD SUCCESSFUL in 3m 6s`), clean `./gradlew assembleDebug` APK generation, and live verified on physical Google Pixel (`sailfish`) hardware.
+### Changed
+- **Test Oracle & Hardware Verification**: Full suite of 83 unit and Robolectric tests passing 100% green (`BUILD SUCCESSFUL in 3m 6s`), clean `./gradlew assembleDebug` APK generation, and live verified on physical Google Pixel (`sailfish`) hardware.
 
 ## [0.0.0.7] - 2026-09-27 (Build 7) — Hotfix 5.3: Bidirectional Sync Reconciliation & Dual Adversarial Hardening
 ### Added
@@ -37,8 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Fail-Closed Detail Retrieval**: Detail getters (`getPearlDetail`, `getNoteDetail`, `getSshKeyDetail`) fail closed with `Result.failure` on decryption errors, preventing raw JSON ciphertext exposure and double-ciphertext database corruption.
 - **Headless Network Mocking**: Added `initialOnlineOverride` and `setOnlineForTesting` in `ConnectivityMonitor` to prevent Robolectric's null network capabilities from falsely short-circuiting sync into offline mode.
 
-### Verified
-- **100% Green Test Oracle**: 18 remote & adversarial unit tests passing (`BUILD SUCCESSFUL`), and clean `./gradlew assembleDebug` APK generation.
+### Changed
+- **Test Oracle & Hardware Verification**: 18 remote & adversarial unit tests passing (`BUILD SUCCESSFUL`), and clean `./gradlew assembleDebug` APK generation.
 
 ## [0.0.0.6] - 2026-09-27 (Build 6) — Phase 5: Android Autofill Framework, AutoSpill Defense & Adversary Remediations
 ### Added
@@ -57,9 +57,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **PendingIntent Collision Immunity**: Bound `PendingIntent` creation to unique data URIs (`shellguard://autofill/pearl/${pearl.id}`) with `FLAG_UPDATE_CURRENT` to prevent 32-bit `hashCode()` collision hijacking.
 - **Asymmetric Package Matching Bypass**: Strictly rejected cross-matching between native apps and web URLs in `DomainMatcher`.
 
-### Verified
-- **Unit & Robolectric Tests**: 100% green test execution across all suites (`DomainMatcherTest`, `AutofillStructureParserTest`, etc.).
-- **Build Compilation**: Clean APK generation verified via `./gradlew assembleDebug`.
+### Changed
+- **Test Oracle & Build Verification**: 100% green test execution across all suites (`DomainMatcherTest`, `AutofillStructureParserTest`, etc.) and clean APK generation verified via `./gradlew assembleDebug`.
 
 ## [0.0.0.5] - 2026-09-27 (Build 5) — Phase 4: TOTP Engine, CameraX Scanner & Biometrics
 ### Added
@@ -81,9 +80,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Frictionless Gateway Re-entry (`GatewayViewModel`)**: Pre-filled server parameters (`protocol`, `host`, `port`) from stored server URL when returning to Gateway upon lock/fallback.
 - **Accessible Fail-Safe Navigation**: Added high-contrast `Back` and `Retry` actions on item detail error screens to prevent user entrapment.
 
-### Verified
-- **Robolectric & Unit Tests**: 32/32 tests passing 100% green (`CustomFieldTest`, `SyncRepositoryTest`, `EncryptedDeviceVaultTest`, `ClawCryptoTest`, `ShellCryptionEngineTest`, `RoomDatabaseTest`).
-- **Physical Hardware Verification**: Verified live on Google Pixel (`sailfish`, Android 14 LineageOS) with full item decryption, Toggle Visibility password unmasking, and brutal cold-restart survival (`am force-stop` ➔ `am start`).
+### Changed
+- **Test Oracle & Hardware Verification**: 32/32 tests passing 100% green (`CustomFieldTest`, `SyncRepositoryTest`, `EncryptedDeviceVaultTest`, `ClawCryptoTest`, `ShellCryptionEngineTest`, `RoomDatabaseTest`), and verified live on Google Pixel (`sailfish`, Android 14 LineageOS) with full item decryption, Toggle Visibility password unmasking, and cold-restart survival.
 
 ## [0.0.0.3] - 2026-09-26 (Build 3) — Phase 2: Ktor API Client, Bidirectional Sync, Vault Dashboard & IME Hardening
 ### Added
@@ -101,9 +99,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Root Scaffold Double Inset Isolation**: Set `Scaffold(contentWindowInsets = WindowInsets(0, 0, 0, 0))` on the root Activity Scaffold to prevent double-subtraction of keyboard height when child screens apply `.imePadding()`.
 - **Gateway Focused Auto-Scroll**: Added `LaunchedEffect` auto-scroll in `GatewayScreen` to keep the segmented URL bar smoothly visible above the soft keyboard when focused.
 
-### Verified
-- **Unit & Robolectric Tests**: 23/23 tests passing 100% green (`ClawCryptoTest`, `ShellCryptionEngineTest`, `RoomDatabaseTest`, `SyncRepositoryTest`).
-- **Hardware Deployment**: Verified live on physical Google Pixel (LineageOS Android 14) with smooth keyboard typing, visible cursor positioning, active login button, and verified UI tree hierarchy.
+### Changed
+- **Test Oracle & Hardware Verification**: 23/23 tests passing 100% green (`ClawCryptoTest`, `ShellCryptionEngineTest`, `RoomDatabaseTest`, `SyncRepositoryTest`), and verified live on physical Google Pixel (LineageOS Android 14) with smooth keyboard typing, visible cursor positioning, active login button, and verified UI tree hierarchy.
 
 ## [0.0.0.2] - 2026-09-26 (Build 2) — Phase 1: Cryptographic Engine, Room Storage & Gateway UI
 ### Added
@@ -113,9 +110,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Remote Gateway Login (`GatewayScreen`)**: 56dp segmented URL container with protocol selector (`http://` vs `https://`), borderless host input, vertical divider, animated port input (68dp → 105dp), dual-mode pill switch (`Upload File` vs `Paste ClawKey©™`), `.json` identity file dropzone, amber zero-knowledge warning card, and client-side SHA-256 digest hashing.
 - **Robolectric Headless Compatibility**: SQLite open helper factory fallback and JVM HMAC KeyStore fallback for fast CI testing.
 
-### Verified
-- **Test Suite**: 16/16 unit and Robolectric tests passing green.
-- **Device Verification**: Deployed `app-debug.apk` to Google Pixel, verifying SQLCipher native library loading, `FLAG_SECURE` window shielding, and Gateway form rendering.
+### Changed
+- **Test Oracle & Hardware Verification**: 16/16 unit and Robolectric tests passing green, and deployed `app-debug.apk` to Google Pixel, verifying SQLCipher native library loading, `FLAG_SECURE` window shielding, and Gateway form rendering.
 
 ## [0.0.0.1] - 2026-09-25 (Build 1) — Stage 0: Foundational Android Application Scaffold
 ### Added
@@ -131,3 +127,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <div align="center">
   <sub>Engineered with precision for the ClawStack / ShellGuard ecosystem.</sub>
 </div>
+
+[Unreleased]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.8...HEAD
+[0.0.0.8]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.7...v0.0.0.8
+[0.0.0.7]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.6...v0.0.0.7
+[0.0.0.6]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.5...v0.0.0.6
+[0.0.0.5]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.4...v0.0.0.5
+[0.0.0.4]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.3...v0.0.0.4
+[0.0.0.3]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.2...v0.0.0.3
+[0.0.0.2]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.1...v0.0.0.2
+[0.0.0.1]: https://github.com/ClawStackStudios/ShellGuard-Mobile/releases/tag/v0.0.0.1

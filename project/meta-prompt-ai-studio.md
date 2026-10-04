@@ -321,7 +321,7 @@ Verify that visiting a login page in Chrome prompts ShellGuard autofill suggesti
 
 ## ⚙️ Stage 7: Phase 6 Prompt — Settings, Backup Bridge & Release Hardening
 
-> 🗺️ **Master Roadmap Reference**: See [`ROADMAP.md`](../ROADMAP.md#phase-6-settings-backup-bridge--release-hardening-baseline-v0010-build-6--milestone-1) for complete specifications on **Task 11** and **Task 12**.  
+> 🗺️ **Master Roadmap Reference**: See [`ROADMAP.md`](../ROADMAP.md#phase-6-settings-backup-bridge--release-hardening-baseline-v0009-build-9--milestone-1) for complete specifications on **Task 11** and **Task 12**.  
 > **📖 Required Context Files for Phase 6**:  
 > 1. [`import-export-and-migration-spec.md`](./import-export-and-migration-spec.md) — Section 2 (Canonical Exports), Section 4 (Deduplication), Section 5 (BackupManager).  
 > 2. [`app-icon-and-splash.md`](./app-icon-and-splash.md) — Section 2 (Adaptive Icon), Section 3 (SplashScreen API).  

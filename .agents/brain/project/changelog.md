@@ -200,5 +200,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Web UI Empty JSON Array Deserialization**: Resolved `Unexpected JSON token at offset 0: Expected start of the object '{'. but had '[' instead` exception when loading items minted in the Web UI where `password_history` or `custom_fields` were stored as unencrypted empty JSON arrays (`"[]"`).
 - **Detail Getter & Pull Sanitization (`SyncRepository`)**: Gracefully normalizes raw JSON arrays into empty collections while preserving fail-closed cryptographic boundaries.
 
-### Verified
-- **100% Green Test Oracle**: 83 unit and Robolectric tests passing (`BUILD SUCCESSFUL in 3m 6s`), clean `./gradlew assembleDebug` APK generation, and live verified on physical Google Pixel (`sailfish`) hardware.
+### Changed
+- **Test Oracle & Hardware Verification**: Full suite of 83 unit and Robolectric tests passing 100% green (`BUILD SUCCESSFUL in 3m 6s`), clean `./gradlew assembleDebug` APK generation, and live verified on physical Google Pixel (`sailfish`) hardware.
