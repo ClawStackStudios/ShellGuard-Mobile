@@ -159,11 +159,20 @@ statistics:
 > Phase Feature Set Overview:
 > Delivers the categorized settings hub, `.sgvault.bak` full encrypted backup engine, and `.sgtotp.bak` companion bridge, paired immediately with adaptive launcher icons, Android 12+ splash screen, and 16 KB page alignment.
 
-- [ ] **Task 11: [Functionality] Settings Persistence & Multi-Format Backup Engine**
+- [ ] **Task 11: [Functionality] Settings Hub, Vault Unlock Methods (Biometrics & PIN), Cold-Start Lock & Backup Engine**
+  - Implement `SettingsScreen.kt` categorized hub and dedicated sub-screens (`SettingsSecurityScreen.kt`, `SettingsAppearanceScreen.kt`, etc.).
+  - Security Settings & Alternative Vault Unlock Methods:
+    - Toggle: `Unlock with Biometrics` (Fingerprint / Face Unlock via `BiometricPrompt`).
+    - Toggle: `Unlock with PIN` (4–8 digit numeric PIN enrollment, hashed in `EncryptedDeviceVault`, with change PIN challenge).
+    - Vault Timeout Duration (`Immediately`, `On App Restart`, `1 Minute`, `5 Minutes`, `15 Minutes`, `Never`) and Timeout Action (`Lock` vs `Log Out`).
+  - Cold-Start / Process Kill Lock Persistence in `VaultLockManager`:
+    - Persist background timestamp and timeout settings across process death in SharedPreferences.
+    - On app launch (`MainActivity.onCreate`), if a session exists and `timeout == On App Restart` or background elapsed time >= timeout duration, initialize `_isVaultLocked = true` and navigate immediately to `LockScreen`.
+  - Upgrade `LockScreen.kt` with interactive numerical PIN pad alongside Biometric prompt, enabling offline vault unlock without typing the full 67-character `hu-` ClawKey.
   - Implement `BackupManager.kt` exporting/importing full encrypted backups (`.sgvault.bak`) and TOTP bridges (`.sgtotp.bak`).
   - Implement `DeduplicationEngine` with normalized fingerprinting.
   - Implement `PanicTriggerReceiver` for emergency instant vault purge.
-  - *Success Criteria*: Full backups export and restore with SHA-256 checksum verification; duplicate items are skipped; panic wipe purges all databases and keys.
+  - *Success Criteria*: Swiping away the app and relaunching prompts for Biometrics or PIN according to settings; PIN unlocks the vault without requiring the ClawKey; full backups export and restore with SHA-256 verification; panic wipe purges all databases and keys.
 
 - [ ] **Task 12: [Configuration] Adaptive App Icon, Splash Screen & 16 KB Alignment**
   - Create adaptive launcher icon (`ic_launcher_foreground.xml` with Reef Shield + Pearl Emblem).

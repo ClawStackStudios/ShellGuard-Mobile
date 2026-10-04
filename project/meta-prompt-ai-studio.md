@@ -323,10 +323,12 @@ Verify that visiting a login page in Chrome prompts ShellGuard autofill suggesti
 
 > 🗺️ **Master Roadmap Reference**: See [`ROADMAP.md`](../ROADMAP.md#phase-6-settings-backup-bridge--release-hardening-baseline-v0009-build-9--milestone-1) for complete specifications on **Task 11** and **Task 12**.  
 > **📖 Required Context Files for Phase 6**:  
-> 1. [`import-export-and-migration-spec.md`](./import-export-and-migration-spec.md) — Section 2 (Canonical Exports), Section 4 (Deduplication), Section 5 (BackupManager).  
-> 2. [`app-icon-and-splash.md`](./app-icon-and-splash.md) — Section 2 (Adaptive Icon), Section 3 (SplashScreen API).  
-> 3. [`16kb-page-size-alignment-guide.md`](./16kb-page-size-alignment-guide.md) — Section 2 (Dependencies & Packaging).  
-> 4. [`verification-gates.md`](./verification-gates.md) — Section 4 (Build Verification Gates).  
+> 1. [`ui-ux-design-system.md`](./ui-ux-design-system.md) — Section 10 (Settings Hub, SettingsSecurityScreen, Biometric & PIN Unlock).  
+> 2. [`import-export-and-migration-spec.md`](./import-export-and-migration-spec.md) — Section 2 (Canonical Exports), Section 4 (Deduplication), Section 5 (BackupManager).  
+> 3. [`crypto-and-keystore.md`](./crypto-and-keystore.md) — Section 4 (KeyStore Biometric Sealing), Section 7 (Panic Purge & Security Preferences).  
+> 4. [`app-icon-and-splash.md`](./app-icon-and-splash.md) — Section 2 (Adaptive Icon), Section 3 (SplashScreen API).  
+> 5. [`16kb-page-size-alignment-guide.md`](./16kb-page-size-alignment-guide.md) — Section 2 (Dependencies & Packaging).  
+> 6. [`verification-gates.md`](./verification-gates.md) — Section 4 (Build Verification Gates).  
 
 Copy and paste this prompt to execute **Phase 6 (Tasks 11 & 12)**:
 
@@ -335,15 +337,32 @@ Copy and paste this prompt to execute **Phase 6 (Tasks 11 & 12)**:
 
 ## 📖 Reference Documentation
 Before writing code, inspect:
+- `ui-ux-design-system.md`: Section 10 (Settings Hub, Security Sub-screens, PIN & Biometric Unlock).
 - `import-export-and-migration-spec.md`: Section 2 (Exports), Section 4 (Deduplication), Section 5 (BackupManager).
+- `crypto-and-keystore.md`: Section 4 (KeyStore Biometrics), Section 7 (Panic Purge).
 - `app-icon-and-splash.md`: Section 2 (Adaptive Icon), Section 3 (SplashScreen API).
 - `16kb-page-size-alignment-guide.md`: Section 2 (Packaging & SQLCipher).
 - `verification-gates.md`: Section 4 (Verification Gates).
 
 Execute Phase 6 adhering to the Functionality + Polish pairing:
 
-### Task 11: [Functionality] Settings Persistence, Multi-Format Backup & Panic Wipe
-- Implement `ui/screens/SettingsScreen.kt` categorized hub: Appearance, Security, Server & Sync, Import/Export, About.
+### Task 11: [Functionality] Settings Hub, Vault Unlock Methods (Biometrics & PIN), Cold-Start Lock & Backup Engine
+- Implement `ui/screens/settings/SettingsScreen.kt` categorized hub:
+  - Security & Vault Timeout, Autofill & System Integration, Appearance & Theming, Server & Sync, Import/Export/Backups, About.
+- Implement `ui/screens/settings/SettingsSecurityScreen.kt`:
+  - **Vault Unlock Methods** (alternatives to logging in with the full 67-character `hu-` ClawKey):
+    - `Unlock with Biometrics` toggle (Fingerprint / Face Unlock via `BiometricPrompt`).
+    - `Unlock with PIN` toggle (4–8 digit numeric PIN enrollment, SHA-256 hashed and stored in `EncryptedDeviceVault`, with change PIN challenge).
+  - **Vault Timeout Duration & Action**:
+    - Duration selector: `Immediately`, `On App Restart` (locks upon process termination / swiping away), `1 Minute`, `5 Minutes` (default), `15 Minutes`, `30 Minutes`, `Never`.
+    - Timeout Action selector: `Lock` (seals vault in KeyStore, prompts Biometric/PIN) vs `Log Out` (purges session, requires ClawKey).
+- Implement **Cold-Start / Process Kill Lock Persistence** in `VaultLockManager`:
+  - Persist background timestamp and timeout settings across process death in SharedPreferences.
+  - On app launch (`MainActivity.onCreate`), if a session exists and `timeout == On App Restart` or background elapsed time >= timeout duration, initialize `_isVaultLocked = true` and navigate immediately to `LockScreen` instead of bypassing to dashboard.
+- Upgrade `ui/screens/lock/LockScreen.kt`:
+  - Interactive PIN entry keypad / input field enabling offline unlocking via enrolled PIN.
+  - One-tap `Unlock with Biometrics` action with auto-prompt on display.
+  - Fallback option to enter Master ClawKey for emergency recovery.
 - Implement `data/backup/BackupManager.kt`:
   - Full vault encrypted export/import (`.sgvault.bak`) with SHA-256 integrity checksums.
   - TOTP companion bridge export (`.sgtotp.bak`).
@@ -357,5 +376,5 @@ Execute Phase 6 adhering to the Functionality + Polish pairing:
 - Configure `jniLibs.useLegacyPackaging = false` in `app/build.gradle.kts` for Android 15 16 KB memory page-size alignment.
 - Run full verification trilogy (`./gradlew testDebugUnitTest assembleDebug`) verifying 100% test pass rate.
 
-Verify the app exports valid encrypted backups, duplicate imports are skipped, native libraries are 16 KB aligned, ProGuard preserves JNI/serialization, and the release build compiles cleanly.
+Verify that swiping away the app and relaunching prompts for Biometrics or PIN according to settings, PIN can be enrolled and used to unlock without entering the ClawKey, backups export and import valid encrypted archives, and release binaries pass 16 KB page-alignment.
 ```

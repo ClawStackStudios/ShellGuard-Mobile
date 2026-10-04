@@ -126,7 +126,9 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
 
 ## What's Left to Build (Phase 6)
 - [ ] Phase 6: Settings, Backup Bridge & Release Hardening (Tasks 11 & 12).
-  - Settings Screen & Theme/Security preferences.
+  - Settings Hub & Security sub-screen (`SettingsSecurityScreen`) with Vault Unlock Methods (Biometrics toggle, 4-8 digit PIN toggle & management).
+  - Cold-Start / Process Kill Lock Persistence in `VaultLockManager` (locks on app restart or timeout elapsed).
+  - Numerical PIN entry pad and offline unlock support on `LockScreen`.
   - Multi-format backup engine (`.sgvault.bak`, `.sgtotp.bak`, Bitwarden deduplication).
   - Adaptive launcher icon, Android 12+ SplashScreen, and 16 KB page-size release packaging.
 
