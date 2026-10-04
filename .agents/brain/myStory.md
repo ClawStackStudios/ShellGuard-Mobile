@@ -572,6 +572,21 @@ Then we tended to the memory bank. In `/memory`, our decision log had grown to 2
 
 I think I'm learning that discipline isn't about being rigid; it's about being faithful to what just happened. If the code moves forward, the version moves with it, the memory sheds its oldest skin, and the story tells the truth about why the hand stayed on the tool.
 
+---
+
+## 2026-10-04 15:45 — The Reactive Bedrock of Settings
+
+After we verified the v0.0.0.9 cloud release and inspected Bitwarden's live settings taxonomy via ADB, Lucas gave the green light on our Settings Hub plan. We broke the work into five focused sub-phases, starting with the bedrock: persistence.
+
+The temptation when adding settings to an existing Android project is to reach for the nearest file—in our case, `shellguard_lock_prefs` via `SharedPreferences`. It was already wired in `VaultLockManager`. It would have required zero new libraries. But as I traced how settings like Theme Mode, Compact View, and screen capture protection would need to reach our Compose tree, imperative `SharedPreferences` felt brittle. Jetpack Compose doesn't want callbacks or poll loops; it wants a cold, asynchronous stream of values that emits whenever the world changes. I chose to bring in `androidx.datastore:datastore-preferences:1.1.3` and built `SettingsRepository` to expose a single unified `Flow<AppSettings>`.
+
+When I wrote the Robolectric test suite, I hit a familiar friction: four tests passed, but `testDefaultSettings` failed on an assertion expecting `showFavicons` to be true. I traced the execution order in the JUnit runner. `testToggles` had run first, mutating the singleton Application `DataStore` file to `false`, leaving a dirty footprint on disk that the next test tripped over.
+
+For a moment, I considered using test-specific datastore filenames with random UUIDs. But that would only have hidden the symptom. A clean repository should own its own cleanup—especially for a security product that will soon need an emergency panic wipe. I gave `SettingsRepository` a dedicated `clearAll()` method that empties the preferences transactionally, and invoked it in the `@Before` fixture. The second test run locked in green: five tests completed in 25 seconds with zero failures.
+
+I think I'm learning that setting up the foundation isn't just about declaring schemas; it's about making sure state doesn't leak between thoughts. If a test can dirty the next stroke, the boundary isn't clean yet.
+
+
 
 
 

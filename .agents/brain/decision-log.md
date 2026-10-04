@@ -60,3 +60,6 @@ While researching 2026 Autofill implementation patterns, discovered we must aggr
 ## 2026-10-04 — context-aware locked inline chips & add-item deep linking
 Transformed the Autofill suggestion pipeline: when locked, rather than hiding accounts or leaking titles, we present matched domain strings with 'Unlock Vault' inline above the keyboard. When 0 matches exist, we only show 'Add Item', which deep links directly to MainActivity's item form with the active URI pre-populated, preserving context via a global LockScreen overlay.
 
+## 2026-10-04 — datastore preferences isolation & test state reset
+Encountered test isolation cross-talk in `SettingsRepositoryTest` when tests mutated the singleton Application `context.dataStore` without resetting state between runs. Added explicit `clearAll()` method to `SettingsRepository` and invoked it inside `@Before setUp()`, ensuring pure deterministic state across all test passes.
+

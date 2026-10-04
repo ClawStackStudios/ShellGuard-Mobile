@@ -134,11 +134,26 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
 
 ## What's Left to Build (Phase 6)
 - [ ] Phase 6: Settings, Backup Bridge & Release Hardening (Tasks 11 & 12) — Target: v0.0.0.10 (Build 10).
-  - Settings Hub & Security sub-screen (`SettingsSecurityScreen`) with Vault Unlock Methods (Biometrics toggle, 4-8 digit PIN toggle & management).
-  - Cold-Start / Process Kill Lock Persistence in `VaultLockManager` (locks on app restart or timeout elapsed).
-  - Numerical PIN entry pad and offline unlock support on `LockScreen`.
-  - Multi-format backup engine (`.sgvault.bak`, `.sgtotp.bak`, Bitwarden deduplication).
-  - Adaptive launcher icon, Android 12+ SplashScreen, and 16 KB page-size release packaging.
+  - [x] **Sub-Phase A: Core Architecture & DataStore**:
+    - Added `androidx.datastore:datastore-preferences:1.1.3` to version catalog and Gradle.
+    - Implemented `SettingsRepository` and `SettingsRepositoryImpl` exposing reactive `Flow<AppSettings>` (11 settings keys).
+    - Exposed `SettingsRepository` through `AppContainer` and `DefaultAppContainer`.
+    - 5/5 unit tests passing 100% green (`SettingsRepositoryTest`).
+  - [ ] **Sub-Phase B: Navigation & Base UI Hub**:
+    - `Screen.Settings`, `Screen.SettingsSecurity`, etc. in `Screen.kt`.
+    - `SettingsViewModel` with MVI state binding.
+    - `SettingsHubScreen` root view with 6 categorized list items.
+    - Wire `Settings` item into `VaultDashboardScreen` overflow menu.
+  - [ ] **Sub-Phase C: Appearance & Sync Settings**:
+    - `SettingsAppearanceScreen` (Theme, dynamic colors, accent, icons, density).
+    - `SettingsSyncScreen` (Server URI, manual trigger, pull-to-refresh).
+  - [ ] **Sub-Phase D: Security & Panic Purge Flow**:
+    - `SettingsSecurityScreen` (Timeouts, PIN, biometrics, screen capture).
+    - Configurable countdown (5s-60s) with circular dial clock-face picker.
+    - `PanicPurgeCountdownScreen` full-screen activity/screen with pulsing red rings.
+  - [ ] **Sub-Phase E: Backup, Restore & Autofill Prep**:
+    - Multi-format backup engine (`.sgvault`) with dual passphrase or `hu-key` encryption.
+    - Autofill settings sub-screen with Stage 8 heuristics hooks.
 
 
 

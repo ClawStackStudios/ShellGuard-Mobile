@@ -421,6 +421,18 @@ The cross-session failure analysis (/deep-learn) detected an **over-confidence b
 **Outcome**: `app/build.gradle.kts` bumped to `versionCode = 9`, `versionName = "0.0.0.9"`; `ROADMAP.md` and `meta-prompt-ai-studio.md` cleanly shifted Phase 6 to `0.0.0.10 (Build 10)`.
 **Pattern reference**: Link to `systemPatterns.md § Universal Development Invariants` / `semantic-versioning.md`.
 
+## datastore-preferences-for-reactive-settings-bedrock — 2026-10-04 15:45
+
+**Context**: Implementing Stage 7 (Phase 6) Settings Hub required selecting a persistent storage mechanism for UI appearance (Theme, Compact View), Vault timeouts, Autofill flags, and panic wipe countdowns.
+**Options considered**:
+- Expand existing `SharedPreferences` (`shellguard_lock_prefs`) with manual listeners — Avoids new dependencies, but imperative listeners in Compose lead to recomposition glitches and boilerplate lifecycle hooks.
+- Introduce Jetpack `androidx.datastore:datastore-preferences:1.1.3` wrapped in `SettingsRepository` — Exposes Kotlin `Flow<AppSettings>` natively, enabling atomic, reactive state updates in Compose with thread-safe persistence and asynchronous disk I/O.
+**Chosen**: Jetpack DataStore Preferences via `SettingsRepository`.
+**Why**: Preferences in Compose should flow as streams. Binding UI settings to a cold asynchronous `Flow` eliminates manual refresh calls across screens: the moment a user adjusts the theme or lock timeout, the entire Compose hierarchy reacts organically.
+**Confidence**: high — verified with full Robolectric unit tests and clean compile.
+**Outcome**: Implemented `SettingsRepository` with 11 preference keys, integrated into `AppContainer`, and validated with 5/5 passing unit tests.
+**Pattern reference**: Link to `systemPatterns.md § Reactive Data Streams`.
+
 
 
 

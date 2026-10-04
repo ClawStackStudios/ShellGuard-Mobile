@@ -134,6 +134,7 @@ dependencies {
   implementation(libs.google.mlkit.barcode.scanning)
   implementation(libs.accompanist.permissions)
   implementation(libs.androidx.work.runtime.ktx)
+  implementation(libs.androidx.datastore.preferences)
 
   testImplementation(libs.junit)
   testImplementation(libs.androidx.junit)

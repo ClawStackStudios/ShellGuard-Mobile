@@ -5,6 +5,8 @@ import com.clawstack.shellguard.crypto.AndroidKeyStoreHelper
 import com.clawstack.shellguard.crypto.ClawCrypto
 import com.clawstack.shellguard.crypto.EncryptedDeviceVault
 import com.clawstack.shellguard.crypto.ShellCryptionEngine
+import com.clawstack.shellguard.data.local.SettingsRepository
+import com.clawstack.shellguard.data.local.SettingsRepositoryImpl
 import com.clawstack.shellguard.data.local.ShellGuardDatabase
 import com.clawstack.shellguard.data.remote.ShellGuardClient
 import com.clawstack.shellguard.data.repository.ConnectivityMonitor
@@ -23,6 +25,7 @@ interface AppContainer {
     val connectivityMonitor: ConnectivityMonitor
     val syncRepository: SyncRepository
     val vaultLockManager: com.clawstack.shellguard.crypto.VaultLockManager
+    val settingsRepository: SettingsRepository
     fun getClient(baseUrl: String): ShellGuardClient
 }
 
@@ -58,6 +61,10 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
 
     override val vaultLockManager: com.clawstack.shellguard.crypto.VaultLockManager by lazy {
         com.clawstack.shellguard.crypto.VaultLockManager(context, deviceVault)
+    }
+
+    override val settingsRepository: SettingsRepository by lazy {
+        SettingsRepositoryImpl(context)
     }
 
     override val syncRepository: SyncRepository by lazy {
