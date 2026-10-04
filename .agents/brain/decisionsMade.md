@@ -385,4 +385,17 @@ The cross-session failure analysis (/deep-learn) detected an **over-confidence b
 **Outcome**: Authored `credential-provider-spec.md`, overhauled `autofill-service-spec.md`, and bolstered Stage 6 in `meta-prompt-ai-studio.md` and `ROADMAP.md`.
 **Pattern reference**: Link to `systemPatterns.md § Android Autofill & Credential Provider Dual-Stack`.
 
+## global-lock-overlay-and-context-aware-autofill — 2026-10-04 09:50
+
+**Context**: When tapping autofill suggestions or fallback actions while the vault is locked, navigating to a dedicated `lock` route wiped out deep links and backstacks, causing external actions (like Add Item for the current URI) to fail or open into a blank state. Furthermore, hiding all matching items when locked degraded user confidence on recognized sites.
+**Options considered**:
+- Keep `LockScreen` as a NavHost route and pass deep-link intents into `LockViewModel` for deferred playback — Highly fragile; requires custom serialization and state-restoration logic across complex deep-link arguments.
+- Elevate `LockScreen` to a global overlay in `MainActivity` wrapping the entire NavHost, and display context-aware domain strings inline when locked — Keeps the underlying NavHost mounted at its deep-linked destination (`form/NEW/PASSWORD/new?url=...`) while the lock overlay covers the UI. Upon biometric unlock, the overlay simply dismisses, immediately revealing the pre-populated form.
+**Chosen**: Global `LockScreen` overlay and context-aware domain strings in keyboard inline chips.
+**Why**: Navigation state shouldn't be responsible for security enforcement. An overlay decouples authentication from routing: the app can route to any destination requested by the OS or user, while the lock layer acts as an opaque shutter that opens only when authenticated.
+**Confidence**: high — verified with clean build and live Pixel installation.
+**Outcome**: Implemented in `MainActivity.kt` and `ShellGuardAutofillService.kt`, verified clean compilation and successful ADB install.
+**Pattern reference**: New pattern — first instance.
+
+
 

@@ -56,4 +56,18 @@ object AutofillManagerHelper {
             Intent(Settings.ACTION_SETTINGS)
         }
     }
+
+    /**
+     * Creates an Intent to open the Android 14+ (API 34+) Credential Provider / Preferred Service settings screen.
+     * On Android 14+, directs directly to Settings > Passwords, passkeys & accounts ("Preferred service").
+     */
+    fun createOpenPreferredServiceSettingsIntent(): Intent {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            Intent(Settings.ACTION_SYNC_SETTINGS)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Intent(Settings.ACTION_REQUEST_SET_AUTOFILL_SERVICE)
+        } else {
+            Intent(Settings.ACTION_SETTINGS)
+        }
+    }
 }

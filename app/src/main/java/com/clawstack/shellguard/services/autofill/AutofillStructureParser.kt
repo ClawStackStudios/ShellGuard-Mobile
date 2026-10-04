@@ -45,6 +45,10 @@ object AutofillStructureParser {
             traverseNode(windowNode.rootViewNode, result, 0, activeWebDomain = null)
         }
 
+        if (result.packageName.isNullOrBlank()) {
+            result.packageName = structure.activityComponent?.packageName
+        }
+
         return result
     }
 
@@ -120,7 +124,7 @@ object AutofillStructureParser {
                         if (attributes != null) {
                             for (pair in attributes) {
                                 val attrName = pair.first.lowercase(Locale.ROOT)
-                                val attrVal = pair.second.lowercase(Locale.ROOT)
+                                val attrVal = pair.second?.lowercase(Locale.ROOT) ?: ""
 
                                 if (attrName == "type" && (attrVal == "password")) {
                                     if (result.passwordId == null) {

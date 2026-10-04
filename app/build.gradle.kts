@@ -125,6 +125,7 @@ dependencies {
   implementation(libs.androidx.security.crypto)
   implementation(libs.androidx.credentials)
   implementation(libs.androidx.credentials.play.services)
+  implementation(libs.androidx.autofill)
 
   implementation(libs.androidx.camera.camera2)
   implementation(libs.androidx.camera.lifecycle)

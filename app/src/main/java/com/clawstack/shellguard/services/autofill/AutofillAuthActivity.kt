@@ -71,13 +71,64 @@ class AutofillAuthActivity : FragmentActivity() {
             intent.getParcelableExtra(EXTRA_PASSWORD_ID)
         }
 
-        if (pearlId.isNullOrBlank()) {
+        val app = application as? ShellGuardApp
+        val deviceVault = app?.appContainer?.deviceVault
+        val isLocked = deviceVault?.getInMemoryShellKey() == null
+
+        if (isLocked) {
+            // Vault is completely locked/zeroized. Biometric auth won't help us decrypt anything.
+            // Route directly to MainActivity to prompt full ClawKey login.
+            val openIntent = Intent(this, com.clawstack.shellguard.MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            startActivity(openIntent)
             setResult(Activity.RESULT_CANCELED)
             finish()
             return
         }
 
+        if (pearlId.isNullOrBlank()) {
+            promptGeneralUnlockAuthentication()
+            return
+        }
+
         promptBiometricAuthentication(pearlId, usernameId, passwordId)
+    }
+
+    private fun promptGeneralUnlockAuthentication() {
+        val executor = ContextCompat.getMainExecutor(this)
+        val prompt = BiometricPrompt(this, executor, object : BiometricPrompt.AuthenticationCallback() {
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                super.onAuthenticationSucceeded(result)
+                val openIntent = Intent(this@AutofillAuthActivity, com.clawstack.shellguard.MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                }
+                startActivity(openIntent)
+                setResult(Activity.RESULT_OK)
+                finish()
+            }
+
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                super.onAuthenticationError(errorCode, errString)
+                setResult(Activity.RESULT_CANCELED)
+                finish()
+            }
+
+            override fun onAuthenticationFailed() {
+                super.onAuthenticationFailed()
+            }
+        })
+
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Unlock ShellGuard")
+            .setSubtitle("Confirm identity to open vault")
+            .setAllowedAuthenticators(
+                androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                        androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
+            )
+            .build()
+
+        prompt.authenticate(promptInfo)
     }
 
     private fun promptBiometricAuthentication(

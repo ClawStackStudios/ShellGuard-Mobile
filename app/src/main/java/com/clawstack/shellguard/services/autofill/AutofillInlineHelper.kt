@@ -2,31 +2,53 @@ package com.clawstack.shellguard.services.autofill
 
 import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.service.autofill.InlinePresentation
-import android.util.Size
-import android.view.View
-import android.view.autofill.AutofillId
 import android.widget.inline.InlinePresentationSpec
 import androidx.annotation.RequiresApi
+import androidx.autofill.inline.v1.InlineSuggestionUi
 
 /**
  * Helper to construct Android 11+ (API 30+) Keyboard Inline Suggestion chips
  * for Gboard, SwiftKey, and modern IME keyboards.
  *
- * All invocations are guarded by Build.VERSION.SDK_INT >= Build.VERSION_CODES.R.
+ * Utilizes the official AndroidX Autofill Inline Suggestion Slice Protocol
+ * to guarantee that suggestion chips are parsed and rendered by IMEs.
  */
 @RequiresApi(Build.VERSION_CODES.R)
 object AutofillInlineHelper {
 
     fun createInlinePresentation(
+        context: Context,
         spec: InlinePresentationSpec,
-        pinned: Boolean = false
+        title: String,
+        subtitle: String = "",
+        icon: Icon? = null,
+        pinned: Boolean = false,
+        attributionIntent: PendingIntent? = null
     ): InlinePresentation {
-        val slice = android.app.slice.Slice.Builder(
-            android.net.Uri.parse("content://com.clawstack.shellguard.autofill/inline"),
-            android.app.slice.SliceSpec("inline_suggestion", 1)
-        ).build()
+        val safeAttribution = attributionIntent ?: PendingIntent.getActivity(
+            context,
+            0,
+            Intent(),
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val builder = InlineSuggestionUi.newContentBuilder(safeAttribution)
+            .setTitle(title)
+            .setContentDescription(title)
+
+        if (subtitle.isNotBlank()) {
+            builder.setSubtitle(subtitle)
+        }
+
+        if (icon != null) {
+            builder.setStartIcon(icon)
+        }
+
+        val slice = builder.build().slice
 
         return InlinePresentation(slice, spec, pinned)
     }

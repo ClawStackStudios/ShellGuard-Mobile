@@ -6,6 +6,7 @@ import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.Icon
 import android.net.Uri
 import android.os.Build
 import android.os.CancellationSignal
@@ -121,10 +122,79 @@ class ShellGuardAutofillService : AutofillService() {
                 responseBuilder.setSaveInfo(saveInfoBuilder.build())
             }
 
+            val app = applicationContext as? ShellGuardApp
+            val lockManager = app?.appContainer?.vaultLockManager
+            val shellKey = deviceVault.getInMemoryShellKey()
+            val isVaultLocked = (shellKey == null) || (lockManager?.isVaultLocked?.value == true)
+
+            val inlineRequest = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                request.inlineSuggestionsRequest
+            } else null
+
+            val fillUrl = when {
+                !targetDomain.isNullOrBlank() -> if (targetDomain.startsWith("http://") || targetDomain.startsWith("https://")) targetDomain else "https://$targetDomain"
+                !targetPackage.isNullOrBlank() -> "androidapp://$targetPackage"
+                else -> ""
+            }
+
+            // Case A: No matched items -> ONLY show "Add Item" option chip
             if (matchedPearls.isEmpty()) {
-                // If fields were detected but no stored pearls matched, provide the SaveInfo
-                // response so the user can save newly created credentials after login/registration.
-                if (parsedFields.passwordId != null) {
+                val primaryFieldId = parsedFields.passwordId ?: parsedFields.usernameId
+                if (primaryFieldId != null) {
+                    val fallbackDatasetBuilder = Dataset.Builder()
+                    val displaySub = targetDomain ?: targetPackage ?: "ShellGuard"
+
+                    val fallbackPresentation = RemoteViews(packageName, R.layout.autofill_suggestion_item).apply {
+                        setTextViewText(R.id.autofill_title, "Add Item")
+                        setTextViewText(R.id.autofill_subtitle, displaySub)
+                    }
+
+                    val fallbackInlinePresentation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && inlineRequest != null) {
+                        val spec = inlineRequest.inlinePresentationSpecs.firstOrNull()
+                        if (spec != null) {
+                            AutofillInlineHelper.createInlinePresentation(
+                                context = applicationContext,
+                                spec = spec,
+                                title = "Add Item",
+                                subtitle = displaySub,
+                                icon = Icon.createWithResource(applicationContext, R.drawable.ic_locked_shell)
+                            )
+                        } else null
+                    } else null
+
+                    val addItemIntent = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse("shellguard://app/form/NEW/PASSWORD/new?url=${Uri.encode(fillUrl)}")
+                    ).apply {
+                        setPackage(packageName)
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    }
+
+                    val intentSender = PendingIntent.getActivity(
+                        applicationContext,
+                        8888,
+                        addItemIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    ).intentSender
+
+                    fallbackDatasetBuilder.setAuthentication(intentSender)
+
+                    if (fallbackInlinePresentation != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        fallbackDatasetBuilder.setValue(
+                            primaryFieldId,
+                            null,
+                            fallbackPresentation,
+                            fallbackInlinePresentation
+                        )
+                    } else {
+                        fallbackDatasetBuilder.setValue(
+                            primaryFieldId,
+                            null,
+                            fallbackPresentation
+                        )
+                    }
+
+                    responseBuilder.addDataset(fallbackDatasetBuilder.build())
                     callback.onSuccess(responseBuilder.build())
                 } else {
                     callback.onSuccess(null)
@@ -132,23 +202,41 @@ class ShellGuardAutofillService : AutofillService() {
                 return@launch
             }
 
-            val shellKey = deviceVault.getInMemoryShellKey()
-            val isVaultLocked = (shellKey == null)
-
-            val inlineRequest = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                request.inlineSuggestionsRequest
-            } else null
-
+            // Case B: Matches found -> Display matched URI / credentials inline
+            var datasetAdded = false
             for (pearl in matchedPearls) {
                 val datasetBuilder = Dataset.Builder()
 
+                // If vault is locked, display the matched URI string inline so the user sees site parity without leaking secret titles
+                val chipTitle = if (isVaultLocked) {
+                    val uriCandidate = pearl.url.ifBlank { targetDomain ?: targetPackage ?: "ShellGuard" }
+                    uriCandidate
+                        .removePrefix("https://")
+                        .removePrefix("http://")
+                        .removePrefix("androidapp://")
+                        .substringBefore("/")
+                } else {
+                    pearl.title
+                }
+
+                val chipSubtitle = if (isVaultLocked) {
+                    "Unlock Vault"
+                } else if (pearl.reprompt) {
+                    "Unlock Vault"
+                } else {
+                    pearl.username.ifBlank { "Password" }
+                }
+
+                val chipIcon = if (isVaultLocked || pearl.reprompt) {
+                    Icon.createWithResource(applicationContext, R.drawable.ic_locked_shell)
+                } else {
+                    null
+                }
+
                 // RemoteViews Dropdown Presentation
                 val presentation = RemoteViews(packageName, R.layout.autofill_suggestion_item).apply {
-                    setTextViewText(R.id.autofill_title, pearl.title)
-                    setTextViewText(
-                        R.id.autofill_subtitle,
-                        pearl.username.ifBlank { "No Username" }
-                    )
+                    setTextViewText(R.id.autofill_title, chipTitle)
+                    setTextViewText(R.id.autofill_subtitle, chipSubtitle)
                 }
 
                 // Android 11+ (API 30+) Keyboard Inline Suggestion Chip
@@ -156,11 +244,17 @@ class ShellGuardAutofillService : AutofillService() {
                     val specs = inlineRequest.inlinePresentationSpecs
                     val spec = specs.firstOrNull()
                     if (spec != null) {
-                        AutofillInlineHelper.createInlinePresentation(spec)
+                        AutofillInlineHelper.createInlinePresentation(
+                            context = applicationContext,
+                            spec = spec,
+                            title = chipTitle,
+                            subtitle = chipSubtitle,
+                            icon = chipIcon
+                        )
                     } else null
                 } else null
 
-                // If vault is locked or Claw Re-Prompt is enabled, wrap with authentication
+                // If vault is locked or Claw Re-Prompt is enabled, require authentication
                 if (isVaultLocked || pearl.reprompt) {
                     val authIntent = Intent(applicationContext, AutofillAuthActivity::class.java).apply {
                         data = Uri.parse("shellguard://autofill/pearl/${pearl.id}")
@@ -176,12 +270,46 @@ class ShellGuardAutofillService : AutofillService() {
                     ).intentSender
 
                     datasetBuilder.setAuthentication(intentSender)
+
+                    parsedFields.usernameId?.let { userFieldId ->
+                        if (inlinePresentation != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                            datasetBuilder.setValue(
+                                userFieldId,
+                                null,
+                                presentation,
+                                inlinePresentation
+                            )
+                        } else {
+                            datasetBuilder.setValue(
+                                userFieldId,
+                                null,
+                                presentation
+                            )
+                        }
+                    }
+
+                    parsedFields.passwordId?.let { passFieldId ->
+                        if (inlinePresentation != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                            datasetBuilder.setValue(
+                                passFieldId,
+                                null,
+                                presentation,
+                                inlinePresentation
+                            )
+                        } else {
+                            datasetBuilder.setValue(
+                                passFieldId,
+                                null,
+                                presentation
+                            )
+                        }
+                    }
                 } else {
                     // Decrypt credentials directly in memory (Fail CLOSED on decryption error)
                     val decryptedPassword = try {
                         cryptoEngine.decryptField(
                             pearl.secret,
-                            shellKey,
+                            shellKey!!,
                             ShellCryptionEngine.AadNamespace.pearlSecret(pearl.id)
                         )
                     } catch (e: Exception) {
@@ -199,7 +327,7 @@ class ShellGuardAutofillService : AutofillService() {
                         try {
                             val plainTotpSecret = cryptoEngine.decryptField(
                                 pearl.totpSecret,
-                                shellKey,
+                                shellKey!!,
                                 ShellCryptionEngine.AadNamespace.pearlTotp(pearl.id)
                             )
                             val totpCode = TotpEngine.generateTotp(plainTotpSecret)
@@ -242,19 +370,15 @@ class ShellGuardAutofillService : AutofillService() {
                     }
                 }
 
-                // Attach presentation if not already attached via setValue
-                if (isVaultLocked || pearl.reprompt) {
-                    parsedFields.usernameId?.let { userFieldId ->
-                        datasetBuilder.setValue(userFieldId, null, presentation)
-                    } ?: parsedFields.passwordId?.let { passFieldId ->
-                        datasetBuilder.setValue(passFieldId, null, presentation)
-                    }
-                }
-
                 responseBuilder.addDataset(datasetBuilder.build())
+                datasetAdded = true
             }
 
-            callback.onSuccess(responseBuilder.build())
+            if (!datasetAdded) {
+                callback.onSuccess(null)
+            } else {
+                callback.onSuccess(responseBuilder.build())
+            }
         }
     }
 

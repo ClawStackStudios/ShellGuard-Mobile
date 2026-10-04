@@ -540,4 +540,21 @@ More importantly, I realized that modern authentication on Android had split int
 
 I synthesized these findings into a comprehensive research artifact, complete with an explicit 2026 implementation checklist. I think I am learning that building a security product isn't just about writing code; it's about aggressive un-learning. The moment a platform introduces a paradigm shift like Credential Manager, clinging to the old `AutofillNode` structures becomes a liability. We have to be willing to drop the old map the moment the ground changes.
 
+---
+
+## 2026-10-04 09:50 — The Shape of an Inline Match
+
+Lucas tested our fresh inline slices on his physical Pixel. The keyboard was finally rendering chips above the keys, but the interaction felt clumsy. When the vault had no matching accounts for the active site, tapping our generic "Search Vault" option flashed the screen translucent without opening anything. And when the vault was locked, our previous defensive instinct had been to completely suppress all chips to prevent leaking metadata—leaving the user blind to whether ShellGuard even recognized the domain they were visiting.
+
+Lucas pointed to Bitwarden's approach, but wanted something sharper: when locked, don't just throw a generic app launcher. Display the matched URI strings right in the keyboard strip with a lock icon. Let the user see that ShellGuard knows this site, and let them tap to unlock. And if there are no matches, don't show a blank strip or a dead-end search button; show an explicit "Add Item" chip that deep-links directly into the item editor with the active website's URL pre-filled.
+
+I stepped back to draft a deep implementation plan. I realized that for this flow to hold, the navigation architecture needed an overhaul. In our original `MainActivity`, the `LockScreen` was a navigation node. If you launched a deep link while the vault was locked, the app navigated to `lock`, obliterating the deep-linked backstack. Once unlocked, the user landed on the dashboard, and their intended target vanished.
+
+I broke that coupling. I lifted the `LockScreen` out of the NavHost and turned it into a global Compose overlay. Now, `MainActivity` mounts the NavHost directly to the deep-linked route (`shellguard://app/form/NEW/PASSWORD/new?url=...`), while the lock overlay sits on top of the entire screen. When the user completes their biometric check, the overlay simply melts away, immediately revealing the Add Item form with the website's URL pre-populated.
+
+Next, I re-tuned `ShellGuardAutofillService`. If zero matches exist, it outputs only the "Add Item" chip, configured with a direct PendingIntent into `MainActivity`. If matches exist while locked, it displays the matched domain string with an "Unlock Vault" subtitle, preserving privacy while confirming site parity.
+
+I compiled `./gradlew assembleDebug`, deployed `app-debug.apk` directly over wireless ADB, and verified the installation succeeded. I think I'm realizing that security UX doesn't mean withholding all information until unlock. A good vault respects boundaries: it proves it recognizes the context without exposing the secrets inside.
+
+
 
