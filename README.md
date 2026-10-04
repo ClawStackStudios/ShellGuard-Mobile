@@ -85,6 +85,7 @@ Captured natively from physical Google Pixel hardware running Android 14 (Lineag
 
 ### 🌐 Autofill & Home Lab Integration
 - **Android Autofill Framework & Inline Suggestions**: Suggestion chips rendered directly above keyboards (Gboard, SwiftKey) on Android 11+ alongside standard dropdown popups.
+- **Context-Aware Locked Suggestions & Add Item**: Displays clean domain recognition with lock prompt when locked; offers single Add Item chip pre-filling website URL when zero matches exist.
 - **Multi-Mode URI Match Detection**: 5 matching algorithms (`BASE_DOMAIN`, `HOST`, `EXACT`, `STARTS_WITH`, `NEVER`) supporting multi-service home lab setups sharing identical IPs across different ports (`:8080` vs `:9000`).
 - **Cleartext LAN & Mesh Support**: Intentional support for local home labs (Unraid, TrueNAS, LAN IPs) and Tailscale/WireGuard mesh networks where domain TLS is absent.
 

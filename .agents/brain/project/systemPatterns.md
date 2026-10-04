@@ -43,6 +43,11 @@ UI (Compose) ──(UserIntent)──> ViewModel ──> UseCase ──> Reposit
 - **Defensive SaveInfo Form Intake**: Login and registration forms emit `SaveInfo` targeting explicit username and password IDs without leaking presentation labels.
 - **Quick Settings Tile**: `TileService` for instant search and password generation from the notifications shade.
 - **Glance AppWidgets**: Modern Jetpack Compose Glance 2x2 and 4x2 widgets for pinned logins and live TOTP codes.
+- **Context-Aware Locked Suggestions & Global Lock Overlay**:
+  - **Locked Inline Presentation**: When the vault is locked and domain matches exist, the IME inline strip displays the normalized domain string with "Unlock Vault" subtitle and lock icon (`ic_locked_shell`), signaling site recognition without leaking usernames or secret titles.
+  - **Zero-Match "Add Item" Fallback**: When 0 matches exist, the service displays exclusively an "Add Item" chip.
+  - **Translucent Activity Flash Mitigation**: Tapping "Add Item" uses a direct `PendingIntent` launching `shellguard://app/form/NEW/PASSWORD/new?url=[encoded_domain]` directly into `MainActivity`, bypassing translucent auth activities that cause background window flashing.
+  - **Global LockScreen Overlay**: `MainActivity` lifts `LockScreen` out of the Compose `NavHost` into a global root-level overlay. This decouples authentication state from routing: the deep-linked `ItemFormScreen` mounts with pre-populated URL and title arguments underneath, immediately visible upon biometric or PIN unlock.
 
 ## UI & Theming Patterns: Reef Modernist Mobile
 - **Bioluminescent Defense Aesthetic**: Dual-mode Abyssal Dark (`#0F1419` base, `#171C21` surface) and Ocean Mist (`#F1F5F9` base, `#FFFFFF` surface) with signature Lobster Red (`#E4048A`) and Claw Cyan (`#06B6D4`) neon conduits.

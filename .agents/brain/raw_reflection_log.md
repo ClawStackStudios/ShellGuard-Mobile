@@ -47,3 +47,25 @@ Successes:
 Improvements_Identified_For_Consolidation:
 - General pattern: Treat standard Compose form autofill (via Semantics) and passkey-enabled Authentication (via Credential Manager) as two distinct architectural stacks in 2026.
 ---
+
+---
+Date: 2026-10-04
+TaskRef: "Autofill Inline UX: Context-Aware Locked Suggestions & Add-Item Deep Linking (Hotfix 5.5 / v0.0.0.9)"
+
+Learnings:
+- Translucent activity window management: Launching a translucent activity (`AutofillAuthActivity`) from Autofill dataset and finishing with `RESULT_CANCELED` causes the Android OS window manager to bring the underlying browser back to foreground, burying `MainActivity`. Direct `PendingIntent.getActivity` with a deep-link URI reliably brings the app forward.
+- Decoupled Compose Lock Layer: Placing authentication routes inside `NavHost` (`navController.navigate("lock")`) destroys in-flight deep-link navigation arguments. Extracting `LockScreen` into a top-level Compose overlay conditional on `isUnlocked` lets `NavHost` retain deep-link routes underneath while shielding content until authentication succeeds.
+- Privacy-preserving inline chips: Displaying the recognized site domain with an "Unlock Vault" subtitle in the keyboard inline strip acknowledges vault matching without leaking usernames or account titles while locked.
+
+Difficulties:
+- Backstack loss across biometric unlock when deep-linking. Resolved with global overlay architecture.
+
+Successes:
+- Seamless deep linking with URI pre-fill tested live on Pixel.
+- Clean version bump to `0.0.0.9 (Build 9)` and roadmap synchronization.
+
+Improvements_Identified_For_Consolidation:
+- Pattern: Global Compose lock overlay for deep-link preservation across biometric auth.
+- Pattern: Context-aware locked inline suggestion presentation.
+---
+

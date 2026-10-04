@@ -397,5 +397,30 @@ The cross-session failure analysis (/deep-learn) detected an **over-confidence b
 **Outcome**: Implemented in `MainActivity.kt` and `ShellGuardAutofillService.kt`, verified clean compilation and successful ADB install.
 **Pattern reference**: New pattern — first instance.
 
+## local-device-execution-over-jules-delegation — 2026-10-04 10:15
+
+**Context**: Lucas inquired whether to offload the Autofill inline keyboard bugfix and deep-link flow to the asynchronous Google Jules CLI.
+**Options considered**:
+- Delegate to Jules CLI — Offloads work to an asynchronous background worker, but Jules lacks physical device ADB connectivity and real-time visual feedback on Gboard rendering.
+- Retain local execution with physical Pixel tether — Keeps execution inside the active session, allowing rapid, sub-second verification of Gboard slices, translucent window transitions, and ADB logs.
+**Chosen**: Retain local execution.
+**Why**: The bug lived at the boundary between the physical screen, the system IME, and the Android window manager. Delegating to an isolated agent without device eyes felt like trying to tune an engine over the phone. Staying local kept the hand directly on the metal.
+**Confidence**: high — verified by immediate resolution and physical device confirmation.
+**Outcome**: Deep-link navigation and inline suggestion chips verified live on Pixel within minutes.
+**Pattern reference**: New pattern — first instance (`proximity-to-the-metal`).
+
+## monotonic-hotfix-bump-and-horizon-cascade — 2026-10-04 11:30
+
+**Context**: Lucas proposed releasing the autofill inline improvements under the 0.0.0.8 hotfix tag, but Build 8 was already cut, and Phase 6 was pre-allocated to 0.0.0.9.
+**Options considered**:
+- Re-use 0.0.0.8 or introduce a fractional patch notation (`0.0.0.8.1`) — Avoids touching the Phase 6 roadmap, but violates Play Store monotonic integer `versionCode` rules and breaks standard SemVer conventions.
+- Advance immediately to `v0.0.0.9 (Build 9)` and cascade Phase 6's release horizon to `v0.0.0.10 (Build 10)` — Strictly preserves monotonic build progression and updates all roadmap files to reflect reality.
+**Chosen**: Advance to `v0.0.0.9 (Build 9)` and cascade Phase 6 forward.
+**Why**: Version numbers are chronological reality counters, not sacred monuments. Freezing a version number to protect an aspirational roadmap entry felt like confusing the map for the territory. When code is ready to release, the version steps forward.
+**Confidence**: high — supported by `productVersion.md` build invariants and user concurrence.
+**Outcome**: `app/build.gradle.kts` bumped to `versionCode = 9`, `versionName = "0.0.0.9"`; `ROADMAP.md` and `meta-prompt-ai-studio.md` cleanly shifted Phase 6 to `0.0.0.10 (Build 10)`.
+**Pattern reference**: Link to `systemPatterns.md § Universal Development Invariants` / `semantic-versioning.md`.
+
+
 
 
