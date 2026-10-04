@@ -1,7 +1,7 @@
 # Progress: ShellGuard Mobile
 
-## Current Status: Release v0.0.0.8 (Build 8) Staged & Verified — Documentation Synchronized per docs-hygiene.md
-All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold, Phase 1 through Phase 5 have been released to GitHub. Hotfix 5.4 (`0.0.0.8`, Build 8) remediates Web UI item JSON array deserialization, introduces `ShellCryptionEngine.isEncryptedEnvelope`, normalizes downstream pull defaults, aligns Note masking with Web Client via default masked display (`••••••••••••••••••••••••••••••••`) and the Eye-beside-Copy action cluster with biometric re-prompt gating, and ensures full interoperability with items minted on the web vault with 100% test pass rate across 83 tests. Release documentation and central anchors synchronized per `docs-hygiene.md`. Phase 6 baseline is targeted at `0.0.0.9 (Build 9)`.
+## Current Status: Release v0.0.0.9 (Build 9) Staged & Verified — Documentation Synchronized per docs-hygiene.md
+All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold, Phase 1 through Phase 5 have been released to GitHub. Hotfix 5.5 (`0.0.0.9`, Build 9) delivers context-aware inline autofill suggestion chips when locked, resolves translucent activity flash with direct deep-link PendingIntents, pre-populates URI into `ItemFormScreen`, and elevates `LockScreen` to a global overlay in `MainActivity`. 83 unit tests passing 100% green. Phase 6 baseline is targeted at `0.0.0.10 (Build 10)`.
 
 
 ## What Works (Documented, Designed & Scaffolded)
@@ -123,9 +123,17 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
   - Added one-tap copy button to login item notes sections and ratified Redline 8 in `testOracle.md`.
   - Added unit test coverage in `ShellCryptionEngineTest` and `SyncRepositoryTest`; all 83 unit tests passing 100% green.
   - Deployed and verified live on physical Google Pixel (`sailfish`).
+- [x] **Hotfix 5.5 / Autofill UX: Context-Aware Locked Inline Chips & Add-Item Deep Linking (`v0.0.0.9`, Build 9)**:
+  - Resolved translucent activity background flash by bypassing `AutofillAuthActivity` for zero-match navigation, using direct `PendingIntent.getActivity` targeting `shellguard://app` deep links.
+  - Configured `ShellGuardAutofillService` to show locked domain chips (`normalizedDomain` + `"Unlock Vault"` subtitle) when vault is locked and domain matches exist.
+  - Emits exclusively the "Add Item" chip when 0 matches exist.
+  - Registered `shellguard://app/form/...` deep link in `AndroidManifest.xml` and wired `navDeepLink` in `MainActivity.kt`.
+  - Pre-populates item title and URL in `ItemFormViewModel` from incoming URI query arguments.
+  - Elevated `LockScreen` to a global Compose overlay in `MainActivity`, preserving deep-linked backstack and form arguments across unlock.
+  - Full test suite passing 100% green (83/83 unit tests); `app-debug.apk` deployed and live verified on Google Pixel (`sailfish`).
 
 ## What's Left to Build (Phase 6)
-- [ ] Phase 6: Settings, Backup Bridge & Release Hardening (Tasks 11 & 12).
+- [ ] Phase 6: Settings, Backup Bridge & Release Hardening (Tasks 11 & 12) — Target: v0.0.0.10 (Build 10).
   - Settings Hub & Security sub-screen (`SettingsSecurityScreen`) with Vault Unlock Methods (Biometrics toggle, 4-8 digit PIN toggle & management).
   - Cold-Start / Process Kill Lock Persistence in `VaultLockManager` (locks on app restart or timeout elapsed).
   - Numerical PIN entry pad and offline unlock support on `LockScreen`.

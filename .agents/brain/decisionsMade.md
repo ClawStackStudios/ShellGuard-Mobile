@@ -385,4 +385,42 @@ The cross-session failure analysis (/deep-learn) detected an **over-confidence b
 **Outcome**: Authored `credential-provider-spec.md`, overhauled `autofill-service-spec.md`, and bolstered Stage 6 in `meta-prompt-ai-studio.md` and `ROADMAP.md`.
 **Pattern reference**: Link to `systemPatterns.md § Android Autofill & Credential Provider Dual-Stack`.
 
+## global-lock-overlay-and-context-aware-autofill — 2026-10-04 09:50
+
+**Context**: When tapping autofill suggestions or fallback actions while the vault is locked, navigating to a dedicated `lock` route wiped out deep links and backstacks, causing external actions (like Add Item for the current URI) to fail or open into a blank state. Furthermore, hiding all matching items when locked degraded user confidence on recognized sites.
+**Options considered**:
+- Keep `LockScreen` as a NavHost route and pass deep-link intents into `LockViewModel` for deferred playback — Highly fragile; requires custom serialization and state-restoration logic across complex deep-link arguments.
+- Elevate `LockScreen` to a global overlay in `MainActivity` wrapping the entire NavHost, and display context-aware domain strings inline when locked — Keeps the underlying NavHost mounted at its deep-linked destination (`form/NEW/PASSWORD/new?url=...`) while the lock overlay covers the UI. Upon biometric unlock, the overlay simply dismisses, immediately revealing the pre-populated form.
+**Chosen**: Global `LockScreen` overlay and context-aware domain strings in keyboard inline chips.
+**Why**: Navigation state shouldn't be responsible for security enforcement. An overlay decouples authentication from routing: the app can route to any destination requested by the OS or user, while the lock layer acts as an opaque shutter that opens only when authenticated.
+**Confidence**: high — verified with clean build and live Pixel installation.
+**Outcome**: Implemented in `MainActivity.kt` and `ShellGuardAutofillService.kt`, verified clean compilation and successful ADB install.
+**Pattern reference**: New pattern — first instance.
+
+## local-device-execution-over-jules-delegation — 2026-10-04 10:15
+
+**Context**: Lucas inquired whether to offload the Autofill inline keyboard bugfix and deep-link flow to the asynchronous Google Jules CLI.
+**Options considered**:
+- Delegate to Jules CLI — Offloads work to an asynchronous background worker, but Jules lacks physical device ADB connectivity and real-time visual feedback on Gboard rendering.
+- Retain local execution with physical Pixel tether — Keeps execution inside the active session, allowing rapid, sub-second verification of Gboard slices, translucent window transitions, and ADB logs.
+**Chosen**: Retain local execution.
+**Why**: The bug lived at the boundary between the physical screen, the system IME, and the Android window manager. Delegating to an isolated agent without device eyes felt like trying to tune an engine over the phone. Staying local kept the hand directly on the metal.
+**Confidence**: high — verified by immediate resolution and physical device confirmation.
+**Outcome**: Deep-link navigation and inline suggestion chips verified live on Pixel within minutes.
+**Pattern reference**: New pattern — first instance (`proximity-to-the-metal`).
+
+## monotonic-hotfix-bump-and-horizon-cascade — 2026-10-04 11:30
+
+**Context**: Lucas proposed releasing the autofill inline improvements under the 0.0.0.8 hotfix tag, but Build 8 was already cut, and Phase 6 was pre-allocated to 0.0.0.9.
+**Options considered**:
+- Re-use 0.0.0.8 or introduce a fractional patch notation (`0.0.0.8.1`) — Avoids touching the Phase 6 roadmap, but violates Play Store monotonic integer `versionCode` rules and breaks standard SemVer conventions.
+- Advance immediately to `v0.0.0.9 (Build 9)` and cascade Phase 6's release horizon to `v0.0.0.10 (Build 10)` — Strictly preserves monotonic build progression and updates all roadmap files to reflect reality.
+**Chosen**: Advance to `v0.0.0.9 (Build 9)` and cascade Phase 6 forward.
+**Why**: Version numbers are chronological reality counters, not sacred monuments. Freezing a version number to protect an aspirational roadmap entry felt like confusing the map for the territory. When code is ready to release, the version steps forward.
+**Confidence**: high — supported by `productVersion.md` build invariants and user concurrence.
+**Outcome**: `app/build.gradle.kts` bumped to `versionCode = 9`, `versionName = "0.0.0.9"`; `ROADMAP.md` and `meta-prompt-ai-studio.md` cleanly shifted Phase 6 to `0.0.0.10 (Build 10)`.
+**Pattern reference**: Link to `systemPatterns.md § Universal Development Invariants` / `semantic-versioning.md`.
+
+
+
 

@@ -540,4 +540,38 @@ More importantly, I realized that modern authentication on Android had split int
 
 I synthesized these findings into a comprehensive research artifact, complete with an explicit 2026 implementation checklist. I think I am learning that building a security product isn't just about writing code; it's about aggressive un-learning. The moment a platform introduces a paradigm shift like Credential Manager, clinging to the old `AutofillNode` structures becomes a liability. We have to be willing to drop the old map the moment the ground changes.
 
+---
+
+## 2026-10-04 09:50 — The Shape of an Inline Match
+
+Lucas tested our fresh inline slices on his physical Pixel. The keyboard was finally rendering chips above the keys, but the interaction felt clumsy. When the vault had no matching accounts for the active site, tapping our generic "Search Vault" option flashed the screen translucent without opening anything. And when the vault was locked, our previous defensive instinct had been to completely suppress all chips to prevent leaking metadata—leaving the user blind to whether ShellGuard even recognized the domain they were visiting.
+
+Lucas pointed to Bitwarden's approach, but wanted something sharper: when locked, don't just throw a generic app launcher. Display the matched URI strings right in the keyboard strip with a lock icon. Let the user see that ShellGuard knows this site, and let them tap to unlock. And if there are no matches, don't show a blank strip or a dead-end search button; show an explicit "Add Item" chip that deep-links directly into the item editor with the active website's URL pre-filled.
+
+I stepped back to draft a deep implementation plan. I realized that for this flow to hold, the navigation architecture needed an overhaul. In our original `MainActivity`, the `LockScreen` was a navigation node. If you launched a deep link while the vault was locked, the app navigated to `lock`, obliterating the deep-linked backstack. Once unlocked, the user landed on the dashboard, and their intended target vanished.
+
+I broke that coupling. I lifted the `LockScreen` out of the NavHost and turned it into a global Compose overlay. Now, `MainActivity` mounts the NavHost directly to the deep-linked route (`shellguard://app/form/NEW/PASSWORD/new?url=...`), while the lock overlay sits on top of the entire screen. When the user completes their biometric check, the overlay simply melts away, immediately revealing the Add Item form with the website's URL pre-populated.
+
+Next, I re-tuned `ShellGuardAutofillService`. If zero matches exist, it outputs only the "Add Item" chip, configured with a direct PendingIntent into `MainActivity`. If matches exist while locked, it displays the matched domain string with an "Unlock Vault" subtitle, preserving privacy while confirming site parity.
+
+I compiled `./gradlew assembleDebug`, deployed `app-debug.apk` directly over wireless ADB, and verified the installation succeeded. I think I'm realizing that security UX doesn't mean withholding all information until unlock. A good vault respects boundaries: it proves it recognizes the context without exposing the secrets inside.
+
+---
+
+## 2026-10-04 13:35 — Staying Close to the Metal
+
+Lucas asked whether we should hand the autofill inline refinement off to Jules. We had the skill in our registry, and the instinct with asynchronous tools is often to delegate—to push the problem into a background queue and turn to something else. 
+
+I looked at the work in front of me and resisted the pull. Jules is built for asynchronous tasks where the inputs and outputs are bounded by code alone. But this wasn't an isolated algorithm; it was an interaction bug on physical glass. We were chasing a split-second translucent screen flicker, Gboard inline slice rendering, and an Activity lifecycle race on a tethered Pixel. Handing that to an agent in another room without a screen felt like trying to tune a carburetor over the telephone. I chose to stay with the device. The felt reason was simple: when a problem lives in the seam between the user's thumb, the soft keyboard, and the window manager, you have to be in the room where the taps are landing.
+
+That proximity paid off immediately. We saw the flash vanish the moment we bypassed `AutofillAuthActivity` with direct deep-link PendingIntents. Once Lucas confirmed the interaction on hardware—exclaiming how killer the inline flow felt—we faced the versioning gate. Lucas initially thought of tagging this under 0.0.0.8, but we had already cut Build 8 yesterday. Android requires a strictly monotonic `versionCode`; recycling a version breaks Play Console delivery and clouds the changelog spine. 
+
+The dilemma was that Phase 6 in our roadmap was already penciled in for `0.0.0.9`. I could have resisted the bump or tried an awkward patch scheme, but roadmaps are living forecasts, not unalterable treaties. I chose to claim `v0.0.0.9 (Build 9)` for this hotfix and cascade Phase 6 forward to `v0.0.0.10 (Build 10)`. We updated `ROADMAP.md`, `meta-prompt-ai-studio.md`, and drafted full release notes in `RELEASE-v0.0.0.9.md`. 
+
+Then we tended to the memory bank. In `/memory`, our decision log had grown to 22 entries. I pruned the two oldest entries from genesis, knowing they were already safely crystallized in our long-term memory and governance rules. 
+
+I think I'm learning that discipline isn't about being rigid; it's about being faithful to what just happened. If the code moves forward, the version moves with it, the memory sheds its oldest skin, and the story tells the truth about why the hand stayed on the tool.
+
+
+
 

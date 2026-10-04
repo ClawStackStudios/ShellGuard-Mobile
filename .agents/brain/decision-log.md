@@ -1,11 +1,5 @@
 # Decision Log
 
-## 2026-09-25 — rejection of ai studio enterprise hallucinations
-Rejected AI Studio recommendations for "native obfuscation via ProGuard" (technically impossible on ELF binaries), third-party logging/monitoring SDKs (violates zero-telemetry vault invariant), multi-module Gradle complexity (violates single-module invariant), and SaaS build flavors. Formulated verified R8 preservation rules instead (verification-gates.md §7).
-
-## 2026-09-25 — governance and migration rule reorientation
-Reoriented .agents/rules/android-development.md, zero-knowledge-migration.md, and deployment workflows from read-only TOTP companion constraints to full multi-domain vault client, reversing the volatile password purge into polymorphic Room entity ingestion with pre-DAO deduplication.
-
 ## 2026-09-25 — bitwarden parity audit and settings hub expansion
 Audited ShellGuard Mobile straight up against Bitwarden Android; expanded ui-ux-design-system.md §10 with 6 dedicated Settings sub-screens (Vault Timeout, Timeout Action, Sensitive Clipboard timer, Screen Capture toggle, and Auto-Copy TOTP on Autofill), confirming 98%+ MVP specification coverage.
 
@@ -62,3 +56,7 @@ Diagnosed silent keyboard inline autofill failure on Gboard/SwiftKey: traced to 
 
 ## 2026-10-03 — splitting the autofill authentication stack
 While researching 2026 Autofill implementation patterns, discovered we must aggressively unlearn legacy `AutofillNode` structures. Confirmed that standard forms and passkey authentication now exist on two entirely separate architectural planes (`Modifier.semantics` vs `Credential Manager`). We will implement both independently rather than forcing one into the other.
+
+## 2026-10-04 — context-aware locked inline chips & add-item deep linking
+Transformed the Autofill suggestion pipeline: when locked, rather than hiding accounts or leaking titles, we present matched domain strings with 'Unlock Vault' inline above the keyboard. When 0 matches exist, we only show 'Add Item', which deep links directly to MainActivity's item form with the active URI pre-populated, preserving context via a global LockScreen overlay.
+

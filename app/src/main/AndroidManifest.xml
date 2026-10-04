@@ -33,6 +33,14 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="shellguard"
+                    android:host="app" />
+            </intent-filter>
         </activity>
 
         <!-- System-Level Autofill Service -->
@@ -45,6 +53,9 @@
                 <action android:name="android.service.autofill.AutofillService" />
             </intent-filter>
             <meta-data
+                android:name="android.autofill"
+                android:resource="@xml/autofill_service_config" />
+            <meta-data
                 android:name="android.service.autofill"
                 android:resource="@xml/autofill_service_config" />
         </service>
@@ -52,6 +63,26 @@
         <!-- Transparent Autofill Biometric Authorization Gate -->
         <activity
             android:name=".services.autofill.AutofillAuthActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!-- Android 14+ (API 34+) Credential Provider Service -->
+        <service
+            android:name=".services.credentials.ShellGuardCredentialProviderService"
+            android:label="@string/credential_provider_label"
+            android:permission="android.permission.BIND_CREDENTIAL_PROVIDER_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.credentials.CredentialProviderService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.credentials.credential_provider"
+                android:resource="@xml/credential_provider_config" />
+        </service>
+
+        <!-- Transparent Credential Manager Biometric Authorization Gate -->
+        <activity
+            android:name=".services.credentials.CredentialAuthActivity"
             android:exported="false"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
     </application>

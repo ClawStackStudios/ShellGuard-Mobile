@@ -1,6 +1,7 @@
 package com.clawstack.shellguard.ui.screens.settings
 
 import android.content.Context
+import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -183,16 +184,27 @@ fun AutofillSettingsDialog(
                 if (!isEnabled) {
                     Button(
                         onClick = {
-                            val intent = AutofillManagerHelper.createSetAutofillServiceIntent(context)
-                            if (intent != null) {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                                 try {
+                                    val preferredIntent = AutofillManagerHelper.createOpenPreferredServiceSettingsIntent()
+                                    context.startActivity(preferredIntent)
+                                } catch (_: Exception) {
+                                    val intent = AutofillManagerHelper.createSetAutofillServiceIntent(context)
+                                        ?: AutofillManagerHelper.createOpenAutofillSettingsIntent()
                                     context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    val fallback = AutofillManagerHelper.createOpenAutofillSettingsIntent()
-                                    context.startActivity(fallback)
                                 }
                             } else {
-                                Toast.makeText(context, "Autofill not supported on this Android version", Toast.LENGTH_SHORT).show()
+                                val intent = AutofillManagerHelper.createSetAutofillServiceIntent(context)
+                                if (intent != null) {
+                                    try {
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        val fallback = AutofillManagerHelper.createOpenAutofillSettingsIntent()
+                                        context.startActivity(fallback)
+                                    }
+                                } else {
+                                    Toast.makeText(context, "Autofill not supported on this Android version", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
@@ -206,7 +218,15 @@ fun AutofillSettingsDialog(
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Enable in Android Settings", color = Color.White, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                                "Set as Preferred Service (Android 14+)"
+                            } else {
+                                "Enable in Android Settings"
+                            },
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))

@@ -155,27 +155,39 @@ Faithfully ported from ClawChives-Mobile to provide a unified entry point into t
 
 Single-Activity Compose Navigation with NavHost is used to route between all primary app functions.
 
+### Decoupled Global LockScreen Overlay
+Authentication state is decoupled from navigation routing. Instead of treating `LockScreen` as a transient NavHost route (which wipes in-flight backstacks and deep-link arguments), `LockScreen` is elevated to a **top-level Compose overlay** in `MainActivity`. The underlying `NavHost` mounts deep links (`shellguard://app/form/...`) directly, while the biometric/PIN lock overlay sits on top as an opaque shutter. Upon successful authentication, the overlay dismisses, immediately revealing the targeted screen and arguments.
+
 ```mermaid
 graph TD
-    A[Screen.Gateway] --> B[Screen.Lock]
-    A --> C[Screen.HatchVault]
-    B --> D[Screen.VaultDashboard]
-    C --> D
-    
-    D --> E[Screen.VaultDetail]
-    D --> F[Screen.AddItem]
-    D --> G[Screen.EditItem]
-    
-    F --> H[Screen.QrScanner]
-    F --> I[Screen.AddSecret]
-    
-    D --> J[Screen.Settings]
-    J --> K[Screen.SettingsAppearance]
-    J --> L[Screen.SettingsSecurity]
-    J --> M[Screen.SettingsSync]
-    J --> N[Screen.SettingsAutofill]
-    J --> O[Screen.SettingsBackups]
-    J --> P[Screen.SettingsAbout]
+    subgraph GlobalOverlay ["Root UI Layer (MainActivity)"]
+        Lock[Global LockScreen Overlay<br/>BiometricPrompt / PIN Pad]
+    end
+
+    subgraph NavHostFlow ["Compose NavHost Graph"]
+        A[Screen.Gateway] --> C[Screen.HatchVault]
+        A --> D[Screen.VaultDashboard]
+        C --> D
+        
+        DeepLink["Deep Link: shellguard://app/form/..."] --> F[Screen.AddItem / ItemForm]
+
+        D --> E[Screen.VaultDetail]
+        D --> F
+        D --> G[Screen.EditItem]
+        
+        F --> H[Screen.QrScanner]
+        F --> I[Screen.AddSecret]
+        
+        D --> J[Screen.Settings]
+        J --> K[Screen.SettingsAppearance]
+        J --> L[Screen.SettingsSecurity]
+        J --> M[Screen.SettingsSync]
+        J --> N[Screen.SettingsAutofill]
+        J --> O[Screen.SettingsBackups]
+        J --> P[Screen.SettingsAbout]
+    end
+
+    Lock -.->|Dismisses upon Unlock| NavHostFlow
 ```
 
 ## 5. Vault Dashboard (Master-Detail Pattern)

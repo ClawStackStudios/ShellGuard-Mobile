@@ -1,10 +1,10 @@
 ---
 roadmap_version: 1.0.0
-last_updated: 2026-10-03
-current_position: "Hotfix 5.4 Complete (Tasks 10.1 & 10.2) — Baseline v0.0.0.8 (Build 8): Web Interoperability & Secure Note Parity verified 100% green; ready for Phase 6"
+last_updated: 2026-10-04
+current_position: "Hotfix 5.5 Complete (Task 10.3) — Baseline v0.0.0.9 (Build 9): Context-Aware Inline Autofill & Add-Item Deep Linking verified 100% green; ready for Phase 6"
 statistics:
   description: "Deterministic build roadmap for ShellGuard Mobile (Full Vault Android Client). Engineered strictly in synergistic 2-task phases where Task A delivers core functionality and Task B delivers the corresponding UI/UX component."
-  features_completed: "████████░░ 86%"
+  features_completed: "████████░░ 87%"
   features_in_progress: "░░░░░░░░░░ 0%"
 ---
 
@@ -157,7 +157,24 @@ statistics:
 
 ---
 
-## Phase 6: Settings, Backup Bridge & Release Hardening [Baseline: v0.0.0.9 (Build 9) — Milestone 1]
+## Hotfix 5.5: Context-Aware Inline Autofill & Add-Item Deep Linking [Baseline: v0.0.0.9 (Build 9)]
+
+> Hotfix Objective:
+> Resolve translucent activity background flashing on autofill fallback, implement context-aware inline suggestion chips displaying recognized domain strings with "Unlock Vault" when locked, render exclusively the "Add Item" option chip when 0 matches exist with deep-link navigation pre-populating current URI, decouple the Compose LockScreen into a global overlay in MainActivity to preserve deep-linked form arguments across biometric unlock, and harden against null boolean HTML attributes in WebViews.
+
+- [x] **Task 10.3: [Bugfix & UX Hardening] Locked Inline Recognition, Add-Item Deep Linking & Global Lock Overlay**
+  - Bypassed translucent `AutofillAuthActivity` for zero-match navigation using direct `PendingIntent.getActivity` targeting `shellguard://app/form/...` deep links.
+  - Configured `ShellGuardAutofillService` to show locked domain chips (`normalizedDomain` + `"Unlock Vault"` subtitle) when vault is locked and domain matches exist.
+  - Rendered exclusively "Add Item" chip when 0 matches exist.
+  - Registered `shellguard://app/form/` deep link in `AndroidManifest.xml` and wired `navDeepLink` in `MainActivity.kt`.
+  - Pre-populated item title and URL in `ItemFormViewModel` from incoming URI query arguments.
+  - Elevated `LockScreen` to a global Compose overlay in `MainActivity`, preserving deep-linked backstack and form arguments across unlock.
+  - Hardened `AutofillStructureParser` against null boolean HTML attribute value pairs.
+  - *Success Criteria*: Inline chips display recognized domain when locked; zero matches offer Add Item chip pre-filling website URL; form state preserved across unlock; 83/83 unit and Robolectric tests pass 100% green; live verified on Google Pixel hardware.
+
+---
+
+## Phase 6: Settings, Backup Bridge & Release Hardening [Baseline: v0.0.0.10 (Build 10) — Milestone 1]
 
 > Phase Feature Set Overview:
 > Delivers the categorized settings hub, `.sgvault.bak` full encrypted backup engine, and `.sgtotp.bak` companion bridge, paired immediately with adaptive launcher icons, Android 12+ splash screen, and 16 KB page alignment.

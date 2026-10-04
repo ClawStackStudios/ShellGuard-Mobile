@@ -5,6 +5,20 @@
 
 ---
 
+## `v0.0.0.9` — Phase 5: Context-Aware Autofill, Inline Chips & Deep Linking (Build 9)
+
+```xml
+<en-US>
+• Locked Inline Chips: Keyboard shows recognized domain with lock icon & unlock prompt.
+• Add Item Deep Link: Zero matches offer single Add Item chip pre-filling website URL.
+• Global Lock Overlay: Decoupled lock screen preserves in-flight form state & arguments.
+• WebView Stability: Hardened against null boolean attributes on login web pages.
+• 100% Green Test Suite: 83 unit & Robolectric tests verified on physical Pixel.
+</en-US>
+```
+
+---
+
 ## `v0.0.0.8` — Hotfix 5.4: Web Interoperability & Secure Note Parity (Build 8)
 
 ```xml

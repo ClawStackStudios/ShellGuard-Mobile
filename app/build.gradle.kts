@@ -14,8 +14,8 @@ android {
     applicationId = "com.clawstack.shellguard"
     minSdk = 24
     targetSdk = 36
-    versionCode = 8
-    versionName = "0.0.0.8"
+    versionCode = 9
+    versionName = "0.0.0.9"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -125,6 +125,7 @@ dependencies {
   implementation(libs.androidx.security.crypto)
   implementation(libs.androidx.credentials)
   implementation(libs.androidx.credentials.play.services)
+  implementation(libs.androidx.autofill)
 
   implementation(libs.androidx.camera.camera2)
   implementation(libs.androidx.camera.lifecycle)

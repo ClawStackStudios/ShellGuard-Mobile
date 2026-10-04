@@ -6,7 +6,7 @@
 
 ### Sovereign, privacy-first secrets vault native Android client with hardware-encrypted storage.
 
-[![Version](https://img.shields.io/badge/version-v0.0.0.8%20(Build%208)-E4048A?style=for-the-badge&logo=android&logoColor=white)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v0.0.0.9%20(Build%209)-E4048A?style=for-the-badge&logo=android&logoColor=white)](CHANGELOG.md)
 [![Android](https://img.shields.io/badge/Android-API%2024%E2%80%9336-3DDC84?style=for-the-badge&logo=android&logoColor=white)](app/build.gradle.kts)
 [![Security Policy](https://img.shields.io/badge/Security-Policy-00BCD4?style=for-the-badge&logo=shield&logoColor=white)](SECURITY.md)
 [![16KB Ready](https://img.shields.io/badge/Kernel-16%20KB%20Page--Size-7952B3?style=for-the-badge)](project/16kb-page-size-alignment-guide.md)
@@ -85,6 +85,7 @@ Captured natively from physical Google Pixel hardware running Android 14 (Lineag
 
 ### 🌐 Autofill & Home Lab Integration
 - **Android Autofill Framework & Inline Suggestions**: Suggestion chips rendered directly above keyboards (Gboard, SwiftKey) on Android 11+ alongside standard dropdown popups.
+- **Context-Aware Locked Suggestions & Add Item**: Displays clean domain recognition with lock prompt when locked; offers single Add Item chip pre-filling website URL when zero matches exist.
 - **Multi-Mode URI Match Detection**: 5 matching algorithms (`BASE_DOMAIN`, `HOST`, `EXACT`, `STARTS_WITH`, `NEVER`) supporting multi-service home lab setups sharing identical IPs across different ports (`:8080` vs `:9000`).
 - **Cleartext LAN & Mesh Support**: Intentional support for local home labs (Unraid, TrueNAS, LAN IPs) and Tailscale/WireGuard mesh networks where domain TLS is absent.
 

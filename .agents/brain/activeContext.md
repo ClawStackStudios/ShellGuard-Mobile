@@ -1,21 +1,21 @@
 # Active Context: ShellGuard Mobile
 
 ## Current Focus
-Autofill & Credential Provider Dual-Stack Research: Completed extensive 2026 API research, cementing the split between standard Compose Autofill (`Modifier.semantics`) and Passkey integration (`androidx.credentials:credentials`). Consolidated learnings into brain files.
+Phase 5 Autofill Refinement Complete (`v0.0.0.9`, Build 9): Delivered context-aware inline suggestion chips for domain matching when locked, streamlined zero-match fallback to an "Add Item" chip with deep-link navigation to pre-populate the current URI, lifted `LockScreen` out of `NavHost` into a global overlay in `MainActivity` to preserve deep-linked arguments across unlock, verified 83/83 unit tests passing 100% green, deployed to physical Google Pixel (`sailfish`), and recorded release commits.
 
 ## Recent Events (Sliding Window of 10)
-1. **2026-10-03**: Added `ShellCryptionEngine.isEncryptedEnvelope` and hardened `SyncRepository` detail getters, savers, and reconciliation passes.
-2. **2026-10-03**: Expanded test suite to 83 tests passing 100% green; built and installed `app-debug.apk` onto connected Google Pixel over ADB.
-3. **2026-10-03**: Aligned `VaultItemDomain.NOTE` in `ItemDetailScreen.kt` with Web Client: masked default display, Eye-beside-Copy cluster, and biometric re-prompt gating verified on Pixel.
-4. **2026-10-03**: Created branch `fix/web-interop-and-note-masking`, committed fixes (`19fb25b`), and bumped `versionCode = 8` / `versionName = "0.0.0.8"` (`877a983`).
-5. **2026-10-03**: Fast-forward merged `fix/web-interop-and-note-masking` into `main` and tagged `v0.0.0.8`.
-6. **2026-10-03**: Executed full `docs-hygiene.md` 10-point checklist: aligned `ROADMAP.md`, `README.md`, `SECURITY.md`, `CHANGELOG.md` (Keep a Changelog 1.1.0 with comparison links), `crypto-and-keystore.md`, and brain files.
-7. **2026-10-03**: Published Release `v0.0.0.8 (Build 8)` via GitHub Actions cloud pipeline (Run ID `37173690713`), verified `.aab` and `.apk` assets.
-8. **2026-10-03**: Diagnosed cold-start lock bypass; incorporated Vault Unlock Methods (Biometrics & PIN) and Cold-Start Lock Persistence into `meta-prompt-ai-studio.md` Stage 7 horizon and `ROADMAP.md` Task 11 (committed `1cb0351`, pushed to `origin/main`).
-9. **2026-10-03**: Investigated missing IME inline autofill chips; identified empty raw Slice defect and missing `InlineSuggestionUi` in `AutofillInlineHelper`; created branch `research/autofill-and-credential-provider`, authored `credential-provider-spec.md`, overhauled `autofill-service-spec.md`, and bolstered Stage 6 references in `meta-prompt-ai-studio.md` and `ROADMAP.md`.
-10. **2026-10-03**: Completed comprehensive educational research into 2026 Jetpack Compose Autofill patterns. Clarified the architectural split between `Modifier.semantics` and `androidx.credentials`. Authored checklist artifact and synchronized brain memory.
+1. **2026-10-03**: Investigated missing IME inline autofill chips; authored `credential-provider-spec.md` and overhauled `autofill-service-spec.md`.
+2. **2026-10-03**: Completed comprehensive educational research into 2026 Jetpack Compose Autofill patterns.
+3. **2026-10-04**: Diagnosed and resolved crash in `AutofillStructureParser.kt` caused by null boolean HTML attributes in WebViews.
+4. **2026-10-04**: Verified keyboard inline suggestion chips displaying properly on physical Pixel device above Gboard.
+5. **2026-10-04**: Drafted and executed Deep Plan for context-aware URI matching when locked and "Add Item" fallback.
+6. **2026-10-04**: Refactored `MainActivity` with global `LockScreen` overlay and `shellguard://app/form/` deep link support with pre-filled URI.
+7. **2026-10-04**: Configured `ShellGuardAutofillService` to display matched domain strings inline when locked and direct "Add Item" chip when 0 matches exist.
+8. **2026-10-04**: Compiled `app-debug.apk` and deployed to Pixel via wireless ADB; verified successful install and live inline behavior.
+9. **2026-10-04**: Committed changes under two-layer attribution format (`feat(autofill)` `d2703e3`).
+10. **2026-10-04**: Bumped version to `v0.0.0.9 (Build 9)` (`5c6e97d`), updated release notes/changelogs, and shifted Phase 6 release horizon to `0.0.0.10 (Build 10)`.
 
 ## Next Steps
-- Review research findings with user and confirm commit under two-layer attribution on `research/autofill-and-credential-provider`.
-- Merge research branch into main.
-- Move into execution for Phase 5 (Autofill integration) or Phase 7 (Cold-Start lock).
+- Commit verified release documentation and brain updates directly on `feat/autofill-inline-chips`.
+- Hold on branch `feat/autofill-inline-chips` (defer merge to `main` and release tagging per user directive).
+- Ready for subsequent tasks or review on this branch.

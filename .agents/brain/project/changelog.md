@@ -202,3 +202,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **Test Oracle & Hardware Verification**: Full suite of 83 unit and Robolectric tests passing 100% green (`BUILD SUCCESSFUL in 3m 6s`), clean `./gradlew assembleDebug` APK generation, and live verified on physical Google Pixel (`sailfish`) hardware.
+
+## [0.0.0.9] - 2026-10-04 (Build 9) — Phase 5: Context-Aware Autofill, Inline Chips & Add-Item Deep Linking
+
+### Added
+- **Context-Aware Locked Inline Suggestions (`ShellGuardAutofillService`)**: When the vault is locked and matching pearls exist for the active domain/subdomain, ShellGuard presents the clean domain string inline above the keyboard with a locked shell icon (🔒) and `"Unlock Vault"` subtitle, confirming site recognition without leaking sensitive plaintext titles or usernames.
+- **Zero-Match "Add Item" Option Chip**: When 0 matching items exist for the active domain or package, ShellGuard exclusively offers an `"Add Item"` option chip inline.
+- **Deep-Linked Item Form Pre-population (`MainActivity`)**: Registered intent-filter for `shellguard://app/form/` deep links; tapping `"Add Item"` launches `MainActivity` with `shellguard://app/form/NEW/PASSWORD/new?url=[encoded_domain]`, pre-filling the target URL and title in `ItemFormViewModel`.
+- **Global LockScreen Overlay Architecture (`MainActivity`)**: Lifted `LockScreen` out of `NavHost` into a global top-level Compose overlay, preserving deep-linked backstacks, routes, and pre-populated state across biometric/PIN unlock.
+- **Android 14+ Credential Provider Service Baseline (`ShellGuardCredentialProviderService`, `CredentialAuthActivity`)**: Established API 34+ Passkey and Credential Manager dual-stack foundation.
+
+### Fixed
+- **Null Boolean HTML Attributes Crash (`AutofillStructureParser`)**: Resolved crash when traversing WebView DOM nodes where boolean HTML attribute value pairs returned null, hardening parser stability on complex web login forms.
+- **Autofill Fallback Flash Defect**: Eliminated translucent screen flash and activity drop by replacing generic authentication fallback with direct deep-linked `PendingIntent` execution.
+
+### Changed
+- **Test Oracle & Hardware Verification**: All 83 unit and Robolectric tests passing 100% green (`BUILD SUCCESSFUL in 2m 41s`), verified with `./gradlew assembleDebug` and live on-device testing on Google Pixel (`sailfish`) hardware.
+
