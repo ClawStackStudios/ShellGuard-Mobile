@@ -5,6 +5,21 @@
 
 ---
 
+## `v0.0.0.8` — Hotfix 5.4: Web Interoperability & Secure Note Parity (Build 8)
+
+```xml
+<en-US>
+• Web UI Interoperability: Seamless loading & sync of items created in Web Vault.
+• Structural Envelope Validation: Safe handling of raw arrays with fail-closed security.
+• Secure Note Masking: Notes load masked by default with bullet glyphs for privacy.
+• Eye-Beside-Copy Cluster: Quick-action cluster for reveal & copy with biometric re-prompt.
+• Login Notes Export: Quick copy button added to login notes.
+• 100% Green Test Suite: 83 unit & Robolectric tests verified.
+</en-US>
+```
+
+---
+
 ## `v0.0.0.7` — Hotfix 5.3: Bidirectional Sync Reconciliation & Adversarial Hardening (Build 7)
 
 ```xml

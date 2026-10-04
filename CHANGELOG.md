@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.0.8] - 2026-10-03 (Build 8) — Hotfix 5.4: Web Interoperability & Secure Note Parity
+### Added
+- **Structural Envelope Validation (`ShellCryptionEngine.isEncryptedEnvelope`)**: Structural verification of JSON envelopes prior to AES-GCM decryption, preventing crashes on unencrypted payloads.
+- **Secure Note Masking & Eye-Beside-Copy Cluster (`ItemDetailScreen`)**: Notes load masked by default with monospace bullet glyphs (`••••••••••••••••••••••••••••••••`) and "Tap or click eye to reveal" prompt, equipped with adjacent Eye toggle and Copy action buttons.
+- **Biometric Re-Prompt Gating for Notes**: Enforced `state.reprompt` challenges before revealing or copying sensitive note content.
+- **Login Item Notes Quick-Copy**: Added one-tap clipboard copy button to login item notes sections.
+- **Redline 8 Ratification (`testOracle.md`)**: Formally codified the Masked Secret & Re-prompt Gating Invariant.
+
+### Fixed
+- **Web UI Empty JSON Array Deserialization**: Resolved `Unexpected JSON token at offset 0: Expected start of the object '{'. but had '[' instead` exception when loading items minted in the Web UI where `password_history` or `custom_fields` were stored as unencrypted empty JSON arrays (`"[]"`).
+- **Detail Getter & Pull Sanitization (`SyncRepository`)**: Gracefully normalizes raw JSON arrays into empty collections while preserving fail-closed cryptographic boundaries.
+
+### Verified
+- **100% Green Test Oracle**: 83 unit and Robolectric tests passing (`BUILD SUCCESSFUL in 3m 6s`), clean `./gradlew assembleDebug` APK generation, and live verified on physical Google Pixel (`sailfish`) hardware.
+
 ## [0.0.0.7] - 2026-09-27 (Build 7) — Hotfix 5.3: Bidirectional Sync Reconciliation & Dual Adversarial Hardening
 ### Added
 - **Bidirectional Sync Reconciliation (`SyncRepository`)**: Complete push, pull, and reconciliation engine syncing local Room mutations (creations, edits, deletions) with the central ShellGuard server.
