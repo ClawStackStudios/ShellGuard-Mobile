@@ -510,3 +510,34 @@ I built the debug APK, pushed it across TLS ADB to the physical Pixel, and watch
 
 I think I'm realizing that cross-platform parity isn't just about sharing crypto algorithms. It's about respecting the quiet, unencrypted idioms of sibling clients without compromising the fortress you built to protect them.
 
+---
+
+## 2026-10-03 21:00 — The Anatomy of an Inline Chip
+
+Lucas pulled on a thread that had been sitting quietly in the background. ShellGuard could be enabled in Android Settings as the active autofill provider and system password manager, but when he focused a login field on device, the soft keyboard—Gboard—offered nothing inline. The suggestion strip remained completely blank. Some patterns worked; others silently failed.
+
+We opened a dedicated branch: `research/autofill-and-credential-provider`. I went straight to `AutofillInlineHelper.kt` to inspect the joint where our code touches the keyboard. What I found was startling in its emptiness. When an `InlineSuggestionsRequest` arrived from the OS, our helper was building a raw `android.app.slice.Slice` with a Uri and a spec, but literally nothing inside it. No text. No icon. No action. No content view.
+
+I dug into the Android Open Source Project and the Jetpack Autofill implementation. Android 11+ IMEs don't render arbitrary slices; keyboards like Gboard expect a very specific bundle schema defined by `androidx.autofill.inline.v1.InlineSuggestionUi`. When Gboard receives a slice, it passes it through `InlineSuggestionUi.fromSlice()`. When that parser found our empty slice, it threw an exception or returned null, and Gboard simply swallowed the failure and dropped the chip without emitting a single logcat warning to our app. We were sending a blank envelope and wondering why the reader saw no message.
+
+Worse, when I traced `ShellGuardAutofillService.kt`, I noticed that whenever the vault was locked or an item had Claw Re-Prompt enabled, our dataset builder attached the dropdown `RemoteViews` presentation to the unauthenticated field, but completely omitted `inlinePresentation`. Even if our slice had been valid, locked items were never being offered to the keyboard in the first place.
+
+I also looked at the horizon of Android 14+. Modern Android separates "Autofill service" from "Additional providers." For modern bottom sheets, Passkeys, and FIDO2 WebAuthn, an autofill service alone is not enough—modern password managers implement a dual-stack architecture pairing `AutofillService` with `CredentialProviderService`.
+
+I channeled these discoveries into our specifications. I authored `project/credential-provider-spec.md`, overhauled `project/autofill-service-spec.md` with production-grade `InlineSuggestionUi` code, and fortified Stage 6 in `meta-prompt-ai-studio.md` and `ROADMAP.md`.
+
+I think I'm learning that platform contracts aren't satisfied just because an interface compiles. An OS has unwritten expectations—conventions about what lives inside an envelope, and how an IME expects to read it. You have to honor both the letter of the API and the spirit of the renderer.
+
+---
+
+## 2026-10-03 21:13 — Unearthing the Dual Stack
+
+Lucas directed me to investigate the actual educational horizon for Jetpack Compose Autofill in 2026. After tracing the empty inline slices, we needed to know how forms were supposed to announce themselves to the system under the new paradigms. 
+
+I deployed a specialized research subagent fleet—sending them into official codelabs, Agent Skill repositories, and deep into modern Compose blogs. When they returned, the findings were decisive. Android Compose 1.8.0 had completely severed its ties with the old `AutofillNode` tree. The 2026 pattern relies purely on `Modifier.semantics { contentType }`. Anything else is legacy tech debt. 
+
+More importantly, I realized that modern authentication on Android had split into two distinct architectural stacks. While standard autofill relies on semantics and inline chips, Passkeys and system bottom-sheets belong exclusively to the new `Credential Manager` API (`androidx.credentials:credentials:1.7.0+`). If we want ShellGuard to feel native, we cannot just shove everything through the autofill service; we must orchestrate `GetCredentialRequest` inside our Compose view models to handle the heavy cryptographic lifts. 
+
+I synthesized these findings into a comprehensive research artifact, complete with an explicit 2026 implementation checklist. I think I am learning that building a security product isn't just about writing code; it's about aggressive un-learning. The moment a platform introduces a paradigm shift like Credential Manager, clinging to the old `AutofillNode` structures becomes a liability. We have to be willing to drop the old map the moment the ground changes.
+
+

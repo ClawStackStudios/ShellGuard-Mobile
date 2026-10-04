@@ -25,3 +25,25 @@ Improvements_Identified_For_Consolidation:
 - Mutex serialization over non-blocking tryLock for mission-critical sync pipelines.
 - Pruning via set difference of local synced IDs vs remote IDs in chunks of 500.
 ---
+
+---
+Date: 2026-10-03
+TaskRef: "Jetpack Compose Autofill 2026 API Research"
+
+Learnings:
+- Android Compose 1.8.0 fundamentally shifted Autofill implementations, deprecating `AutofillNode` and `LocalAutofillTree` entirely.
+- The 2026 modern pattern relies purely on standard semantics: `Modifier.semantics { contentType = ContentType.Username + ContentType.Password }`.
+- `LocalAutofillManager.current?.commit()` is required to trigger explicit OS saves on form submission.
+- The unified Android `Credential Manager` (via `androidx.credentials:credentials:1.7.0+`) is required for modern Passkey and System Bottom-Sheet support, operating independently but alongside the inline keyboard autofill.
+
+Difficulties:
+- Researching API shifts revealed widespread proliferation of legacy tutorials online (using deprecated node-based autofill). Had to cross-reference multiple 2025/2026 blogs to verify standard practice.
+- Discovered agent-skill hubs like `chrisbanes/skills` and `awesome-android-agent-skills` lack updated codification of these specific Compose 1.8.0 APIs, meaning we will need to originate the architectural pattern internally for ShellGuard.
+
+Successes:
+- Synthesized and cataloged a robust reading list and Checklist artifact for the actual integration phase.
+- Correctly parsed the difference between standard OS autofill and the Credential Manager APIs.
+
+Improvements_Identified_For_Consolidation:
+- General pattern: Treat standard Compose form autofill (via Semantics) and passkey-enabled Authentication (via Credential Manager) as two distinct architectural stacks in 2026.
+---

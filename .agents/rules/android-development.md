@@ -207,6 +207,9 @@ Android 15+ (API 35/36) mandates 16 KB page-aligned native binaries:
 - **Pre-DAO Fingerprint Deduplication**: Backup import engines must deduplicate incoming records by normalized `secret` + `title` fingerprint prior to DAO insertion, preventing duplicate UUID false negatives.
 - **Autofill `UriMatchMode` Invariants**: The autofill domain matcher supports 5 algorithms (`BASE_DOMAIN`, `HOST`, `EXACT`, `STARTS_WITH`, `NEVER`) enabling exact port matching for multi-tenant local home labs (`http://192.168.1.50:8080` vs `http://192.168.1.50:9000`).
 - **Android 11+ Inline Presentation**: Supports keyboard suggestion chips above Gboard/SwiftKey alongside standard popup dropdowns.
+- **2026 Authentication Dual-Stack (Autofill vs. Credential Manager)**:
+  - **Standard Form Autofill**: Jetpack Compose 1.8.0+ explicitly deprecates `AutofillNode` and `LocalAutofillTree`. Standard form inputs MUST announce themselves to the system using purely declarative semantics: `Modifier.semantics { contentType = ContentType.Username + ContentType.Password }`. Explicit credential saves are triggered via `LocalAutofillManager.current?.commit()`.
+  - **Passkeys & Bottom Sheets**: Modern system bottom sheets and Passkeys bypass the standard autofill service entirely. They MUST be orchestrated via the unified `Credential Manager` API (`androidx.credentials:credentials:1.7.0+`) using `GetCredentialRequest` within Compose ViewModels. Treat standard autofill and Passkey authentication as two fundamentally separate architectural paths.
 - **Algorithmic TOTP Engine & CameraX Pipeline**:
   - RFC 6238 TOTP engine supporting HMAC-SHA1/256/512, 6/8 digits, dynamic truncation (RFC 4226 §5.4), and Steam Guard 5-character alphanumeric token derivation.
   - Sub-second reactive ticker coroutine Flow emitting progress for 60fps smooth Canvas countdown arcs with dynamic color interpolation (Cyan ➔ Amber ➔ Red).

@@ -113,15 +113,18 @@ statistics:
 > Delivers system-level Android Autofill Framework and Android 14+ Credential Manager integration, paired immediately with the biometric authorization gate and inline autofill suggestion UI.
 
 - [x] **Task 09: [Functionality] Autofill Service Architecture & Domain Matcher**
-  - Implement `ShellGuardAutofillService` (`AutofillService`) and `ShellGuardCredentialProviderService`.
-  - Implement `AutofillStructureParser` traversing view hierarchies to locate username/password fields and web domains.
+  - Implement `ShellGuardAutofillService` (`AutofillService`) for Android 8.0–13 and legacy/browser forms.
+  - Architectural specification for `ShellGuardCredentialProviderService` (`CredentialProviderService`) for Android 14+ Credential Manager dual-stack.
+  - Implement `AutofillStructureParser` traversing view hierarchies with Anti-AutoSpill visibility checks.
   - Implement `DomainMatcher` with eTLD+1 extraction for browser and native app matching.
   - *Success Criteria*: Service responds to OS fill requests; accurately matches URLs to vault items; ignores non-login views.
 
 - [x] **Task 10: [UI Component] Autofill Presentation Views & Biometric Authorization Gate**
-  - Implement dropdown and inline suggestion presentation views (`autofill_suggestion_item`).
+  - Implement dropdown (`autofill_suggestion_item`) and inline suggestion presentation views (`AutofillInlineHelper`).
+  - *Hardening & Research Finding*: Gboard/SwiftKey inline chips require `androidx.autofill.inline.v1.InlineSuggestionUi.newContentBuilder(attributionIntent)` rather than raw empty Slices.
+  - *Hardening & Research Finding*: Locked vault and Claw Re-Prompt datasets must attach both dropdown and inline presentation to placeholder values (`setValue(fieldId, null, dropdownPresentation, inlinePresentation)`).
   - Implement `AutofillAuthActivity`: prompts biometric/PIN unlock before releasing credentials to the calling app when vault is locked.
-  - *Success Criteria*: Suggestions display in third-party apps and browsers; tapping a suggestion prompts biometrics; credentials fill securely.
+  - *Success Criteria*: Suggestions display in third-party apps and browsers; keyboard inline chips appear on Gboard; tapping a suggestion prompts biometrics; credentials fill securely.
 
 ---
 

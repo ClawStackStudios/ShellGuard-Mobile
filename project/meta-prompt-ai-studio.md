@@ -286,35 +286,47 @@ Verify TOTP codes generate accurately matching Google Authenticator, the passwor
 
 ---
 
-## 🔑 Stage 6: Phase 5 Prompt — Android Autofill & Credential Provider
+## 🔑 Stage 6: Phase 5 Prompt — Android Autofill, Inline Suggestions & Credential Provider
 
 > 🗺️ **Master Roadmap Reference**: See [`ROADMAP.md`](../ROADMAP.md#phase-5-android-autofill--credential-provider-baseline-v0005-build-5) for complete specifications on **Task 09** and **Task 10**.  
 > **📖 Required Context Files for Phase 5**:  
-> 1. [`autofill-service-spec.md`](./autofill-service-spec.md) — Section 1 (Architecture), Section 3 (AutofillService), Section 4 (Parser), Section 5 (DomainMatcher), Section 6 (Biometric Gating).  
+> 1. [`autofill-service-spec.md`](./autofill-service-spec.md) — Section 1 (Architecture), Section 2 (Dependencies & Manifest), Section 3 (AutofillService), Section 3.1 (Inline Protocol & AutofillInlineHelper), Section 3.2 (AutofillAuthActivity), Section 4 (Parser & Anti-AutoSpill), Section 5 (DomainMatcher).  
+> 2. [`credential-provider-spec.md`](./credential-provider-spec.md) — Section 1 (Credential Manager Architecture), Section 2 (Manifest & Registration), Section 3 (CredentialProviderService), Section 4 (CredentialAuthActivity), Section 5 (Dual-Stack Interoperability Matrix).  
 
 Copy and paste this prompt to execute **Phase 5 (Tasks 09 & 10)**:
 
 ```markdown
-# PHASE 5 EXECUTION: Android Autofill & Credential Provider
+# PHASE 5 EXECUTION: Android Autofill, Inline Suggestions & Credential Provider
 
 ## 📖 Reference Documentation
 Before writing code, inspect:
-- `autofill-service-spec.md`: Section 1 (Architecture), Section 3 (AutofillService), Section 4 (Parser), Section 5 (DomainMatcher), Section 6 (Biometric Gating).
+- `autofill-service-spec.md`: Section 1 (Architecture), Section 2 (Dependencies), Section 3 (AutofillService), Section 3.1 (Inline Suggestion Protocol & AutofillInlineHelper), Section 3.2 (AutofillAuthActivity), Section 4 (Parser & Anti-AutoSpill), Section 5 (DomainMatcher).
+- `credential-provider-spec.md`: Section 1 (Architecture), Section 2 (Manifest), Section 3 (CredentialProviderService), Section 4 (CredentialAuthActivity), Section 5 (Dual-Stack Coordination).
 
 Execute Phase 5 adhering to the Functionality + UI Component pairing:
 
-### Task 09: [Functionality] Autofill Service Architecture & Domain Matcher
-- Implement `ShellGuardAutofillService` extending `android.service.autofill.AutofillService`.
-- Implement `AutofillStructureParser` traversing `AssistStructure.ViewNode` hierarchies to extract usernames, passwords, web domains, and package names.
-- Implement `DomainMatcher` with eTLD+1 normalization to match URLs against vault entries.
-- Declare `android.permission.BIND_AUTOFILL_SERVICE` and `autofill_service_config.xml`.
+### Task 09: [Functionality] Autofill Service Architecture, Credential Provider & Domain Matcher
+- Implement `ShellGuardAutofillService` extending `android.service.autofill.AutofillService` (API 26+).
+- Implement `ShellGuardCredentialProviderService` extending `android.service.credentials.CredentialProviderService` (API 34+) for Android 14+ Credential Manager system bottom sheets and passkeys.
+- Implement `AutofillStructureParser` traversing `AssistStructure.ViewNode` hierarchies with Anti-AutoSpill node visibility checks (`View.VISIBLE`, positive width/height) to extract usernames, passwords, web domains, and package names.
+- Implement `DomainMatcher` with eTLD+1 normalization to match URLs against vault entries with configurable `UriMatchMode`.
+- Declare `android.permission.BIND_AUTOFILL_SERVICE` (`autofill_service_config.xml`) and `android.permission.BIND_CREDENTIAL_PROVIDER_SERVICE` (`credential_provider_config.xml`) in `AndroidManifest.xml`.
 
-### Task 10: [UI Component] Autofill Presentation Views & Biometric Authorization Gate
-- Create `autofill_suggestion_item.xml` layout for RemoteViews presentation in autofill dropdowns.
-- Implement `AutofillAuthActivity`: prompts biometric/PIN unlock before dispatching credentials to the calling app when the vault is locked.
-- Support inline suggestions for Gboard and modern keyboards via `InlinePresentationSpec`.
+### Task 10: [UI Component] Autofill Presentation Views, IME Inline Suggestion Protocol & Biometric Gate
+- Add `androidx.autofill:autofill` to Gradle dependencies to provide the AndroidX Inline Suggestion Slice Protocol.
+- Implement `AutofillInlineHelper`:
+  - Build Android 11+ (API 30+) keyboard inline suggestion chips using `androidx.autofill.inline.v1.InlineSuggestionUi.newContentBuilder(attributionIntent)`.
+  - Set title, subtitle, icon, and attribution `PendingIntent`.
+  - Extract `.slice` and package into `InlinePresentation` with `InlinePresentationSpec`.
+  - Pin primary matches (`pinned = true`).
+- Create `autofill_suggestion_item.xml` layout for RemoteViews presentation in legacy dropdowns.
+- Implement `AutofillAuthActivity` & `CredentialAuthActivity`:
+  - Transparent biometric authorization gate for locked vaults and Claw Re-Prompt items.
+  - Unseal hardware-backed KeyStore master key (`AndroidKeyStoreHelper`), decrypt secret in memory, and return `Dataset` / `GetCredentialResponse`.
+  - Auto-copy TOTP to sensitive clipboard with 30s auto-scrub (Bitwarden parity).
+- In `ShellGuardAutofillService`, ensure locked vault and re-prompt datasets attach BOTH dropdown `RemoteViews` and `InlinePresentation` chips to placeholder values: `datasetBuilder.setValue(fieldId, null, dropdownPresentation, inlinePresentation)`.
 
-Verify that visiting a login page in Chrome prompts ShellGuard autofill suggestions, and selecting an item unlocks biometrically and fills credentials accurately.
+Verify that visiting a login page in Chrome prompts ShellGuard autofill suggestions in both dropdown and Gboard keyboard inline strip, Android 14 Settings discovers ShellGuard under Additional Credential Providers, and selecting an item unlocks biometrically and fills credentials accurately.
 ```
 
 ---

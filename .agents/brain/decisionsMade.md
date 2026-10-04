@@ -373,3 +373,16 @@ The cross-session failure analysis (/deep-learn) detected an **over-confidence b
 **Outcome**: Aligned `ShellCryptionEngineTest` to assert `IllegalArgumentException`, preserving the fail-closed guarantee across all 10 AAD namespaces.
 **Pattern reference**: Link to `testOracle.md § Redline 5 (Fail-Closed Cryptography)`.
 
+## jetpack-inline-slice-protocol-and-credential-provider-dual-stack — 2026-10-03 20:50
+
+**Context**: ShellGuard was successfully selectable in Android Settings as Autofill provider, but the soft keyboard (Gboard/SwiftKey) showed zero inline suggestion chips on focused login inputs.
+**Options considered**:
+- Attempt to manually hand-craft raw `android.app.slice.Slice` items with Uri bundles — Avoids extra dependencies, but prone to silent IME rejection since Gboard strictly expects Jetpack `androidx.autofill.inline.v1` slice keys.
+- Adopt Jetpack `androidx.autofill:autofill` (`InlineSuggestionUi.newContentBuilder`) for API 26-33 AutofillService and establish a dedicated `ShellGuardCredentialProviderService` (`androidx.credentials.provider.PasswordCredentialEntry`) for API 34+ Credential Manager — Introduces a dual-stack architecture covering both legacy inline chips and modern Android 14+ system bottom sheets.
+**Chosen**: Dual-stack architecture with Jetpack `InlineSuggestionUi` and `CredentialProviderService`.
+**Why**: Keyboard inline suggestions fail silently because Gboard treats improperly formatted slices as malformed and drops them without an error trace. Using Jetpack's canonical slice builder gives Gboard exactly the schema it expects, while adding Android 14 Credential Provider ensures forward compatibility with Passkeys and system bottom sheets on modern Android.
+**Confidence**: high — ratified by AOSP `AutofillKeyboard` and `InlineFillService` samples.
+**Outcome**: Authored `credential-provider-spec.md`, overhauled `autofill-service-spec.md`, and bolstered Stage 6 in `meta-prompt-ai-studio.md` and `ROADMAP.md`.
+**Pattern reference**: Link to `systemPatterns.md § Android Autofill & Credential Provider Dual-Stack`.
+
+

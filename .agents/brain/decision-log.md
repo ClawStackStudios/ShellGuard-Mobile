@@ -1,8 +1,5 @@
 # Decision Log
 
-## 2026-09-25 — design parity and blind side-by-side verification
-Authored root DESIGN.md establishing Reef Modernist Mobile design tokens, flat 1dp Material 3 cards, 6 dynamic theme accents, and adaptive 3-pane master-detail layout achieving 1:1 visual continuity with ShellGuard Web and TOTP.
-
 ## 2026-09-25 — rejection of ai studio enterprise hallucinations
 Rejected AI Studio recommendations for "native obfuscation via ProGuard" (technically impossible on ELF binaries), third-party logging/monitoring SDKs (violates zero-telemetry vault invariant), multi-module Gradle complexity (violates single-module invariant), and SaaS build flavors. Formulated verified R8 preservation rules instead (verification-gates.md §7).
 
@@ -60,3 +57,8 @@ Diagnosed deserialization exception on Web UI items storing unencrypted empty JS
 ## 2026-10-03 — note masking parity and action cluster alignment
 Resolved visual and cryptographic inconsistency where opening a Note in Android displayed cleartext unmasked content by default. Implemented masked default rendering with bullet characters, the Eye-beside-Copy header action cluster, and biometric re-prompt gating on reveal/copy (see systemPatterns.md § Vault Domains & Parity).
 
+## 2026-10-03 — jetpack inline slice protocol & credential manager dual-stack
+Diagnosed silent keyboard inline autofill failure on Gboard/SwiftKey: traced to raw empty Slice.Builder rejecting IME layout inflation without androidx.autofill.inline.v1.InlineSuggestionUi. Built comprehensive dual-stack specification combining API 26-33 AutofillService inline slices with API 34+ CredentialProviderService bottom sheets, and reinforced locked dataset presentation binding.
+
+## 2026-10-03 — splitting the autofill authentication stack
+While researching 2026 Autofill implementation patterns, discovered we must aggressively unlearn legacy `AutofillNode` structures. Confirmed that standard forms and passkey authentication now exist on two entirely separate architectural planes (`Modifier.semantics` vs `Credential Manager`). We will implement both independently rather than forcing one into the other.
