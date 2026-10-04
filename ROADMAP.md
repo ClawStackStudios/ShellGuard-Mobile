@@ -157,7 +157,7 @@ statistics:
 
 ---
 
-## Phase 6: Settings, Backup Bridge & Release Hardening [Baseline: v0.0.0.9 (Build 9) — Milestone 1]
+## Phase 6: Settings, Backup Bridge & Release Hardening [Baseline: v0.0.0.10 (Build 10) — Milestone 1]
 
 > Phase Feature Set Overview:
 > Delivers the categorized settings hub, `.sgvault.bak` full encrypted backup engine, and `.sgtotp.bak` companion bridge, paired immediately with adaptive launcher icons, Android 12+ splash screen, and 16 KB page alignment.
