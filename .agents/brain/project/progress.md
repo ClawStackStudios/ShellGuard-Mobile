@@ -1,7 +1,7 @@
 # Progress: ShellGuard Mobile
 
-## Current Status: Hotfix 5.3 (Build 7) Slotted & Verified Green — Ready for Commit & Version Bump
-All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold, Phase 1 through Phase 5 have been released to GitHub. Hotfix 5.3 (`0.0.0.7`, Build 7) introduces comprehensive bidirectional sync reconciliation, dual adversarial security hardening (`brutal_adversary` + `spectre_hacker`), fail-closed cryptographic retrieval, tombstone zombie protection, and chunked batch pruning with 100% test pass rate. Phase 6 baseline is targeted at `0.0.0.8 (Build 8)`.
+## Current Status: Hotfix 5.4 (Build 8) Tested & Verified Green — Ready for Commit & Version Bump
+All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold, Phase 1 through Phase 5 have been released to GitHub. Hotfix 5.4 (`0.0.0.8`, Build 8) remediates Web UI item JSON array deserialization, introduces `ShellCryptionEngine.isEncryptedEnvelope`, normalizes downstream pull defaults, aligns Note masking with Web Client via default masked display (`••••••••••••••••••••••••••••••••`) and the Eye-beside-Copy action cluster with biometric re-prompt gating, and ensures full interoperability with items minted on the web vault with 100% test pass rate across 83 tests. Phase 6 baseline is targeted at `0.0.0.9 (Build 9)`.
 
 
 ## What Works (Documented, Designed & Scaffolded)
@@ -114,6 +114,13 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
   - Enforced fail-closed decryption in `getPearlDetail`, `getNoteDetail`, and `getSshKeyDetail`, preventing raw JSON ciphertext exposure and double-ciphertext database corruption.
   - Added `initialOnlineOverride` in `ConnectivityMonitor` for deterministic headless JVM / Robolectric testing.
   - Created `SyncReconciliationAdversarialTest.kt` asserting against all 6 adversarial vectors; full test suite passing 100% green and debug APK cleanly compiled.
+- [x] **Hotfix 5.4: Web UI Item Interoperability & Envelope Validation (`v0.0.0.8`, Build 8)**:
+  - Diagnosed deserialization exception when opening items created in the Web UI: web server persists unencrypted JSON arrays (`"[]"`) for empty `password_history` and `custom_fields`.
+  - Added `ShellCryptionEngine.isEncryptedEnvelope(value: String?)` to inspect JSON payload boundaries (`{`, `}`, `"v":`, `"ct":`) before invoking AES-GCM decryption.
+  - Sanitized downstream delta pull and normalized default values in `VaultPearlEntity`.
+  - Updated `SyncRepository.getPearlDetail`, `getNoteDetail`, `getSshKeyDetail`, and `savePearlDetail` to safely pass unencrypted arrays to `CustomFieldSerializer` without throwing.
+  - Added unit test coverage in `ShellCryptionEngineTest` and `SyncRepositoryTest`; all 83 unit tests passing 100% green.
+  - Deployed and verified on physical Google Pixel (`sailfish`).
 
 ## What's Left to Build (Phase 6)
 - [ ] Phase 6: Settings, Backup Bridge & Release Hardening (Tasks 11 & 12).

@@ -35,7 +35,7 @@ data class VaultPearlEntity(
     @ColumnInfo(name = "uris") val uris: String = "[]",
 
     // Opaque ShellCryption Envelope String
-    @ColumnInfo(name = "password_history") val passwordHistory: String = "[]",
+    @ColumnInfo(name = "password_history") val passwordHistory: String = "",
 
     // Master Key Re-Prompt (Claw Re-Prompt): Requires biometric/PIN confirmation before reveal/copy
     @ColumnInfo(name = "reprompt") val reprompt: Boolean = false,

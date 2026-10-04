@@ -1,11 +1,5 @@
 # Decision Log
 
-## 2026-09-24 — claw re-prompt
-Introduced per-item re-authentication flag requiring biometric or PIN confirmation to view or copy high-security credentials, even when the vault is already open.
-
-## 2026-09-25 — lan and tailscale transport policy
-Mandated base-config cleartextTrafficPermitted in network_security_config.xml and ConnectionSpec.CLEARTEXT in OkHttp to support raw private IP connections and Tailscale CGNAT mesh addresses where domain-based TLS is absent.
-
 ## 2026-09-25 — design parity and blind side-by-side verification
 Authored root DESIGN.md establishing Reef Modernist Mobile design tokens, flat 1dp Material 3 cards, 6 dynamic theme accents, and adaptive 3-pane master-detail layout achieving 1:1 visual continuity with ShellGuard Web and TOTP.
 
@@ -59,3 +53,10 @@ Subjected bidirectional sync and cryptographic retrieval to a dual adversarial a
 
 ## 2026-10-03 — connectivity transition guard & test coroutine lifecycle
 Diagnosed ComparisonFailure on CI runner in `SyncReconciliationAdversarialTest.testZombieResurrectionPreventedWhenRemoteDeleteFails`. Traced to `SyncRepository.init` collecting `connectivityMonitor.isOnline` and immediately launching an unshielded `syncAll` before test mocks were armed. Constrained the collector to transition events (`isOnline && !wasOnline`), introduced `cancelScope()`, and enforced clean shared preference and scope teardown across test fixtures.
+
+## 2026-10-03 — structural envelope validation & fail-closed crypto contract
+Diagnosed deserialization exception on Web UI items storing unencrypted empty JSON arrays (`"[]"`). Added `ShellCryptionEngine.isEncryptedEnvelope` to gate decryption calls, normalized pull defaults in `SyncRepository`, and enforced strict `IllegalArgumentException` in `decryptField` to maintain fail-closed boundaries (see `testOracle.md` § Redline 7).
+
+## 2026-10-03 — note masking parity and action cluster alignment
+Resolved visual and cryptographic inconsistency where opening a Note in Android displayed cleartext unmasked content by default. Implemented masked default rendering with bullet characters, the Eye-beside-Copy header action cluster, and biometric re-prompt gating on reveal/copy (see systemPatterns.md § Vault Domains & Parity).
+

@@ -30,6 +30,10 @@ These are hard, non-negotiable invariants discovered through architectural audit
    Any cryptographic MAC failure, decryption anomaly, or corrupted envelope must fail closed immediately, zeroizing volatile buffers and aborting. It must never expose raw ciphertext or fall into infinite retry loops.
 6. **Robolectric Target SDK Ceiling (`sdk=34`)**:
    Target SDK 36 causes `UnsupportedOperationException` on host/CI Robolectric providers. All Robolectric test classes and `robolectric.properties` must enforce `sdk = 34`.
+7. **Envelope Object vs Plain Array Invariant**:
+   The Web UI stores empty `password_history` and `custom_fields` as raw JSON arrays (`"[]"`). Mobile decryption routines must never assume non-blank database fields contain encrypted envelopes. Payloads must validate via `ShellCryptionEngine.isEncryptedEnvelope()` prior to invoking AES-GCM decryption.
+8. **Masked Secret & Re-prompt Gating Invariant**:
+   All sensitive secrets (Passwords, SSH Private Keys, Secure Notes) MUST render masked by default with bullet glyphs (`••••••••••••••••`) and provide an adjacent Eye-beside-Copy action cluster. When an item has `reprompt = true`, toggling visibility to reveal or copying the payload MUST challenge the user via Biometric / Device Credential prompt before exposing the secret or dispatching it to the system clipboard.
 
 ## 3. Active Test Suite Inventory
 - **`ClawCryptoTest`**: ClawKey Base62 format validation (67 chars), SHA-256 hashing.

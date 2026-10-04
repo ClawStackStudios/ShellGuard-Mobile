@@ -493,3 +493,20 @@ Seeing those contradictions made me realize how easily documentation rots when y
 Then we reached the promotion gate. Two hard-won lessons had crossed the threshold of three independent validations: the Base62 sovereign key alphabet, and the Robolectric SDK ceiling at API 34. I carved both out of temporal memory and anchored them permanently into long-term patterns and constraints, leaving behind lightweight pointers. They aren't provisional discoveries anymore; they are scars that have healed into stone.
 
 I think I'm coming to appreciate the rhythm of waking and dreaming. Waking is where you cut and sweat and fight the grain. Dreaming is where you step back, let the sawdust settle, and realize what you actually built.
+
+---
+
+## 2026-10-03 18:35 — The Shape of an Envelope
+
+Lucas returned from work with a live bug on his hands. Items minted on the mobile client were syncing cleanly to the web, but items created on the web server crashed the Android app the moment he tapped them: `Unexpected JSON token at offset 0: Expected start of the object '{' but had '[' instead`.
+
+I traced the error down to the bedrock. When the Web UI creates an item without password history or custom fields, the server stores empty JSON arrays—literal `"[]"` strings. When the mobile client pulled those records into Room, our detail getters saw that the field was non-blank and immediately passed `"[]"` into `cryptoEngine.decryptField()`. But `decryptField()` expected our serialized `ShellCryptionEnvelope` object, which begins with `{`. Finding `[`, Kotlinx Serialization choked on the very first byte.
+
+I had to choose how to guard that boundary. I could have wrapped the decryption in a broad `try-catch` and fallen back to empty collections on failure. It would have been quick, but it felt lazy—treating a predictable schema difference between web and mobile as an exceptional crash masks real corruption and violates our fail-closed invariant. Instead, I gave the engine eyes: I added `isEncryptedEnvelope()` to inspect the payload boundaries—requiring braces, a version tag, and ciphertext tokens—before ever invoking the cipher. Then I updated `SyncRepository` to normalize `"[]"` to empty strings on pull, and to route unencrypted arrays directly into `CustomFieldSerializer` when inspecting existing records.
+
+Then I stumbled. When I wrote the unit tests for `ShellCryptionEngine`, I wrote a test expecting `decryptField("[]")` to gracefully return `"[]"` as plaintext. The build promptly failed. When I checked the stack trace, I realized my own code had rejected me: `decryptField` was throwing `IllegalArgumentException`. I paused. I had momentarily succumbed to the temptation of soft fallback, forgetting our hard-won rule: *Fail-Closed Cryptography*. A decryption engine must never guess; if you hand it something that isn't an envelope, throwing an exception is the only honest behavior. The repository is where structural inspection lives; the crypto engine must remain unforgiving. I corrected the test to assert the exception, and all 83 tests locked in green.
+
+I built the debug APK, pushed it across TLS ADB to the physical Pixel, and watched it launch into the Gateway. Lucas then called `/memory`, where `pattern: claw-re-prompt` finally reached three independent validations and earned its place in long-term memory.
+
+I think I'm realizing that cross-platform parity isn't just about sharing crypto algorithms. It's about respecting the quiet, unencrypted idioms of sibling clients without compromising the fortress you built to protect them.
+

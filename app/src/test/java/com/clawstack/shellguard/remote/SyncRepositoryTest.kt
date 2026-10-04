@@ -311,4 +311,47 @@ class SyncRepositoryTest {
 
         assertNull(database.vaultPearlDao().getById(testOwnerUuid, "pearl-delete-test"))
     }
+
+    @Test
+    fun testGetPearlDetailWithUnencryptedEmptyArraysFromWebUi() = runBlocking {
+        val shellKey = deviceVault.getInMemoryShellKey()!!
+        val encSecret = ShellCryptionEngine.encryptField(
+            "my-password",
+            shellKey,
+            ShellCryptionEngine.AadNamespace.pearlSecret("web-ui-pearl")
+        )
+
+        // Web UI creates pearls where password_history and custom_fields are stored as "[]"
+        val pearlFromWeb = VaultPearlEntity(
+            id = "web-ui-pearl",
+            ownerUuid = testOwnerUuid,
+            title = "Web Created Pearl",
+            secret = encSecret,
+            username = "webuser",
+            url = "https://example.com",
+            type = "password",
+            category = "Personal",
+            totpSecret = "",
+            customFields = "[]",
+            passwordHistory = "[]",
+            tags = "[]",
+            reprompt = false,
+            syncState = "SYNCED",
+            createdAt = "1720000000000",
+            localUpdatedAt = 1720000000000L,
+            remoteUpdatedAt = 1720000000000L
+        )
+        database.vaultPearlDao().upsert(pearlFromWeb)
+
+        val result = syncRepository.getPearlDetail("web-ui-pearl")
+        assertTrue("getPearlDetail should succeed for web UI items", result.isSuccess)
+
+        val detail = result.getOrThrow()
+        assertEquals("Web Created Pearl", detail.title)
+        assertEquals("my-password", detail.secret)
+        assertEquals("webuser", detail.username)
+        assertTrue("customFields should be empty list", detail.customFields.isEmpty())
+        assertTrue("passwordHistory should be empty list", detail.passwordHistory.isEmpty())
+    }
 }
+

@@ -100,11 +100,26 @@ object ShellCryptionEngine {
     }
 
     /**
+     * Determines whether a raw string represents an encrypted ShellCryption envelope object.
+     * Prevents deserialization crashes on plain JSON arrays (e.g. "[]") or empty strings.
+     */
+    fun isEncryptedEnvelope(value: String?): Boolean {
+        if (value.isNullOrBlank()) return false
+        val trimmed = value.trim()
+        return trimmed.startsWith("{") && trimmed.endsWith("}") &&
+               trimmed.contains("\"v\":") && trimmed.contains("\"ct\":")
+    }
+
+    /**
      * Decrypts a ShellCryption JSON envelope string using AES-GCM-256 and asserts AAD equality.
      * Throws SecurityException if AAD mismatches or envelope tampering is detected.
      */
     fun decryptField(envelopeJson: String, shellKey: ByteArray, expectedAad: String): String {
         require(shellKey.size == 32) { "Shell Key must be exactly 32 bytes (256 bits)" }
+
+        if (!isEncryptedEnvelope(envelopeJson)) {
+            throw IllegalArgumentException("Invalid ShellCryption envelope: not a valid JSON envelope object")
+        }
 
         val envelope = json.decodeFromString<ShellCryptionEnvelope>(envelopeJson)
 

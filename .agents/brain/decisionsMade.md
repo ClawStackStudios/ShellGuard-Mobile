@@ -348,3 +348,28 @@ The cross-session failure analysis (/deep-learn) detected an **over-confidence b
 **Confidence**: high — verified across dozens of passing test suites and live Pixel hardware.
 **Outcome**: Ratified into `patterns.md` and `constraints.md`, with cross-reference pointers installed in `consolidated_learnings.md`.
 **Pattern reference**: `long-term/patterns.md § pattern: base62-sovereign-key-parity` and `long-term/constraints.md § constraint: robolectric-test-sdk-ceiling`.
+
+## structural-envelope-validation-vs-try-catch-fallback — 2026-10-03 18:35
+
+**Context**: Web UI-created items store empty `password_history` and `custom_fields` as raw JSON arrays (`"[]"`), which caused `decryptField()` to crash when expecting a serialized `ShellCryptionEnvelope` (`{`).
+**Options considered**:
+- Wrap `decryptField()` in `try-catch` and catch `SerializationException` — Minimal code, but masks genuine data corruption and treats predictable schema differences as runtime failures.
+- Introduce `ShellCryptionEngine.isEncryptedEnvelope()` and explicitly branch between envelope decryption and direct array deserialization — Adds explicit structural checks, preserves fail-closed security, and eliminates exception overhead.
+**Chosen**: Structural envelope validation via `isEncryptedEnvelope()`.
+**Why**: Catching deserialization exceptions to detect plain data felt sloppy. A cryptographic engine should only touch data that explicitly asserts itself as ciphertext; the repository must know what it is handing down before asking for keys.
+**Confidence**: high — verified across 83 unit tests and live Pixel deployment.
+**Outcome**: Item detail views load web-created items without deserialization crashes while keeping decryption errors fail-closed.
+**Pattern reference**: Link to `long-term/patterns.md § pattern: fail-closed-cryptography` / `testOracle.md § Redline 7`.
+
+## fail-closed-engine-vs-lenient-decryption-contract — 2026-10-03 18:35
+
+**Context**: During test authoring, I considered having `decryptField()` safely return non-envelope strings as-is rather than throwing an exception.
+**Options considered**:
+- Make `decryptField()` lenient, returning input string if `!isEncryptedEnvelope()` — Convenient for callers, but dangerously blurs the line between plaintext and ciphertext inside the cryptographic core.
+- Enforce strict `IllegalArgumentException` on invalid envelopes in `decryptField()`, delegating inspection and fallback to repository callers — Preserves the inviolable fail-closed cryptographic boundary.
+**Chosen**: Strict `IllegalArgumentException` in `decryptField()`.
+**Why**: Making the crypto engine lenient felt like the beginning of an accidental leak. If an unencrypted string reaches `decryptField()`, the caller has already made a category error; silently returning it risks re-encrypting or exposing raw data downstream.
+**Confidence**: high — ratified by test suite and architectural redlines.
+**Outcome**: Aligned `ShellCryptionEngineTest` to assert `IllegalArgumentException`, preserving the fail-closed guarantee across all 10 AAD namespaces.
+**Pattern reference**: Link to `testOracle.md § Redline 5 (Fail-Closed Cryptography)`.
+

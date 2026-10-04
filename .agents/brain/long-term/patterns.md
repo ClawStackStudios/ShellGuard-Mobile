@@ -89,3 +89,20 @@ ShellGuard master identity keys (`hu-`) and agent keys (`lb-`) use 64 alphanumer
 
 **Shaped perspective:** This holds because cryptographic identity formats are dictated by the sovereign web authority that mints them, not the downstream mobile consumer. It would break if the core ShellGuard cryptographic specification altered its key-generation entropy encoding away from Base62. What it costs to maintain is ensuring that any future input masks, validators, or QR parsers consistently test against mixed alphanumeric strings rather than assuming standard hex byte serialization.
 
+---
+
+## pattern: claw-re-prompt
+**weight**: 3 | **last validated**: 2026-09-27 | **first observed**: 2026-09-24
+**pinned**: false
+**status**: hot
+
+Designated high-security items (`reprompt == true`) must enforce an explicit biometric or PIN re-verification gate before unmasking secrets, copying credentials to clipboard, or filling inputs, even when the parent vault is already in an unlocked state.
+
+**History:**
+- 2026-09-24: Formulated claw re-prompt specification in `architecture.md` and `room-storage-schema.md` for high-risk corporate and financial credentials.
+- 2026-09-26: Implemented in `ItemDetailScreen` and `ItemDetailViewModel`, gating secret visibility and clipboard export behind hardware biometric challenge.
+- 2026-09-27: Extended into `AutofillAuthActivity` transparent gate, intercepting autofill requests for re-prompt items and demanding biometrics before emitting autofill datasets.
+
+**Shaped perspective:** This holds because vault unlock is a coarse-grained perimeter defense, whereas credentials inside a vault possess heterogeneous threat levels. A compromised device left unlocked on a desk or handed to a colleague breaches all items unless individual high-value pearls require re-authentication. What it costs to maintain is an extra cryptographic/biometric challenge state machine in detail views and autofill flows, along with educating users on why certain items challenge them again.
+
+

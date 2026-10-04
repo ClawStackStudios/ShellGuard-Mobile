@@ -223,10 +223,10 @@ class SyncRepository(
                         notes = dto.notes ?: "",
                         totpSecret = dto.totp_secret ?: "",
                         attachments = dto.attachments,
-                        customFields = dto.custom_fields ?: "",
+                        customFields = dto.custom_fields?.takeIf { it != "[]" } ?: "",
                         tags = dto.tags,
                         uris = dto.uris,
-                        passwordHistory = dto.password_history ?: "[]",
+                        passwordHistory = dto.password_history?.takeIf { it != "[]" } ?: "",
                         reprompt = dto.reprompt,
                         syncState = "SYNCED",
                         createdAt = dto.created_at.ifBlank { System.currentTimeMillis().toString() },
@@ -449,11 +449,11 @@ class SyncRepository(
                                 val plainTotp = cryptoEngine.decryptField(item.totpSecret, shellKey, ShellCryptionEngine.AadNamespace.pearlTotp(item.id))
                                 finalTotp = cryptoEngine.encryptField(plainTotp, shellKey, ShellCryptionEngine.AadNamespace.pearlTotp(serverId))
                             }
-                            if (item.customFields.isNotBlank()) {
+                            if (item.customFields.isNotBlank() && item.customFields != "[]" && cryptoEngine.isEncryptedEnvelope(item.customFields)) {
                                 val plainCustom = cryptoEngine.decryptField(item.customFields, shellKey, ShellCryptionEngine.AadNamespace.pearlCustomFields(item.id))
                                 finalCustom = cryptoEngine.encryptField(plainCustom, shellKey, ShellCryptionEngine.AadNamespace.pearlCustomFields(serverId))
                             }
-                            if (item.passwordHistory.isNotBlank()) {
+                            if (item.passwordHistory.isNotBlank() && item.passwordHistory != "[]" && cryptoEngine.isEncryptedEnvelope(item.passwordHistory)) {
                                 val plainHistory = cryptoEngine.decryptField(item.passwordHistory, shellKey, ShellCryptionEngine.AadNamespace.pearlPasswordHistory(item.id))
                                 finalHistory = cryptoEngine.encryptField(plainHistory, shellKey, ShellCryptionEngine.AadNamespace.pearlPasswordHistory(serverId))
                             }
@@ -523,7 +523,7 @@ class SyncRepository(
                             val plainContent = cryptoEngine.decryptField(item.content, shellKey, ShellCryptionEngine.AadNamespace.secureNoteContent(item.id))
                             finalContent = cryptoEngine.encryptField(plainContent, shellKey, ShellCryptionEngine.AadNamespace.secureNoteContent(serverId))
 
-                            if (item.customFields.isNotBlank()) {
+                            if (item.customFields.isNotBlank() && item.customFields != "[]" && cryptoEngine.isEncryptedEnvelope(item.customFields)) {
                                 val plainCustom = cryptoEngine.decryptField(item.customFields, shellKey, ShellCryptionEngine.AadNamespace.secureNoteCustomFields(item.id))
                                 finalCustom = cryptoEngine.encryptField(plainCustom, shellKey, ShellCryptionEngine.AadNamespace.secureNoteCustomFields(serverId))
                             }
@@ -590,7 +590,7 @@ class SyncRepository(
                             val plainKey = cryptoEngine.decryptField(item.keyValue, shellKey, ShellCryptionEngine.AadNamespace.sshKeyPrivate(item.id))
                             finalKey = cryptoEngine.encryptField(plainKey, shellKey, ShellCryptionEngine.AadNamespace.sshKeyPrivate(serverId))
 
-                            if (item.customFields.isNotBlank()) {
+                            if (item.customFields.isNotBlank() && item.customFields != "[]" && cryptoEngine.isEncryptedEnvelope(item.customFields)) {
                                 val plainCustom = cryptoEngine.decryptField(item.customFields, shellKey, ShellCryptionEngine.AadNamespace.sshKeyCustomFields(item.id))
                                 finalCustom = cryptoEngine.encryptField(plainCustom, shellKey, ShellCryptionEngine.AadNamespace.sshKeyCustomFields(serverId))
                             }
@@ -643,14 +643,22 @@ class SyncRepository(
                 cryptoEngine.decryptField(entity.totpSecret, shellKey, ShellCryptionEngine.AadNamespace.pearlTotp(id))
             } else ""
 
-            val customFields = if (entity.customFields.isNotBlank()) {
-                val decryptedJson = cryptoEngine.decryptField(entity.customFields, shellKey, ShellCryptionEngine.AadNamespace.pearlCustomFields(id))
-                CustomFieldSerializer.deserializeFields(decryptedJson)
+            val customFields = if (entity.customFields.isNotBlank() && entity.customFields != "[]") {
+                if (cryptoEngine.isEncryptedEnvelope(entity.customFields)) {
+                    val decryptedJson = cryptoEngine.decryptField(entity.customFields, shellKey, ShellCryptionEngine.AadNamespace.pearlCustomFields(id))
+                    CustomFieldSerializer.deserializeFields(decryptedJson)
+                } else {
+                    CustomFieldSerializer.deserializeFields(entity.customFields)
+                }
             } else emptyList()
 
-            val history = if (entity.passwordHistory.isNotBlank()) {
-                val decryptedJson = cryptoEngine.decryptField(entity.passwordHistory, shellKey, ShellCryptionEngine.AadNamespace.pearlPasswordHistory(id))
-                CustomFieldSerializer.deserializeHistory(decryptedJson)
+            val history = if (entity.passwordHistory.isNotBlank() && entity.passwordHistory != "[]") {
+                if (cryptoEngine.isEncryptedEnvelope(entity.passwordHistory)) {
+                    val decryptedJson = cryptoEngine.decryptField(entity.passwordHistory, shellKey, ShellCryptionEngine.AadNamespace.pearlPasswordHistory(id))
+                    CustomFieldSerializer.deserializeHistory(decryptedJson)
+                } else {
+                    CustomFieldSerializer.deserializeHistory(entity.passwordHistory)
+                }
             } else emptyList()
 
             val tags = CustomFieldSerializer.deserializeTags(entity.tags)
@@ -688,7 +696,9 @@ class SyncRepository(
             val updatedHistory = pearl.passwordHistory.toMutableList()
             if (existing != null && pearl.secret.isNotBlank()) {
                 try {
-                    val oldSecret = cryptoEngine.decryptField(existing.secret, shellKey, ShellCryptionEngine.AadNamespace.pearlSecret(id))
+                    val oldSecret = if (cryptoEngine.isEncryptedEnvelope(existing.secret)) {
+                        cryptoEngine.decryptField(existing.secret, shellKey, ShellCryptionEngine.AadNamespace.pearlSecret(id))
+                    } else existing.secret
                     if (oldSecret != pearl.secret && oldSecret.isNotBlank() && updatedHistory.none { it.password == oldSecret }) {
                         updatedHistory.add(0, PasswordHistoryEntry(password = oldSecret, timestamp = System.currentTimeMillis()))
                     }
@@ -813,9 +823,13 @@ class SyncRepository(
                 cryptoEngine.decryptField(entity.content, shellKey, ShellCryptionEngine.AadNamespace.secureNoteContent(id))
             } else ""
 
-            val customFields = if (entity.customFields.isNotBlank()) {
-                val decryptedJson = cryptoEngine.decryptField(entity.customFields, shellKey, ShellCryptionEngine.AadNamespace.secureNoteCustomFields(id))
-                CustomFieldSerializer.deserializeFields(decryptedJson)
+            val customFields = if (entity.customFields.isNotBlank() && entity.customFields != "[]") {
+                if (cryptoEngine.isEncryptedEnvelope(entity.customFields)) {
+                    val decryptedJson = cryptoEngine.decryptField(entity.customFields, shellKey, ShellCryptionEngine.AadNamespace.secureNoteCustomFields(id))
+                    CustomFieldSerializer.deserializeFields(decryptedJson)
+                } else {
+                    CustomFieldSerializer.deserializeFields(entity.customFields)
+                }
             } else emptyList()
 
             val tags = CustomFieldSerializer.deserializeTags(entity.tags)
@@ -933,9 +947,13 @@ class SyncRepository(
                 cryptoEngine.decryptField(entity.keyValue, shellKey, ShellCryptionEngine.AadNamespace.sshKeyPrivate(id))
             } else ""
 
-            val customFields = if (entity.customFields.isNotBlank()) {
-                val decryptedJson = cryptoEngine.decryptField(entity.customFields, shellKey, ShellCryptionEngine.AadNamespace.sshKeyCustomFields(id))
-                CustomFieldSerializer.deserializeFields(decryptedJson)
+            val customFields = if (entity.customFields.isNotBlank() && entity.customFields != "[]") {
+                if (cryptoEngine.isEncryptedEnvelope(entity.customFields)) {
+                    val decryptedJson = cryptoEngine.decryptField(entity.customFields, shellKey, ShellCryptionEngine.AadNamespace.sshKeyCustomFields(id))
+                    CustomFieldSerializer.deserializeFields(decryptedJson)
+                } else {
+                    CustomFieldSerializer.deserializeFields(entity.customFields)
+                }
             } else emptyList()
 
             val tags = CustomFieldSerializer.deserializeTags(entity.tags)

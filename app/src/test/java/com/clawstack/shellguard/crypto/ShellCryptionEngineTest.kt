@@ -111,4 +111,26 @@ class ShellCryptionEngineTest {
             assertEquals("Failed for AAD: $aad", samplePayload, decrypted)
         }
     }
+
+    @Test
+    fun testIsEncryptedEnvelopeRecognition() {
+        val shellKey = ShellCryptionEngine.deriveShellKey(testHuKey, testUserUuid)
+        val envelope = ShellCryptionEngine.encryptField("secret", shellKey, "vault_pearls:test")
+        assertTrue(ShellCryptionEngine.isEncryptedEnvelope(envelope))
+
+        assertFalse(ShellCryptionEngine.isEncryptedEnvelope(null))
+        assertFalse(ShellCryptionEngine.isEncryptedEnvelope(""))
+        assertFalse(ShellCryptionEngine.isEncryptedEnvelope("   "))
+        assertFalse(ShellCryptionEngine.isEncryptedEnvelope("[]"))
+        assertFalse(ShellCryptionEngine.isEncryptedEnvelope("[{\"id\":\"1\"}]"))
+        assertFalse(ShellCryptionEngine.isEncryptedEnvelope("plain text string"))
+        assertFalse(ShellCryptionEngine.isEncryptedEnvelope("{\"key\": \"val\"}"))
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testDecryptFieldNonEnvelopeThrowsException() {
+        val shellKey = ShellCryptionEngine.deriveShellKey(testHuKey, testUserUuid)
+        ShellCryptionEngine.decryptField("[]", shellKey, "vault_pearls:test")
+    }
 }
+

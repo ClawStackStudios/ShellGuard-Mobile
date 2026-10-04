@@ -422,39 +422,100 @@ fun ItemDetailScreen(
                                         }
 
                                         VaultItemDomain.NOTE -> {
-                                            Text(
-                                                text = "NOTE CONTENT",
-                                                color = TextMuted,
-                                                fontSize = 11.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                letterSpacing = 0.5.sp
-                                            )
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text(
+                                                    text = "NOTE CONTENT",
+                                                    color = TextMuted,
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    letterSpacing = 0.5.sp
+                                                )
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    IconButton(
+                                                        onClick = {
+                                                            if (state.reprompt && !isRepromptPassed && !state.isSecretRevealed) {
+                                                                pendingSensitiveAction = { viewModel.toggleSecretVisibility() }
+                                                                showRepromptDialog = true
+                                                            } else {
+                                                                viewModel.toggleSecretVisibility()
+                                                            }
+                                                        },
+                                                        modifier = Modifier.size(32.dp)
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = if (state.isSecretRevealed) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                                            contentDescription = if (state.isSecretRevealed) "Mask Note" else "Reveal Note",
+                                                            tint = if (state.isSecretRevealed) ReefPink else TextMuted,
+                                                            modifier = Modifier.size(18.dp)
+                                                        )
+                                                    }
+                                                    IconButton(
+                                                        onClick = {
+                                                            if (state.reprompt && !isRepromptPassed) {
+                                                                pendingSensitiveAction = { copyToClipboard("Note", state.secret, isSensitive = true) }
+                                                                showRepromptDialog = true
+                                                            } else {
+                                                                copyToClipboard("Note", state.secret, isSensitive = true)
+                                                            }
+                                                        },
+                                                        modifier = Modifier.size(32.dp)
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.ContentCopy,
+                                                            contentDescription = "Copy Note",
+                                                            tint = TextMuted,
+                                                            modifier = Modifier.size(18.dp)
+                                                        )
+                                                    }
+                                                }
+                                            }
                                             Spacer(modifier = Modifier.height(8.dp))
                                             Box(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .clip(RoundedCornerShape(8.dp))
                                                     .background(SurfaceContainerDark)
+                                                    .clickable {
+                                                        if (!state.isSecretRevealed) {
+                                                            if (state.reprompt && !isRepromptPassed) {
+                                                                pendingSensitiveAction = { viewModel.toggleSecretVisibility() }
+                                                                showRepromptDialog = true
+                                                            } else {
+                                                                viewModel.toggleSecretVisibility()
+                                                            }
+                                                        }
+                                                    }
                                                     .padding(12.dp)
                                             ) {
-                                                Text(
-                                                    text = state.secret.ifBlank { "(Empty Note)" },
-                                                    color = TextPrimary,
-                                                    fontSize = 14.sp,
-                                                    lineHeight = 20.sp
-                                                )
-                                            }
-                                            Spacer(modifier = Modifier.height(10.dp))
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.End
-                                            ) {
-                                                TextButton(
-                                                    onClick = { copyToClipboard("Note", state.secret, isSensitive = true) }
-                                                ) {
-                                                    Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp), tint = BrandClawCyan)
-                                                    Spacer(modifier = Modifier.width(6.dp))
-                                                    Text("Copy Note", color = BrandClawCyan, fontSize = 12.sp)
+                                                if (state.isSecretRevealed) {
+                                                    Text(
+                                                        text = state.secret.ifBlank { "(Empty Note)" },
+                                                        color = if (state.secret.isBlank()) TextMuted else TextPrimary,
+                                                        fontSize = 14.sp,
+                                                        lineHeight = 20.sp
+                                                    )
+                                                } else {
+                                                    Column {
+                                                        Text(
+                                                            text = "••••••••••••••••••••••••••••••••\n••••••••••••••••••••••••\n••••••••••••••••••••••••••••••••",
+                                                            color = TextMuted,
+                                                            fontFamily = FontFamily.Monospace,
+                                                            fontSize = 14.sp,
+                                                            lineHeight = 20.sp,
+                                                            letterSpacing = 2.sp
+                                                        )
+                                                        Spacer(modifier = Modifier.height(6.dp))
+                                                        Text(
+                                                            text = "Tap or click eye to reveal",
+                                                            color = TextMuted.copy(alpha = 0.7f),
+                                                            fontSize = 11.sp,
+                                                            fontWeight = FontWeight.Medium
+                                                        )
+                                                    }
                                                 }
                                             }
                                         }
@@ -565,13 +626,30 @@ fun ItemDetailScreen(
                             // ── Notes Section ─────────────────────────────────────────
                             if (!state.notes.isNullOrBlank()) {
                                 Spacer(modifier = Modifier.height(20.dp))
-                                Text(
-                                    text = "NOTES",
-                                    color = TextMuted,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 0.5.sp
-                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = "NOTES",
+                                        color = TextMuted,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 0.5.sp
+                                    )
+                                    IconButton(
+                                        onClick = { copyToClipboard("Notes", state.notes, isSensitive = false) },
+                                        modifier = Modifier.size(28.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.ContentCopy,
+                                            contentDescription = "Copy Notes",
+                                            tint = TextMuted,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                }
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Card(
                                     shape = RoundedCornerShape(10.dp),
