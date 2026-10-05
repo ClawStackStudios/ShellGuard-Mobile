@@ -46,6 +46,32 @@ data class ShellGuardBackupEnvelope(
 )
 
 @Serializable
+data class BackupVaultItem(
+    val id: String = UUID.randomUUID().toString(),
+    val type: String = "password", // "password", "note", "key", "card", "identity"
+    val title: String = "",
+    val secret: String = "", // Decrypted secret, note content, or SSH private key
+    val username: String = "",
+    val url: String = "",
+    val uris: String = "[]",
+    val category: String = "",
+    val notes: String = "",
+    // Serialized with web naming convention (snake_case), with camelCase fallback
+    val totp_secret: String? = null,
+    val totpSecret: String? = null,
+    val custom_fields: String? = null,
+    val customFields: String? = null,
+    val tags: String = "[]",
+    val reprompt: Boolean = false,
+    val created_at: String? = null,
+    val createdAt: String? = null
+) {
+    val resolvedTotp: String get() = totp_secret?.takeIf { it.isNotBlank() } ?: totpSecret.orEmpty()
+    val resolvedCustomFields: String get() = custom_fields?.takeIf { it.isNotBlank() } ?: customFields.orEmpty()
+    val resolvedCreatedAt: String get() = created_at?.takeIf { it.isNotBlank() } ?: createdAt ?: java.time.Instant.now().toString()
+}
+
+@Serializable
 data class BackupPearlItem(
     val id: String = UUID.randomUUID().toString(),
     val title: String,
@@ -90,13 +116,45 @@ data class BackupSshKeyItem(
 
 @Serializable
 data class VaultBackupPayload(
+    val app: String = "ShellGuard Vault Backup",
     val version: String = "1.0",
-    val exportedAt: Long = System.currentTimeMillis(),
+    val exportedAt: String = java.time.Instant.now().toString(),
     val ownerUuid: String,
-    val pearls: List<BackupPearlItem> = emptyList(),
-    val notes: List<BackupNoteItem> = emptyList(),
-    val sshKeys: List<BackupSshKeyItem> = emptyList()
-)
+    val itemCount: Int = 0,
+    val items: List<BackupVaultItem> = emptyList(),
+    val pearls: List<BackupPearlItem>? = null,
+    val notes: List<BackupNoteItem>? = null,
+    val sshKeys: List<BackupSshKeyItem>? = null
+) {
+    fun allItems(): List<BackupVaultItem> {
+        if (items.isNotEmpty()) return items
+        // Fallback to legacy structure if present
+        val list = mutableListOf<BackupVaultItem>()
+        pearls?.forEach { p ->
+            list.add(BackupVaultItem(
+                id = p.id, type = p.type.ifBlank { "password" }, title = p.title, secret = p.secret,
+                username = p.username, url = p.url, uris = p.uris, category = p.category, notes = p.notes,
+                totp_secret = p.totpSecret, custom_fields = p.customFields, tags = p.tags, reprompt = p.reprompt,
+                created_at = p.createdAt
+            ))
+        }
+        notes?.forEach { n ->
+            list.add(BackupVaultItem(
+                id = n.id, type = "note", title = n.title, secret = n.content, notes = n.content,
+                category = n.category, custom_fields = n.customFields, tags = n.tags, reprompt = n.reprompt,
+                created_at = n.createdAt
+            ))
+        }
+        sshKeys?.forEach { k ->
+            list.add(BackupVaultItem(
+                id = k.id, type = "key", title = k.title, secret = k.keyValue, username = k.username,
+                category = k.category, custom_fields = k.customFields, tags = k.tags, reprompt = k.reprompt,
+                created_at = k.createdAt
+            ))
+        }
+        return list
+    }
+}
 
 data class ExportResult(
     val jsonString: String,
@@ -222,7 +280,9 @@ class VaultBackupEngine(
         val activeKeys = database.sshKeyDao().getAllActiveKeys(ownerUuid)
 
         // 2. Decrypt items into sovereign backup items
-        val backupPearls = activePearls.map { pearl ->
+        val backupItems = mutableListOf<BackupVaultItem>()
+
+        activePearls.forEach { pearl ->
             val decryptedSecret = try {
                 ShellCryptionEngine.decryptField(
                     pearl.secret,
@@ -261,25 +321,25 @@ class VaultBackupEngine(
                 pearl.customFields
             }
 
-            BackupPearlItem(
+            backupItems.add(BackupVaultItem(
                 id = pearl.id,
+                type = pearl.type.ifBlank { "password" },
                 title = pearl.title,
                 secret = decryptedSecret,
                 username = pearl.username,
                 url = pearl.url,
-                type = pearl.type,
                 category = pearl.category,
                 notes = pearl.notes,
-                totpSecret = decryptedTotp,
-                customFields = decryptedCustom,
+                totp_secret = decryptedTotp,
+                custom_fields = decryptedCustom,
                 tags = pearl.tags,
                 uris = pearl.uris,
                 reprompt = pearl.reprompt,
-                createdAt = pearl.createdAt
-            )
+                created_at = pearl.createdAt
+            ))
         }
 
-        val backupNotes = activeNotes.map { note ->
+        activeNotes.forEach { note ->
             val decryptedContent = try {
                 ShellCryptionEngine.decryptField(
                     note.content,
@@ -304,19 +364,21 @@ class VaultBackupEngine(
                 note.customFields
             }
 
-            BackupNoteItem(
+            backupItems.add(BackupVaultItem(
                 id = note.id,
+                type = "note",
                 title = note.title,
-                content = decryptedContent,
+                secret = decryptedContent,
+                notes = decryptedContent,
                 category = note.category,
-                customFields = decryptedCustom,
+                custom_fields = decryptedCustom,
                 tags = note.tags,
                 reprompt = note.reprompt,
-                createdAt = note.createdAt
-            )
+                created_at = note.createdAt
+            ))
         }
 
-        val backupKeys = activeKeys.map { key ->
+        activeKeys.forEach { key ->
             val decryptedPrivate = try {
                 ShellCryptionEngine.decryptField(
                     key.keyValue,
@@ -341,26 +403,27 @@ class VaultBackupEngine(
                 key.customFields
             }
 
-            BackupSshKeyItem(
+            backupItems.add(BackupVaultItem(
                 id = key.id,
+                type = "key",
                 title = key.title,
-                keyValue = decryptedPrivate,
+                secret = decryptedPrivate,
                 username = key.username,
                 category = key.category,
-                customFields = decryptedCustom,
+                custom_fields = decryptedCustom,
                 tags = key.tags,
                 reprompt = key.reprompt,
-                createdAt = key.createdAt
-            )
+                created_at = key.createdAt
+            ))
         }
 
         val payload = VaultBackupPayload(
+            app = "ShellGuard Vault Backup",
             version = "1.0",
-            exportedAt = System.currentTimeMillis(),
+            exportedAt = java.time.Instant.now().toString(),
             ownerUuid = ownerUuid,
-            pearls = backupPearls,
-            notes = backupNotes,
-            sshKeys = backupKeys
+            itemCount = backupItems.size,
+            items = backupItems
         )
 
         val plaintextJson = json.encodeToString(payload)
@@ -371,9 +434,9 @@ class VaultBackupEngine(
                 jsonString = plaintextJson,
                 isEncrypted = false,
                 protectionMode = BackupProtectionMode.PLAINTEXT,
-                pearlsCount = backupPearls.size,
-                notesCount = backupNotes.size,
-                sshKeysCount = backupKeys.size,
+                pearlsCount = activePearls.size,
+                notesCount = activeNotes.size,
+                sshKeysCount = activeKeys.size,
                 checksumSha256 = checksumSha256
             )
         }
@@ -432,9 +495,9 @@ class VaultBackupEngine(
             jsonString = json.encodeToString(envelope),
             isEncrypted = true,
             protectionMode = protectionMode,
-            pearlsCount = backupPearls.size,
-            notesCount = backupNotes.size,
-            sshKeysCount = backupKeys.size,
+            pearlsCount = activePearls.size,
+            notesCount = activeNotes.size,
+            sshKeysCount = activeKeys.size,
             checksumSha256 = checksumSha256
         )
     }
@@ -500,112 +563,116 @@ class VaultBackupEngine(
         var importedNotes = 0
         var importedKeys = 0
 
-        val pearlsToUpsert = payload.pearls.map { item ->
+        val pearlsToUpsert = mutableListOf<VaultPearlEntity>()
+        val notesToUpsert = mutableListOf<SecureNoteEntity>()
+        val keysToUpsert = mutableListOf<SshKeyEntity>()
+
+        payload.allItems().forEach { item ->
             val itemId = UUID.randomUUID().toString()
-            val encSecret = ShellCryptionEngine.encryptField(
-                item.secret,
-                shellKey,
-                ShellCryptionEngine.AadNamespace.pearlSecret(itemId)
-            )
-            val encTotp = if (item.totpSecret.isNotBlank()) {
-                ShellCryptionEngine.encryptField(
-                    item.totpSecret,
-                    shellKey,
-                    ShellCryptionEngine.AadNamespace.pearlTotp(itemId)
-                )
-            } else ""
+            when (item.type) {
+                "note" -> {
+                    val encContent = ShellCryptionEngine.encryptField(
+                        item.secret,
+                        shellKey,
+                        ShellCryptionEngine.AadNamespace.secureNoteContent(itemId)
+                    )
+                    val encCustom = if (item.resolvedCustomFields.isNotBlank()) {
+                        ShellCryptionEngine.encryptField(
+                            item.resolvedCustomFields,
+                            shellKey,
+                            ShellCryptionEngine.AadNamespace.secureNoteCustomFields(itemId)
+                        )
+                    } else ""
 
-            val encCustom = if (item.customFields.isNotBlank()) {
-                ShellCryptionEngine.encryptField(
-                    item.customFields,
-                    shellKey,
-                    ShellCryptionEngine.AadNamespace.pearlCustomFields(itemId)
-                )
-            } else ""
+                    importedNotes++
+                    notesToUpsert.add(SecureNoteEntity(
+                        id = itemId,
+                        ownerUuid = targetOwnerUuid,
+                        title = item.title.ifBlank { "Untitled Note" },
+                        content = encContent,
+                        category = item.category,
+                        customFields = encCustom,
+                        tags = item.tags,
+                        reprompt = item.reprompt,
+                        syncState = "PENDING_SYNC",
+                        createdAt = item.resolvedCreatedAt,
+                        localUpdatedAt = System.currentTimeMillis()
+                    ))
+                }
+                "key" -> {
+                    val encPrivate = ShellCryptionEngine.encryptField(
+                        item.secret,
+                        shellKey,
+                        ShellCryptionEngine.AadNamespace.sshKeyPrivate(itemId)
+                    )
+                    val encCustom = if (item.resolvedCustomFields.isNotBlank()) {
+                        ShellCryptionEngine.encryptField(
+                            item.resolvedCustomFields,
+                            shellKey,
+                            ShellCryptionEngine.AadNamespace.sshKeyCustomFields(itemId)
+                        )
+                    } else ""
 
-            importedPearls++
-            VaultPearlEntity(
-                id = itemId,
-                ownerUuid = targetOwnerUuid,
-                title = item.title.ifBlank { "Untitled Login" },
-                secret = encSecret,
-                username = item.username,
-                url = item.url,
-                type = item.type.ifBlank { "password" },
-                category = item.category,
-                notes = item.notes,
-                totpSecret = encTotp,
-                customFields = encCustom,
-                tags = item.tags,
-                uris = item.uris,
-                reprompt = item.reprompt,
-                syncState = "PENDING_SYNC",
-                createdAt = item.createdAt,
-                localUpdatedAt = System.currentTimeMillis()
-            )
-        }
+                    importedKeys++
+                    keysToUpsert.add(SshKeyEntity(
+                        id = itemId,
+                        ownerUuid = targetOwnerUuid,
+                        title = item.title.ifBlank { "Untitled Key" },
+                        keyValue = encPrivate,
+                        username = item.username,
+                        category = item.category,
+                        customFields = encCustom,
+                        tags = item.tags,
+                        reprompt = item.reprompt,
+                        syncState = "PENDING_SYNC",
+                        createdAt = item.resolvedCreatedAt,
+                        localUpdatedAt = System.currentTimeMillis()
+                    ))
+                }
+                else -> {
+                    val encSecret = ShellCryptionEngine.encryptField(
+                        item.secret,
+                        shellKey,
+                        ShellCryptionEngine.AadNamespace.pearlSecret(itemId)
+                    )
+                    val encTotp = if (item.resolvedTotp.isNotBlank()) {
+                        ShellCryptionEngine.encryptField(
+                            item.resolvedTotp,
+                            shellKey,
+                            ShellCryptionEngine.AadNamespace.pearlTotp(itemId)
+                        )
+                    } else ""
 
-        val notesToUpsert = payload.notes.map { item ->
-            val itemId = UUID.randomUUID().toString()
-            val encContent = ShellCryptionEngine.encryptField(
-                item.content,
-                shellKey,
-                ShellCryptionEngine.AadNamespace.secureNoteContent(itemId)
-            )
-            val encCustom = if (item.customFields.isNotBlank()) {
-                ShellCryptionEngine.encryptField(
-                    item.customFields,
-                    shellKey,
-                    ShellCryptionEngine.AadNamespace.secureNoteCustomFields(itemId)
-                )
-            } else ""
+                    val encCustom = if (item.resolvedCustomFields.isNotBlank()) {
+                        ShellCryptionEngine.encryptField(
+                            item.resolvedCustomFields,
+                            shellKey,
+                            ShellCryptionEngine.AadNamespace.pearlCustomFields(itemId)
+                        )
+                    } else ""
 
-            importedNotes++
-            SecureNoteEntity(
-                id = itemId,
-                ownerUuid = targetOwnerUuid,
-                title = item.title.ifBlank { "Untitled Note" },
-                content = encContent,
-                category = item.category,
-                customFields = encCustom,
-                tags = item.tags,
-                reprompt = item.reprompt,
-                syncState = "PENDING_SYNC",
-                createdAt = item.createdAt,
-                localUpdatedAt = System.currentTimeMillis()
-            )
-        }
-
-        val keysToUpsert = payload.sshKeys.map { item ->
-            val itemId = UUID.randomUUID().toString()
-            val encPrivate = ShellCryptionEngine.encryptField(
-                item.keyValue,
-                shellKey,
-                ShellCryptionEngine.AadNamespace.sshKeyPrivate(itemId)
-            )
-            val encCustom = if (item.customFields.isNotBlank()) {
-                ShellCryptionEngine.encryptField(
-                    item.customFields,
-                    shellKey,
-                    ShellCryptionEngine.AadNamespace.sshKeyCustomFields(itemId)
-                )
-            } else ""
-
-            importedKeys++
-            SshKeyEntity(
-                id = itemId,
-                ownerUuid = targetOwnerUuid,
-                title = item.title.ifBlank { "Untitled Key" },
-                keyValue = encPrivate,
-                username = item.username,
-                category = item.category,
-                customFields = encCustom,
-                tags = item.tags,
-                reprompt = item.reprompt,
-                syncState = "PENDING_SYNC",
-                createdAt = item.createdAt,
-                localUpdatedAt = System.currentTimeMillis()
-            )
+                    importedPearls++
+                    pearlsToUpsert.add(VaultPearlEntity(
+                        id = itemId,
+                        ownerUuid = targetOwnerUuid,
+                        title = item.title.ifBlank { "Untitled Login" },
+                        secret = encSecret,
+                        username = item.username,
+                        url = item.url,
+                        type = item.type.ifBlank { "password" },
+                        category = item.category,
+                        notes = item.notes,
+                        totpSecret = encTotp,
+                        customFields = encCustom,
+                        tags = item.tags,
+                        uris = item.uris,
+                        reprompt = item.reprompt,
+                        syncState = "PENDING_SYNC",
+                        createdAt = item.resolvedCreatedAt,
+                        localUpdatedAt = System.currentTimeMillis()
+                    ))
+                }
+            }
         }
 
         database.vaultPearlDao().upsertAll(pearlsToUpsert)

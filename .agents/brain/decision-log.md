@@ -63,3 +63,5 @@ Engineered `VaultBackupEngine` supporting web-parity dual protection modes (`ACT
 
 
 
+## 2026-10-04 — polymorphic payload schema and sovereign key alignment
+While auditing the backup engine for Web Parity, I identified that the initial implementation exported isolated lists (`pearls`, `notes`, `sshKeys`), whereas the ShellGuard Web counterpart requires a unified polymorphic `items` JSON array. I refactored `VaultBackupPayload` to serialize and deserialize polymorphic `BackupVaultItem` objects using a `type` discriminator. I also replaced the active key string extraction with a dedicated `hu-` Sovereign ClawKey input field enforcing Base62 validation (`^hu-[0-9a-zA-Z]{64}$`), matching HKDF-SHA256 active-key backup protection perfectly with the Web client.

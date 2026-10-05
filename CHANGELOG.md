@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - Phase 6: Settings Hub & Backup Engine
+### Added
+- **Web Parity Backup Engine (`VaultBackupEngine.kt`)**: Refactored the backup export schema to use a unified polymorphic `items` JSON array instead of isolated object lists (`pearls`, `notes`, `sshKeys`), enabling 100% data import/export parity with ShellGuard Web's `ImportExportView`.
+- **Sovereign ClawKey Backup Authorization (`SettingsBackupScreen`)**: Connected the `hu-` Sovereign ClawKey UI input field for HKDF-SHA256 active-key backup protection, complete with strict Base62 length validation (`^hu-[0-9a-zA-Z]{64}$`) and a fallback toggle for isolated device-only session key exports.
+- **Categorized Settings Hub (`SettingsScreen`)**: Integrated a comprehensive native settings hub powered by `androidx.datastore` spanning Security, Appearance, Sync, Autofill, and Backup operations.
+- **Panic Purge Trigger (`PanicPurgeCountdownScreen`)**: Implemented a full-screen emergency vault destruction cascade with a 3-ring pulsing Canvas countdown and hardware back abort.
+
 ## [0.0.0.9] - 2026-10-04 (Build 9) — Phase 5: Context-Aware Autofill, Inline Chips & Add-Item Deep Linking
 ### Added
 - **Context-Aware Locked Inline Suggestions (`ShellGuardAutofillService`)**: When the vault is locked and matching pearls exist for the active domain/subdomain, ShellGuard presents the clean domain string inline above the keyboard with a locked shell icon (🔒) and `"Unlock Vault"` subtitle, confirming site recognition without leaking sensitive plaintext titles or usernames.

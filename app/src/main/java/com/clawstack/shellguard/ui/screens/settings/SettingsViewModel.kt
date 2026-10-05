@@ -152,6 +152,7 @@ class SettingsViewModel(
     fun exportVaultBackup(
         protectionMode: BackupProtectionMode,
         customPassphrase: String? = null,
+        activeClawKey: String? = null,
         onCompleted: (Result<ExportResult>) -> Unit = {}
     ): Job = viewModelScope.launch {
         val ownerUuid = deviceVault.getOwnerUuid().orEmpty()
@@ -165,7 +166,8 @@ class SettingsViewModel(
         val result = appContainer.backupEngine.exportVault(
             ownerUuid = ownerUuid,
             protectionMode = protectionMode,
-            customPassphrase = customPassphrase
+            customPassphrase = customPassphrase,
+            activeClawKey = activeClawKey
         )
         _extraState.update {
             it.copy(

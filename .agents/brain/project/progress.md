@@ -158,6 +158,7 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
     - 15/15 unit tests passing 100% green across `SettingsViewModelTest` and `SettingsRepositoryTest`.
   - [x] **Sub-Phase E: Backup, Restore & Autofill Prep**:
     - `VaultBackupEngine.kt`: Dual protection export (`ACTIVE_KEY` via HKDF vs `CUSTOM_PASSPHRASE` via PBKDF2-SHA256 600,000 iterations matching Web client), unencrypted JSON export, SHA-256 payload checksums, format sniffing (`detectBackupFormat`), and Bitwarden unencrypted JSON import.
+    - Web Parity Enhancements: Refactored `VaultBackupPayload` to use a polymorphic `items` JSON array schema rather than isolated object lists, and implemented strict `hu-` Sovereign ClawKey validation UI, matching ShellGuard Web's `ImportExportView`.
     - `SettingsBackupScreen.kt`: Interactive dual-mode export with password confirmation, share intent trigger, clipboard copy, and format-sniffing file import flow.
     - `SettingsAutofillScreen.kt`: System autofill service status detector, system settings intent launcher, keyboard inline suggestions toggle, and Stage 8 AI & Contextual Heuristics preview card.
     - `SettingsAboutScreen.kt`: Diagnostic technical overview of Android 15/16 16 KB page-size alignment, KeyStore AES-256-GCM, SQLCipher 4.6.1+, GPL-3.0 license, and developer attributions.

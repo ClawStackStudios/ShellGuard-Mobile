@@ -113,14 +113,19 @@ class VaultBackupEngineTest {
 
         // 3. Decrypt with the active hu-key
         val decrypted = backupEngine.decryptBackupEnvelope(exportResult.jsonString, testHuKey).getOrThrow()
-        assertEquals(1, decrypted.pearls.size)
-        assertEquals("GitHub Personal", decrypted.pearls[0].title)
-        assertEquals("SuperPassword123!", decrypted.pearls[0].secret)
-        assertEquals("octocat", decrypted.pearls[0].username)
+        
+        val decryptedItems = decrypted.allItems()
+        val pearlItems = decryptedItems.filter { it.type == "password" }
+        val noteItems = decryptedItems.filter { it.type == "note" }
+        
+        assertEquals(1, pearlItems.size)
+        assertEquals("GitHub Personal", pearlItems[0].title)
+        assertEquals("SuperPassword123!", pearlItems[0].secret)
+        assertEquals("octocat", pearlItems[0].username)
 
-        assertEquals(1, decrypted.notes.size)
-        assertEquals("Server Keys", decrypted.notes[0].title)
-        assertEquals("Secret Server Instructions", decrypted.notes[0].content)
+        assertEquals(1, noteItems.size)
+        assertEquals("Server Keys", noteItems[0].title)
+        assertEquals("Secret Server Instructions", noteItems[0].secret)
     }
 
     @Test
@@ -152,8 +157,10 @@ class VaultBackupEngineTest {
 
         // Decrypt with correct passphrase
         val decrypted = backupEngine.decryptBackupEnvelope(exportResult.jsonString, customPass).getOrThrow()
-        assertEquals(1, decrypted.pearls.size)
-        assertEquals("PassphraseProtectedKey", decrypted.pearls[0].secret)
+        
+        val pearlItems = decrypted.allItems().filter { it.type == "password" }
+        assertEquals(1, pearlItems.size)
+        assertEquals("PassphraseProtectedKey", pearlItems[0].secret)
 
         // Attempt decrypt with wrong passphrase fails
         val failResult = backupEngine.decryptBackupEnvelope(exportResult.jsonString, "WrongPassword!")
@@ -181,7 +188,7 @@ class VaultBackupEngineTest {
 
         assertFalse(exportResult.isEncrypted)
         assertEquals(BackupProtectionMode.PLAINTEXT, exportResult.protectionMode)
-        assertTrue(exportResult.jsonString.contains("\"pearls\":"))
+        assertTrue(exportResult.jsonString.contains("\"items\":"))
         assertTrue(exportResult.jsonString.contains("PlainSecret"))
     }
 

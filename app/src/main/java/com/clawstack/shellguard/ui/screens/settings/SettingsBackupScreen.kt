@@ -40,6 +40,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
@@ -93,6 +95,10 @@ fun SettingsBackupScreen(
     var customPassphrase by remember { mutableStateOf("") }
     var confirmPassphrase by remember { mutableStateOf("") }
     var showPassphrase by remember { mutableStateOf(false) }
+
+    var activeClawKey by remember { mutableStateOf("") }
+    var deviceOnlyKeyFallback by remember { mutableStateOf(false) }
+    var showClawKey by remember { mutableStateOf(false) }
 
     // Import State
     var importInputText by remember { mutableStateOf("") }
@@ -247,6 +253,104 @@ fun SettingsBackupScreen(
                                 }
                             }
 
+                            // Active Key Inputs if ACTIVE_KEY
+                            AnimatedVisibility(visible = selectedProtectionMode == BackupProtectionMode.ACTIVE_KEY) {
+                                Column(modifier = Modifier.padding(top = 10.dp, bottom = 6.dp)) {
+                                    val isKeyValid = activeClawKey.trim().matches(Regex("^hu-[0-9a-zA-Z]{64}$"))
+                                    
+                                    OutlinedTextField(
+                                        value = activeClawKey,
+                                        onValueChange = { activeClawKey = it },
+                                        label = { Text("Sovereign ClawKey") },
+                                        enabled = !deviceOnlyKeyFallback,
+                                        visualTransformation = if (showClawKey || deviceOnlyKeyFallback) VisualTransformation.None else PasswordVisualTransformation(),
+                                        trailingIcon = {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                if (isKeyValid && !deviceOnlyKeyFallback) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Check,
+                                                        contentDescription = "Valid",
+                                                        tint = BrandClawCyan,
+                                                        modifier = Modifier.padding(end = 4.dp).size(20.dp)
+                                                    )
+                                                }
+                                                IconButton(onClick = { showClawKey = !showClawKey }, enabled = !deviceOnlyKeyFallback) {
+                                                    Icon(
+                                                        imageVector = if (showClawKey) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                                        contentDescription = null,
+                                                        tint = TextMuted
+                                                    )
+                                                }
+                                            }
+                                        },
+                                        supportingText = {
+                                            if (!deviceOnlyKeyFallback) {
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.SpaceBetween
+                                                ) {
+                                                    Text(
+                                                        text = if (isKeyValid) "Key is valid." else "Enter your 67-character Sovereign ClawKey.",
+                                                        color = if (isKeyValid) BrandClawCyan else TextMuted
+                                                    )
+                                                    Text(
+                                                        text = "${activeClawKey.length} / 67",
+                                                        color = if (activeClawKey.length == 67) BrandClawCyan else TextMuted
+                                                    )
+                                                }
+                                            } else {
+                                                Text("Using local device session key.", color = TextMuted)
+                                            }
+                                        },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = if (isKeyValid) BrandClawCyan else ReefPink,
+                                            unfocusedBorderColor = if (isKeyValid) BrandClawCyan else BorderSubtle,
+                                            focusedLabelColor = ReefPink,
+                                            unfocusedLabelColor = TextMuted,
+                                            focusedTextColor = TextPrimary,
+                                            unfocusedTextColor = TextPrimary,
+                                            disabledBorderColor = BorderSubtle,
+                                            disabledTextColor = TextMuted,
+                                            disabledLabelColor = TextMuted
+                                        )
+                                    )
+
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 8.dp)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .clickable { deviceOnlyKeyFallback = !deviceOnlyKeyFallback }
+                                            .padding(vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Checkbox(
+                                            checked = deviceOnlyKeyFallback,
+                                            onCheckedChange = { deviceOnlyKeyFallback = it },
+                                            colors = CheckboxDefaults.colors(
+                                                checkedColor = ReefPink,
+                                                uncheckedColor = TextMuted
+                                            )
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Column {
+                                            Text(
+                                                text = "Use local device session key",
+                                                color = TextPrimary,
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                            Text(
+                                                text = "Device-only export — cannot be decrypted on Web without session.",
+                                                color = TextMuted,
+                                                fontSize = 11.sp
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
                             // Option 2: Custom Passphrase
                             Row(
                                 modifier = Modifier
@@ -395,6 +499,13 @@ fun SettingsBackupScreen(
                             // Export Button
                             Button(
                                 onClick = {
+                                    if (selectedProtectionMode == BackupProtectionMode.ACTIVE_KEY && !deviceOnlyKeyFallback) {
+                                        val isKeyValid = activeClawKey.trim().matches(Regex("^hu-[0-9a-zA-Z]{64}$"))
+                                        if (!isKeyValid) {
+                                            Toast.makeText(context, "Please enter a valid 67-character Sovereign ClawKey.", Toast.LENGTH_SHORT).show()
+                                            return@Button
+                                        }
+                                    }
                                     if (selectedProtectionMode == BackupProtectionMode.CUSTOM_PASSPHRASE) {
                                         if (customPassphrase.isBlank()) {
                                             Toast.makeText(context, "Passphrase cannot be empty.", Toast.LENGTH_SHORT).show()
@@ -407,7 +518,8 @@ fun SettingsBackupScreen(
                                     }
                                     viewModel.exportVaultBackup(
                                         protectionMode = selectedProtectionMode,
-                                        customPassphrase = customPassphrase.ifBlank { null }
+                                        customPassphrase = customPassphrase.ifBlank { null },
+                                        activeClawKey = if (selectedProtectionMode == BackupProtectionMode.ACTIVE_KEY && !deviceOnlyKeyFallback) activeClawKey.trim() else null
                                     )
                                 },
                                 enabled = !uiState.isExporting,
