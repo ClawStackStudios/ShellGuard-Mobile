@@ -1,8 +1,5 @@
 # Decision Log
 
-## 2026-09-26 — unified multi-domain reactive stream
-Combined VaultPearl, SecureNote, and SshKey Room flows in SyncRepository using kotlinx.coroutines.flow.combine to project polymorphic records into UnifiedVaultItem for the VaultDashboard. Enabled instant sub-16ms search and Pod filtering while isolating domain-specific Room table schemas.
-
 ## 2026-09-26 — base62 sovereign key validation parity
 Discovered ShellGuard master identity keys use Base62 alphanumeric encoding (`hu-[0-9a-zA-Z]{64}`), not strictly lowercase hexadecimal. Found by inspecting live Pixel device state where a valid identity file (`shellguard_identity_xxzioimibiexx.json`) was loaded but the login button remained disabled due to overly restrictive `[0-9a-f]` regex in `ClawCrypto`. Upgraded `CLAW_KEY_REGEX` and `GatewayViewModel` to Base62 and extracted UUID directly.
 
@@ -59,6 +56,10 @@ Designed and built dedicated `SettingsAppearanceScreen` and `SettingsSyncScreen`
 
 ## 2026-10-04 — circular dial countdown and fail-closed panic purge cascade
 Engineered interactive `CircularDialPicker` with trigonometric angle mapping (5s–60s clamp) and full-screen `PanicPurgeCountdownScreen` with 3 pulsing concentric red Canvas rings. Implemented a 4-step fail-closed destruction cascade in `executePanicPurge` wiping Room tables, clearing EncryptedSharedPreferences session, wiping DataStore preferences, and unlocking vault state, verified green via Robolectric unit tests.
+
+## 2026-10-04 — dual-mode backup parity and test database isolation
+Engineered `VaultBackupEngine` supporting web-parity dual protection modes (`ACTIVE_KEY` via HKDF vs `CUSTOM_PASSPHRASE` with PBKDF2-SHA256 600,000 iterations), automatic format sniffing, and Bitwarden JSON ingestion. Resolved Robolectric `IllegalStateException` on main thread Room queries by initializing isolated in-memory test databases (`getInMemoryDatabase`) with explicit `.allowMainThreadQueries()`, passing 95/95 unit tests 100% green.
+
 
 
 

@@ -156,9 +156,14 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
     - `PanicPurgeCountdownScreen`: Full-screen emergency countdown with 3 pulsing concentric red Canvas rings, 68sp monospace timer, cancel trigger, hardware back abort, and 4-step fail-closed purge cascade.
     - Wired routes in `MainActivity.kt` NavHost (`Screen.SettingsSecurity` and `Screen.PanicPurgeCountdown`).
     - 15/15 unit tests passing 100% green across `SettingsViewModelTest` and `SettingsRepositoryTest`.
-  - [ ] **Sub-Phase E: Backup, Restore & Autofill Prep**:
-    - Multi-format backup engine (`.sgvault`) with dual passphrase or `hu-key` encryption.
-    - Autofill settings sub-screen with Stage 8 heuristics hooks.
+  - [x] **Sub-Phase E: Backup, Restore & Autofill Prep**:
+    - `VaultBackupEngine.kt`: Dual protection export (`ACTIVE_KEY` via HKDF vs `CUSTOM_PASSPHRASE` via PBKDF2-SHA256 600,000 iterations matching Web client), unencrypted JSON export, SHA-256 payload checksums, format sniffing (`detectBackupFormat`), and Bitwarden unencrypted JSON import.
+    - `SettingsBackupScreen.kt`: Interactive dual-mode export with password confirmation, share intent trigger, clipboard copy, and format-sniffing file import flow.
+    - `SettingsAutofillScreen.kt`: System autofill service status detector, system settings intent launcher, keyboard inline suggestions toggle, and Stage 8 AI & Contextual Heuristics preview card.
+    - `SettingsAboutScreen.kt`: Diagnostic technical overview of Android 15/16 16 KB page-size alignment, KeyStore AES-256-GCM, SQLCipher 4.6.1+, GPL-3.0 license, and developer attributions.
+    - Wired destinations in `MainActivity.kt` NavHost (`Screen.SettingsBackup`, `Screen.SettingsAutofill`, `Screen.SettingsAbout`).
+    - 100% green verification: 5/5 unit tests in `VaultBackupEngineTest`, 12/12 in `SettingsViewModelTest`, and full test suite 95/95 passing green.
+
 
 
 

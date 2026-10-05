@@ -127,8 +127,29 @@ Successes:
 
 Improvements_Identified_For_Consolidation:
 - Pattern: Canvas circular dial picker with polar coordinate touch tracking and range clamping.
-- Pattern: Two-phase confirmation and pulsing visual alert for fail-closed panic purge flows.
 ---
+Date: 2026-10-04
+TaskRef: "Settings Hub Sub-Phase E: Backup, Restore & Autofill Prep"
+
+Learnings:
+- Dual-mode vault backup protection: to achieve feature and cryptographic parity with the ShellGuard web client, backups must support both `ACTIVE_KEY` derivation (HKDF-SHA256 from sovereign `hu-` master identity key) and `CUSTOM_PASSPHRASE` derivation (PBKDF2WithHmacSHA256 with 600,000 iterations matching web client parameters).
+- Format sniffing: inspecting serialized payloads for structural markers (`format`, `version`, `encrypted`) allows clean disambiguation between ShellGuard encrypted v1, ShellGuard plain v1, Bitwarden encrypted JSON, and Bitwarden plain JSON before attempting decryption or ingestion.
+- Room Robolectric test threading: calling `clearAllTables()` on a disk-backed singleton database (`getInstance()`) inside JUnit fixtures triggers `IllegalStateException: Cannot access database on the main thread`. Using `ShellGuardDatabase.getInMemoryDatabase(context)` (which configures `.allowMainThreadQueries()`) and `database.close()` provides clean isolation for test suites without main thread query exceptions.
+
+Difficulties:
+- Encountered `IllegalStateException` on `clearAllTables()` in `VaultBackupEngineTest.setUp()` / `tearDown()`. Diagnosed via `--stacktrace` and resolved by adopting `getInMemoryDatabase()` with `.allowMainThreadQueries()`.
+
+Successes:
+- Built `VaultBackupEngine.kt` supporting dual-mode encryption, plaintext export, format sniffing, SHA-256 payload integrity checksums, and Bitwarden JSON ingestion.
+- Built `SettingsBackupScreen.kt`, `SettingsAutofillScreen.kt`, and `SettingsAboutScreen.kt` with full Reef Modernist styling and system integration.
+- Wired all destinations into `MainActivity.kt` NavHost.
+- All 95 unit tests across the entire repository passing 100% green.
+
+Improvements_Identified_For_Consolidation:
+- Pattern: Multi-format backup sniffing and web-parity dual protection key derivation (HKDF vs PBKDF2 600k).
+- Pattern: Room in-memory test database fixture configuration to prevent main-thread assertion failures.
+---
+
 
 
 

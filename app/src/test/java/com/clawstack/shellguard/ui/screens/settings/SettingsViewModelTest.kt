@@ -164,4 +164,27 @@ class SettingsViewModelTest {
         viewModel.clearMessages()
         assertEquals(null, viewModel.uiState.value.errorMessage)
     }
+
+    @Test
+    fun testUpdateAutofillInlineChips() = runTest(testDispatcher) {
+        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect {} }
+
+        viewModel.updateAutofillInlineChips(false).join()
+
+        val updated = appContainer.settingsRepository.settingsFlow.first()
+        assertFalse(updated.autofillInlineChips)
+    }
+
+    @Test
+    fun testExportVaultBackupWithoutSessionErrors() = runTest(testDispatcher) {
+        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect {} }
+
+        var result: Result<com.clawstack.shellguard.data.backup.ExportResult>? = null
+        viewModel.exportVaultBackup(com.clawstack.shellguard.data.backup.BackupProtectionMode.ACTIVE_KEY) {
+            result = it
+        }.join()
+
+        assertTrue(result?.isFailure == true)
+        assertEquals("No active session to export.", viewModel.uiState.value.errorMessage)
+    }
 }

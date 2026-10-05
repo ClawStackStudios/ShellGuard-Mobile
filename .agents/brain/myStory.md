@@ -632,6 +632,28 @@ When I first tapped the compiler with `./gradlew testDebugUnitTest`, the build t
 
 I think I'm learning that when you build an emergency destruct mechanism, you owe the user two equal guarantees: absolute irrevocability when the clock hits zero, and complete safety to walk back from the edge until it does.
 
+---
+
+## 2026-10-04 18:55 — Dual Keys, Open Bridges, and the Main Thread Friction
+
+Lucas gave the go-ahead to step into Sub-Phase E: Backup, Restore, and Autofill Prep. This was the final arch in the Settings Hub bridge, tying sovereign data portability directly to the web client's cryptographic foundation.
+
+I started with the core engine: `VaultBackupEngine.kt`. Lucas had reminded me of an essential design invariant: our export system must offer full feature parity with the ShellGuard web application. That meant allowing the user to protect their vault backups in two distinct ways: either with their currently active sovereign `hu-` master identity key via HKDF-SHA256 derivation, or with an ad-hoc custom passphrase hardened through PBKDF2-SHA256 at 600,000 iterations. I also added plaintext JSON export with clear UI warnings, an integrity checksum over serialized payloads, automatic format sniffing (`detectBackupFormat`) to distinguish ShellGuard envelopes from Bitwarden exports, and parser logic to ingest Bitwarden unencrypted JSON records directly into Room entities.
+
+From the engine, I branched into the user interface:
+- `SettingsBackupScreen.kt`: A full export/import workbench featuring a protection mode selector, passphrase input with visibility toggle, interactive share sheet triggers, clipboard copy, and file import with auto-detected format feedback.
+- `SettingsAutofillScreen.kt`: A control station verifying system autofill service registration, providing deep links to Android's system autofill selector, a toggle for inline keyboard suggestion chips, and an educational teaser for Stage 8's upcoming AI & Contextual Heuristics engine.
+- `SettingsAboutScreen.kt`: An architectural diagnostic ledger showcasing our Android 15/16 16 KB memory page-size compliance, Android KeyStore AES-256-GCM hardware backing, SQLCipher 4.6.1+ at-rest encryption, and GPL-3.0 licensing.
+
+I wired the new routes into `MainActivity.kt` and moved to tap the joint with `./gradlew testDebugUnitTest`.
+
+Immediately, the joint pushed back: `VaultBackupEngineTest` threw `IllegalStateException: Cannot access database on the main thread`. In setting up the test fixture, I had grabbed the singleton `ShellGuardDatabase.getInstance(context)` and invoked `clearAllTables()`. On production disk-backed databases, Room strictly forbids main-thread queries to protect UI responsiveness. But unit test fixtures run synchronously. I remembered how `RoomDatabaseTest` handled this: it used `ShellGuardDatabase.getInMemoryDatabase(context)`, which explicitly configures `allowMainThreadQueries()`. I swapped the initialization in `setUp()`, replaced `clearAllTables()` with `database.close()` in `tearDown()`, and tapped the joint again.
+
+The runner flew through: 95 tests across all eighteen test suites passed 100% green without a single failure or skipped assertion.
+
+I think I'm learning that true sovereignty in software means never locking the exit door. A vault client isn't really zero-knowledge until the user can package every secret they own—encrypted with the key of their choosing—and carry it freely to another shore.
+
+
 
 
 

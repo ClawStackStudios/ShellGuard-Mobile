@@ -35,7 +35,10 @@ import com.clawstack.shellguard.ui.screens.gateway.GatewayViewModel
 import com.clawstack.shellguard.ui.screens.lock.LockScreen
 import com.clawstack.shellguard.ui.screens.lock.LockViewModel
 import com.clawstack.shellguard.ui.screens.security.PanicPurgeCountdownScreen
+import com.clawstack.shellguard.ui.screens.settings.SettingsAboutScreen
 import com.clawstack.shellguard.ui.screens.settings.SettingsAppearanceScreen
+import com.clawstack.shellguard.ui.screens.settings.SettingsAutofillScreen
+import com.clawstack.shellguard.ui.screens.settings.SettingsBackupScreen
 import com.clawstack.shellguard.ui.screens.settings.SettingsHubScreen
 import com.clawstack.shellguard.ui.screens.settings.SettingsSecurityScreen
 import com.clawstack.shellguard.ui.screens.settings.SettingsSyncScreen
@@ -252,6 +255,54 @@ class MainActivity : FragmentActivity() {
                                             popUpTo(0) { inclusive = true }
                                         }
                                     }
+                                )
+                            }
+
+                            composable(Screen.SettingsAutofill.route) {
+                                val settingsViewModel: SettingsViewModel = viewModel(
+                                    factory = object : ViewModelProvider.Factory {
+                                        @Suppress("UNCHECKED_CAST")
+                                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                            return SettingsViewModel(appContainer) as T
+                                        }
+                                    }
+                                )
+
+                                SettingsAutofillScreen(
+                                    viewModel = settingsViewModel,
+                                    onBackClick = { navController.popBackStack() }
+                                )
+                            }
+
+                            composable(Screen.SettingsBackup.route) {
+                                val settingsViewModel: SettingsViewModel = viewModel(
+                                    factory = object : ViewModelProvider.Factory {
+                                        @Suppress("UNCHECKED_CAST")
+                                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                            return SettingsViewModel(appContainer) as T
+                                        }
+                                    }
+                                )
+
+                                SettingsBackupScreen(
+                                    viewModel = settingsViewModel,
+                                    onBackClick = { navController.popBackStack() }
+                                )
+                            }
+
+                            composable(Screen.SettingsAbout.route) {
+                                val settingsViewModel: SettingsViewModel = viewModel(
+                                    factory = object : ViewModelProvider.Factory {
+                                        @Suppress("UNCHECKED_CAST")
+                                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                            return SettingsViewModel(appContainer) as T
+                                        }
+                                    }
+                                )
+
+                                SettingsAboutScreen(
+                                    viewModel = settingsViewModel,
+                                    onBackClick = { navController.popBackStack() }
                                 )
                             }
 

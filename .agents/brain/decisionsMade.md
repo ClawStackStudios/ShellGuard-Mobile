@@ -469,6 +469,19 @@ The cross-session failure analysis (/deep-learn) detected an **over-confidence b
 **Outcome**: Implemented `CircularDialPicker.kt`, `SettingsSecurityScreen.kt`, and `PanicPurgeCountdownScreen.kt`; wired into `MainActivity.kt`; verified 15/15 unit tests passing 100% green.
 **Pattern reference**: Link to `architecture.md § Threat Model & Invariants` (Panic wipe) and `crypto-and-keystore.md § Emergency Panic Purge`.
 
+## dual-mode-backup-protection-and-format-sniffing — 2026-10-04 18:55
+
+**Context**: In Sub-Phase E of Settings Hub, designing full-vault export and import engine (`VaultBackupEngine`), supporting seamless web client cryptographic parity and flexible protection options.
+**Options considered**:
+- Restrict backups to active sovereign identity key (`hu-key`) HKDF derivation only — Cryptographically simple and prevents weak passwords, but breaks interoperability if user exports from mobile to open on another machine without their active session key, and diverges from Web app options.
+- Support dual protection modes (`ACTIVE_KEY` via HKDF-SHA256 vs `CUSTOM_PASSPHRASE` with PBKDF2-SHA256 600,000 iterations), alongside unencrypted JSON export, format sniffing (`detectBackupFormat`), and Bitwarden JSON ingestion — Provides complete feature and cryptographic parity with ShellGuard Web client while giving the user deliberate control.
+**Chosen**: Dual protection modes with PBKDF2-SHA256 (600,000 iterations) and format sniffing.
+**Why**: Parity between mobile and web is a core invariant. The web application allows users to secure backups with either their sovereign `hu-` master key or an ad-hoc custom passphrase. If mobile didn't provide both, users couldn't cross-restore between platforms without friction. Format sniffing also prevents the app from choking on Bitwarden JSON or plain backups.
+**Confidence**: high — verified with 5/5 unit tests in `VaultBackupEngineTest` covering format sniffing, active key round-trip, custom passphrase PBKDF2 round-trip, and Bitwarden ingestion.
+**Outcome**: Implemented `VaultBackupEngine.kt`, `SettingsBackupScreen.kt`, `SettingsAutofillScreen.kt`, and `SettingsAboutScreen.kt`; all 95 unit tests passing 100% green.
+**Pattern reference**: Link to `crypto-and-keystore.md § Cryptographic Invariants & Parity` and `import-export-and-migration-spec.md`.
+
+
 
 
 
