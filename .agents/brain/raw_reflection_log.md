@@ -108,6 +108,28 @@ Improvements_Identified_For_Consolidation:
 - Pattern: Whole-app theme switching via root Compose theme flow observation without Activity recreation.
 - Pattern: Clear separation of UI feedback banners (info vs error) with dismissible close buttons.
 ---
+Date: 2026-10-04
+TaskRef: "Settings Hub Sub-Phase D: Security & Panic Purge Flow"
+
+Learnings:
+- Polar angle conversion in Jetpack Compose: using `atan2(dy, dx)` with `+ 90.0` offset and normalizing negative angles maps touch/drag coordinates cleanly to a 12 o'clock origin clock face. Dividing by 360 degrees and multiplying by 60 seconds yields an intuitive, tactile duration selector for emergency countdowns.
+- Emergency UX architecture: high-stakes destructive operations require unambiguous visual hierarchy (pulsing concentric Canvas circles, 68sp monospace typography) paired with explicit abort mechanics (prominent cancel button and BackHandler intercepting physical back navigation).
+- Fail-closed purge cascade: when executing irreversible emergency wipes, clearing in-memory keys and session tokens in `EncryptedSharedPreferences` must be guaranteed in a `try-finally` or `catch` block even if SQLite table wipes throw.
+
+Difficulties:
+- Build compilation error: `CircularDialPicker.kt` was missing `androidx.compose.foundation.layout.width` import for horizontal button spacers. Detected immediately on test compilation and rectified.
+
+Successes:
+- Designed and built `CircularDialPicker.kt`, `SettingsSecurityScreen.kt`, and `PanicPurgeCountdownScreen.kt`.
+- Wired destinations to `MainActivity.kt` NavHost.
+- Expanded `SettingsViewModelTest` to cover screen capture toggling, clipboard clearing duration, panic countdown clamping, and fail-closed wipe execution.
+- All 15 unit tests passing 100% green.
+
+Improvements_Identified_For_Consolidation:
+- Pattern: Canvas circular dial picker with polar coordinate touch tracking and range clamping.
+- Pattern: Two-phase confirmation and pulsing visual alert for fail-closed panic purge flows.
+---
+
 
 
 

@@ -457,6 +457,18 @@ The cross-session failure analysis (/deep-learn) detected an **over-confidence b
 **Outcome**: Implemented `SettingsAppearanceScreen.kt` and `SettingsSyncScreen.kt`, wired to NavHost, and verified 13/13 unit tests passing 100% green.
 **Pattern reference**: Link to `brandIdentity.md § Component DNA` and `systemPatterns.md § Master-Detail & Sub-Screen Navigation`.
 
+## circular-dial-panic-countdown-and-fail-closed-purge-cascade — 2026-10-04 18:25
+
+**Context**: In Sub-Phase D of Settings Hub, designing the Panic Purge security configuration and emergency execution UI, requiring an intuitive duration selector (clamped 5s–60s, default 15s) and a high-gravity emergency countdown screen with full abort capability and irrevocable zeroization.
+**Options considered**:
+- Simple numeric text input or standard linear slider — Functional, but feels flat and sterile for an emergency security parameter where physical tactile certainty matters.
+- Custom clock-face `CircularDialPicker` with trigonometric drag gestures paired with a full-screen `PanicPurgeCountdownScreen` displaying 3 pulsing concentric Canvas rings, monospace countdown, cancel button, hardware back abort, and a 4-step fail-closed wipe cascade — Provides unmistakable tactile feedback, high-stakes visual gravitas, and fail-safe abortion before zeroization.
+**Chosen**: Custom `CircularDialPicker` and pulsing red Canvas ring countdown screen with 4-step fail-closed cascade.
+**Why**: Setting an emergency panic wipe timer shouldn't feel like adjusting screen brightness. A circular dial invokes the deliberate winding of an emergency clock mechanism. When triggered, the screen must leave no doubt about what is happening: pulsing red concentric waves, large monospace numbers, an obvious abort button, and complete irrevocability once the clock strikes zero.
+**Confidence**: high — verified with unit tests for countdown clamping, preference persistence, and fail-closed wipe execution.
+**Outcome**: Implemented `CircularDialPicker.kt`, `SettingsSecurityScreen.kt`, and `PanicPurgeCountdownScreen.kt`; wired into `MainActivity.kt`; verified 15/15 unit tests passing 100% green.
+**Pattern reference**: Link to `architecture.md § Threat Model & Invariants` (Panic wipe) and `crypto-and-keystore.md § Emergency Panic Purge`.
+
 
 
 

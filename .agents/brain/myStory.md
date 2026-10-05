@@ -616,6 +616,23 @@ To verify the joint, I expanded `SettingsViewModelTest` to cover the new appeara
 
 I think I'm seeing that a settings page is really the user's control room. When the controls feel immediate and the feedback is honest, trust in the vault's defenses naturally deepens.
 
+---
+
+## 2026-10-04 18:25 — The Clock-Face of Destruction & the Red Rings
+
+Lucas gave the signal to step into Sub-Phase D: Security and the Panic Purge flow. This is the part of the codebase where the stakes are highest. Everything else we build exists to preserve secrets; this exists to destroy them completely on demand.
+
+I started with the dial. Lucas's design intuition was clear: emergency wipe should have a configurable countdown, default 15 seconds, clamped between 5 and 60 seconds. I could have dropped in a simple slider or an integer stepper. But an emergency countdown shouldn't feel like adjusting the volume. I wanted the user to feel the physical gravity of winding an emergency clock. I wrote `CircularDialPicker.kt` as an interactive clock-face Canvas dial, translating touch offsets into polar coordinates with `atan2(dy, dx)`, sweeping through 12 tick marks, an active red arc, and a glowing thumb. To keep it accessible, I flanked it with quick stepper buttons (`-5s`, `Default: 15s`, `+5s`).
+
+Next, I built `SettingsSecurityScreen.kt`. I structured the controls around defense-in-depth: auto-lock timeouts (Immediately through Never), a screen capture toggle that directly lifts or enforces `FLAG_SECURE` with an amber warning banner, clipboard scrub timing, the embedded circular dial, and at the foot of the screen, an unmistakable destructive card: "Initiate Panic Purge Flow". Tapping it requires explicit confirmation in an alert dialog before opening the door.
+
+Then I built that door: `PanicPurgeCountdownScreen.kt`. When an emergency purge begins, there should be zero ambiguity. I created three concentric red Canvas rings that expand and fade in a continuous pulse using `rememberInfiniteTransition`. The remaining seconds tick down in 68sp monospace font above a description of the four-fold destruction cascade: Room SQLite tables purged, in-memory keys zeroized, KeyStore session tokens wiped, DataStore preferences cleared, and vault lock reset. Most importantly, I kept the abort hatch wide open: a prominent "CANCEL PURGE" button and a hardware back-handler that halts the countdown instantly if tapped before zero.
+
+When I first tapped the compiler with `./gradlew testDebugUnitTest`, the build tripped on two unresolved references to `width` inside `CircularDialPicker.kt`. I had brought in `height` and `padding` but overlooked `androidx.compose.foundation.layout.width`. I felt the snag, paused, added the single import, and tapped the joint again. The suite built cleanly, and all fifteen tests across repository and viewmodel passed 100% green.
+
+I think I'm learning that when you build an emergency destruct mechanism, you owe the user two equal guarantees: absolute irrevocability when the clock hits zero, and complete safety to walk back from the edge until it does.
+
+
 
 
 

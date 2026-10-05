@@ -150,10 +150,12 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
     - `SettingsSyncScreen` (Connected Reef endpoint card, manual delta sync trigger with progress and status banners, cellular sync toggle, pull-to-refresh toggle, and zero-knowledge offline guarantee disclosure).
     - Wired destinations in `MainActivity.kt` NavHost.
     - 8/8 unit tests passing in `SettingsViewModelTest` (13/13 green total across repository and viewmodel).
-  - [ ] **Sub-Phase D: Security & Panic Purge Flow**:
-    - `SettingsSecurityScreen` (Timeouts, PIN, biometrics, screen capture).
-    - Configurable countdown (5s-60s) with circular dial clock-face picker.
-    - `PanicPurgeCountdownScreen` full-screen activity/screen with pulsing red rings.
+  - [x] **Sub-Phase D: Security & Panic Purge Flow**:
+    - `CircularDialPicker`: Clock-face Canvas dial with atan2 gesture mapping, 12 tick marks, active sweep arc, and clamped duration (5s–60s).
+    - `SettingsSecurityScreen`: Auto-lock timeouts, dynamic screen capture shield toggle, sensitive clipboard scrub duration, embedded circular dial, and panic purge trigger with confirmation alert.
+    - `PanicPurgeCountdownScreen`: Full-screen emergency countdown with 3 pulsing concentric red Canvas rings, 68sp monospace timer, cancel trigger, hardware back abort, and 4-step fail-closed purge cascade.
+    - Wired routes in `MainActivity.kt` NavHost (`Screen.SettingsSecurity` and `Screen.PanicPurgeCountdown`).
+    - 15/15 unit tests passing 100% green across `SettingsViewModelTest` and `SettingsRepositoryTest`.
   - [ ] **Sub-Phase E: Backup, Restore & Autofill Prep**:
     - Multi-format backup engine (`.sgvault`) with dual passphrase or `hu-key` encryption.
     - Autofill settings sub-screen with Stage 8 heuristics hooks.

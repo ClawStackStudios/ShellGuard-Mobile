@@ -86,6 +86,26 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun testUpdateAllowScreenCapture() = runTest(testDispatcher) {
+        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect {} }
+
+        viewModel.updateAllowScreenCapture(true).join()
+
+        val updated = appContainer.settingsRepository.settingsFlow.first()
+        assertTrue(updated.allowScreenCapture)
+    }
+
+    @Test
+    fun testUpdateClipboardClearSeconds() = runTest(testDispatcher) {
+        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect {} }
+
+        viewModel.updateClipboardClearSeconds(60).join()
+
+        val updated = appContainer.settingsRepository.settingsFlow.first()
+        assertEquals(60, updated.clipboardClearSeconds)
+    }
+
+    @Test
     fun testUpdatePanicWipeCountdownClamped() = runTest(testDispatcher) {
         backgroundScope.launch(testDispatcher) { viewModel.uiState.collect {} }
 

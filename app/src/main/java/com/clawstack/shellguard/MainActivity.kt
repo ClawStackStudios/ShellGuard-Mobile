@@ -34,8 +34,10 @@ import com.clawstack.shellguard.ui.screens.gateway.GatewayScreen
 import com.clawstack.shellguard.ui.screens.gateway.GatewayViewModel
 import com.clawstack.shellguard.ui.screens.lock.LockScreen
 import com.clawstack.shellguard.ui.screens.lock.LockViewModel
+import com.clawstack.shellguard.ui.screens.security.PanicPurgeCountdownScreen
 import com.clawstack.shellguard.ui.screens.settings.SettingsAppearanceScreen
 import com.clawstack.shellguard.ui.screens.settings.SettingsHubScreen
+import com.clawstack.shellguard.ui.screens.settings.SettingsSecurityScreen
 import com.clawstack.shellguard.ui.screens.settings.SettingsSyncScreen
 import com.clawstack.shellguard.ui.screens.settings.SettingsViewModel
 import com.clawstack.shellguard.ui.navigation.Screen
@@ -212,6 +214,44 @@ class MainActivity : FragmentActivity() {
                                 SettingsSyncScreen(
                                     viewModel = settingsViewModel,
                                     onBackClick = { navController.popBackStack() }
+                                )
+                            }
+
+                            composable(Screen.SettingsSecurity.route) {
+                                val settingsViewModel: SettingsViewModel = viewModel(
+                                    factory = object : ViewModelProvider.Factory {
+                                        @Suppress("UNCHECKED_CAST")
+                                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                            return SettingsViewModel(appContainer) as T
+                                        }
+                                    }
+                                )
+
+                                SettingsSecurityScreen(
+                                    viewModel = settingsViewModel,
+                                    onBackClick = { navController.popBackStack() },
+                                    onNavigateToPanicCountdown = { navController.navigate(Screen.PanicPurgeCountdown.route) }
+                                )
+                            }
+
+                            composable(Screen.PanicPurgeCountdown.route) {
+                                val settingsViewModel: SettingsViewModel = viewModel(
+                                    factory = object : ViewModelProvider.Factory {
+                                        @Suppress("UNCHECKED_CAST")
+                                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                            return SettingsViewModel(appContainer) as T
+                                        }
+                                    }
+                                )
+
+                                PanicPurgeCountdownScreen(
+                                    viewModel = settingsViewModel,
+                                    onCancel = { navController.popBackStack() },
+                                    onPurgeCompleted = {
+                                        navController.navigate("gateway") {
+                                            popUpTo(0) { inclusive = true }
+                                        }
+                                    }
                                 )
                             }
 
