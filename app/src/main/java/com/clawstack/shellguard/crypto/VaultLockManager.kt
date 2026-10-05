@@ -38,7 +38,7 @@ class VaultLockManager(
     }
 
     fun setLockTimeout(timeout: LockTimeout) {
-        prefs.edit().putString(KEY_LOCK_TIMEOUT, timeout.name).apply()
+        prefs.edit().putString(KEY_LOCK_TIMEOUT, timeout.name).commit()
     }
 
     fun lockVaultNow() {

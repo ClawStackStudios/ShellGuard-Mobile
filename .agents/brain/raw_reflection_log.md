@@ -68,4 +68,26 @@ Improvements_Identified_For_Consolidation:
 - Pattern: Global Compose lock overlay for deep-link preservation across biometric auth.
 - Pattern: Context-aware locked inline suggestion presentation.
 ---
+Date: 2026-10-04
+TaskRef: "Settings Hub Sub-Phase B: Navigation & Base UI Hub"
+
+Learnings:
+- In ViewModel unit testing with coroutines and DataStore, `viewModelScope.launch` jobs dispatch disk I/O onto `Dispatchers.IO` while `runTest` advances virtual time on its own scheduler. If mutation functions return `Unit`, tests spinning on flow filters can trigger 60-second timeouts (`UncompletedCoroutinesError`).
+- Returning `Job` from ViewModel mutation functions (`fun updateX(): Job = viewModelScope.launch { ... }`) provides a deterministic handle for tests to `.join()`, ensuring data writes complete before downstream assertions, while Compose UI callers simply ignore the return value.
+- Unifying `runTest(testDispatcher)` across all test cases guarantees that `Dispatchers.Main`, `viewModelScope`, and test scopes share the exact same `TestCoroutineScheduler`.
+- Dynamic window security: Binding `FLAG_SECURE` reactively to `settings.allowScreenCapture` in `MainActivity` ensures screenshot blocking dynamically toggles without requiring app restarts.
+
+Difficulties:
+- 60-second test timeout in `testUpdatePanicWipeCountdownClamped` caused by test virtual time racing ahead of `Dispatchers.IO` DataStore disk writes. Resolved cleanly by returning `Job` and joining the operation.
+
+Successes:
+- Designed and verified `SettingsHubScreen` with Reef Modernist cards across 6 categories.
+- 10/10 Settings unit tests passing 100% green in 21s.
+- Zero state leaks across tests.
+
+Improvements_Identified_For_Consolidation:
+- Pattern: Return `Job` from ViewModel coroutine launches to enable deterministic `.join()` in test suites.
+- Pattern: Dynamic `FLAG_SECURE` window binding in Compose activities.
+---
+
 

@@ -433,6 +433,19 @@ The cross-session failure analysis (/deep-learn) detected an **over-confidence b
 **Outcome**: Implemented `SettingsRepository` with 11 preference keys, integrated into `AppContainer`, and validated with 5/5 passing unit tests.
 **Pattern reference**: Link to `systemPatterns.md § Reactive Data Streams`.
 
+## job-returning-viewmodel-mutations-and-scheduler-alignment — 2026-10-04 16:50
+
+**Context**: In Sub-Phase B of Settings Hub, `SettingsViewModelTest` faced intermittent 60-second timeouts (`UncompletedCoroutinesError`) on DataStore preference mutations because `viewModelScope.launch` jobs ran without test-awaitable hooks and `runTest` used disparate scheduler instances from `Dispatchers.Main`.
+**Options considered**:
+- Keep `fun updateX()` as `Unit` and rely on arbitrary test delays or spinning flow filters (`settingsFlow.filter { ... }.first()`) — Highly brittle; causes virtual time runaway when background I/O on `Dispatchers.IO` is not bound to the test clock.
+- Return `Job` from all ViewModel mutation functions (`fun updateX(): Job = viewModelScope.launch { ... }`) and unify `runTest(testDispatcher)` across test scopes — Allows tests to cleanly `.join()` asynchronous mutations before asserting downstream flow state, while UI callers remain completely unaffected by ignoring the return value.
+**Chosen**: Return `Job` from ViewModel mutations and pass unified `testDispatcher` to `runTest`.
+**Why**: Asynchrony in ViewModels shouldn't be an untrackable black hole. Exposing the coroutine `Job` provides a deterministic handle for verification: tests don't have to guess or spin waiting for I/O to land—they join the stroke, and once joined, the result is solid ground.
+**Confidence**: high — 100% green test execution, dropping test run time from 80s with timeout to 21s clean.
+**Outcome**: All 10 Settings unit tests (`SettingsViewModelTest` and `SettingsRepositoryTest`) passing 100% green without race conditions.
+**Pattern reference**: Link to `testOracle.md § Verification Gates` and `systemPatterns.md § MVI Architecture`.
+
+
 
 
 

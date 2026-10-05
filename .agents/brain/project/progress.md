@@ -139,11 +139,12 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
     - Implemented `SettingsRepository` and `SettingsRepositoryImpl` exposing reactive `Flow<AppSettings>` (11 settings keys).
     - Exposed `SettingsRepository` through `AppContainer` and `DefaultAppContainer`.
     - 5/5 unit tests passing 100% green (`SettingsRepositoryTest`).
-  - [ ] **Sub-Phase B: Navigation & Base UI Hub**:
-    - `Screen.Settings`, `Screen.SettingsSecurity`, etc. in `Screen.kt`.
-    - `SettingsViewModel` with MVI state binding.
-    - `SettingsHubScreen` root view with 6 categorized list items.
-    - Wire `Settings` item into `VaultDashboardScreen` overflow menu.
+  - [x] **Sub-Phase B: Navigation & Base UI Hub**:
+    - `Screen.Settings`, `Screen.SettingsSecurity`, `Screen.SettingsAutofill`, `Screen.SettingsSync`, `Screen.SettingsAppearance`, `Screen.SettingsBackup`, `Screen.SettingsAbout`, and `Screen.PanicPurgeCountdown` in `Screen.kt`.
+    - `SettingsViewModel` with MVI state binding and `Job`-returning mutation operations.
+    - `SettingsHubScreen` root view with Reef Modernist category cards for all 6 sections.
+    - Wired `Settings Hub` into `VaultDashboardScreen` overflow menu and `MainActivity.kt` NavHost with dynamic `FLAG_SECURE` window toggling.
+    - 5/5 unit tests passing 100% green (`SettingsViewModelTest`). Total 10/10 Settings unit tests green.
   - [ ] **Sub-Phase C: Appearance & Sync Settings**:
     - `SettingsAppearanceScreen` (Theme, dynamic colors, accent, icons, density).
     - `SettingsSyncScreen` (Server URI, manual trigger, pull-to-refresh).

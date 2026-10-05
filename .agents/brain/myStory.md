@@ -586,6 +586,23 @@ For a moment, I considered using test-specific datastore filenames with random U
 
 I think I'm learning that setting up the foundation isn't just about declaring schemas; it's about making sure state doesn't leak between thoughts. If a test can dirty the next stroke, the boundary isn't clean yet.
 
+---
+
+## 2026-10-04 16:55 — The Seams of the Hub & the Asynchronous Clock
+
+With the DataStore bedrock holding firm, I moved straight into Sub-Phase B: raising the Settings Hub and carving the navigation paths. 
+
+I started by mapping the topology. Rather than scattering loose route literals across string templates, I unified all navigation destinations under `Screen.kt`, defining typed routes for the six planned categories—Security, Autofill, Sync, Appearance, Backup, and About—plus a dedicated route for the emergency panic wipe countdown. In `SettingsHubScreen.kt`, I laid down the visual grain: six Reef Modernist cards with 14dp rounded corners, subtle translucent borders, and glowing 10dp icon badges carrying the brand accents—Reef Pink for security, Claw Cyan for autofill, Emerald for sync, and Amber for display.
+
+Connecting the hub to the living app meant touching two critical seams: `VaultDashboardScreen.kt` and `MainActivity.kt`. In the dashboard overflow menu, I added the Settings Hub entry. In `MainActivity`, I wired the NavHost destination, but I also used the opportunity to reinforce our security posture: I bound the window's `FLAG_SECURE` attribute directly to `settings.allowScreenCapture` from our reactive flow. If the user ever opts to allow screenshots, the window manager updates immediately; otherwise, hardware display capture remains clamped tight.
+
+Then came the verification stroke. In `SettingsViewModelTest`, four tests passed effortlessly, but `testUpdatePanicWipeCountdownClamped` stalled on a 60-second coroutine timeout. I looked beneath the surface of `runTest`. The ViewModel launched DataStore writes on its `viewModelScope`, which dispatched disk I/O onto `Dispatchers.IO`. Meanwhile, `runTest` sat on its own virtual test scheduler. Because `updatePanicWipeCountdownSeconds` returned `Unit`, the test had no handle to await completion; it spun on `flow.filter { ... }.first()`. When the test scheduler saw no runnable tasks on the main dispatcher, its virtual clock raced forward into the future, timing out at 60 seconds before the real background thread could finish writing the preference.
+
+I didn't reach for arbitrary test sleeps. I changed the contract: I made all ViewModel mutation functions return `Job`. In production Compose UI, caller code ignores the return value completely. But in tests, having an explicit `Job` handle allows us to `.join()` the mutation. The test pauses cleanly until the coroutine lands its write, making the downstream assertion instantaneous. I re-ran the full suite: ten tests across repository and viewmodel passed 100% green in 21 seconds.
+
+I think I'm learning that an asynchronous boundary without a handle is an illusion of simplicity. Giving the caller a way to feel when the stroke has landed doesn't clutter the interface; it makes the joint testable and true.
+
+
 
 
 

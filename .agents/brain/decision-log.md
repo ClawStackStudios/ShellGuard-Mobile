@@ -1,11 +1,5 @@
 # Decision Log
 
-## 2026-09-25 — bitwarden parity audit and settings hub expansion
-Audited ShellGuard Mobile straight up against Bitwarden Android; expanded ui-ux-design-system.md §10 with 6 dedicated Settings sub-screens (Vault Timeout, Timeout Action, Sensitive Clipboard timer, Screen Capture toggle, and Auto-Copy TOTP on Autofill), confirming 98%+ MVP specification coverage.
-
-## 2026-09-25 — stage 0 scaffold and appcontainer lazy di
-Scaffolded foundational Android application baseline in chore/stage-0-initial-scaffold; adopted frameworkless AppContainer lazy DI from ShellGuard ecosystem (avoiding KSP annotation processor churn with Kotlin 2.2+ and enabling deterministic RAM zeroization), passing testDebugUnitTest and assembleDebug 100% green.
-
 ## 2026-09-26 — kotlinx.serialization for cryptographic envelopes
 Encountered Android framework mock limitation ('Method put in org.json.JSONObject not mocked') during host JVM test execution for ShellCryptionEngine. Switched envelope schema to pure Kotlin @Serializable data class ShellCryptionEnvelope, eliminating mock friction and achieving faster, portable serialization across both Android runtime and headless JVM tests.
 
@@ -62,4 +56,8 @@ Transformed the Autofill suggestion pipeline: when locked, rather than hiding ac
 
 ## 2026-10-04 — datastore preferences isolation & test state reset
 Encountered test isolation cross-talk in `SettingsRepositoryTest` when tests mutated the singleton Application `context.dataStore` without resetting state between runs. Added explicit `clearAll()` method to `SettingsRepository` and invoked it inside `@Before setUp()`, ensuring pure deterministic state across all test passes.
+
+## 2026-10-04 — job-returning viewmodel mutations & unified test schedulers
+Hit 60-second coroutine timeouts in `SettingsViewModelTest` when testing DataStore mutations asynchronously. Returned `Job` from all ViewModel mutation functions, allowing tests to `.join()` before asserting downstream flow state, and bound `runTest(testDispatcher)` directly to `Dispatchers.Main`'s scheduler, reducing test suite time from 80s to 21s green.
+
 

@@ -34,6 +34,9 @@ import com.clawstack.shellguard.ui.screens.gateway.GatewayScreen
 import com.clawstack.shellguard.ui.screens.gateway.GatewayViewModel
 import com.clawstack.shellguard.ui.screens.lock.LockScreen
 import com.clawstack.shellguard.ui.screens.lock.LockViewModel
+import com.clawstack.shellguard.ui.screens.settings.SettingsHubScreen
+import com.clawstack.shellguard.ui.screens.settings.SettingsViewModel
+import com.clawstack.shellguard.ui.navigation.Screen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.clawstack.shellguard.ui.theme.OceanDark
 import com.clawstack.shellguard.ui.theme.ShellGuardTheme
@@ -57,7 +60,31 @@ class MainActivity : FragmentActivity() {
         val appContainer = (application as ShellGuardApp).appContainer
 
         setContent {
-            ShellGuardTheme {
+            val appSettings by appContainer.settingsRepository.settingsFlow.collectAsState(
+                initial = com.clawstack.shellguard.data.local.AppSettings()
+            )
+
+            val isDarkTheme = when (appSettings.themeMode) {
+                com.clawstack.shellguard.data.local.ThemeMode.DARK -> true
+                com.clawstack.shellguard.data.local.ThemeMode.LIGHT -> false
+                com.clawstack.shellguard.data.local.ThemeMode.SYSTEM -> androidx.compose.foundation.isSystemInDarkTheme()
+            }
+
+            LaunchedEffect(appSettings.allowScreenCapture) {
+                if (appSettings.allowScreenCapture) {
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                } else if (!BuildConfig.DEBUG) {
+                    window.setFlags(
+                        WindowManager.LayoutParams.FLAG_SECURE,
+                        WindowManager.LayoutParams.FLAG_SECURE
+                    )
+                }
+            }
+
+            ShellGuardTheme(
+                darkTheme = isDarkTheme,
+                dynamicColor = appSettings.dynamicColors
+            ) {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     containerColor = OceanDark,
@@ -121,11 +148,36 @@ class MainActivity : FragmentActivity() {
                                     onLockClick = {
                                         appContainer.vaultLockManager.lockVaultNow()
                                     },
+                                    onSettingsClick = {
+                                        navController.navigate(Screen.Settings.route)
+                                    },
                                     onLogoutClick = {
                                         navController.navigate("gateway") {
                                             popUpTo(0) { inclusive = true }
                                         }
                                     }
+                                )
+                            }
+
+                            composable(Screen.Settings.route) {
+                                val settingsViewModel: SettingsViewModel = viewModel(
+                                    factory = object : ViewModelProvider.Factory {
+                                        @Suppress("UNCHECKED_CAST")
+                                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                            return SettingsViewModel(appContainer) as T
+                                        }
+                                    }
+                                )
+
+                                SettingsHubScreen(
+                                    viewModel = settingsViewModel,
+                                    onBackClick = { navController.popBackStack() },
+                                    onNavigateToSecurity = { navController.navigate(Screen.SettingsSecurity.route) },
+                                    onNavigateToAutofill = { navController.navigate(Screen.SettingsAutofill.route) },
+                                    onNavigateToSync = { navController.navigate(Screen.SettingsSync.route) },
+                                    onNavigateToAppearance = { navController.navigate(Screen.SettingsAppearance.route) },
+                                    onNavigateToBackup = { navController.navigate(Screen.SettingsBackup.route) },
+                                    onNavigateToAbout = { navController.navigate(Screen.SettingsAbout.route) }
                                 )
                             }
 
