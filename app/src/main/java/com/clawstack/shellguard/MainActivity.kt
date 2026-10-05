@@ -34,7 +34,9 @@ import com.clawstack.shellguard.ui.screens.gateway.GatewayScreen
 import com.clawstack.shellguard.ui.screens.gateway.GatewayViewModel
 import com.clawstack.shellguard.ui.screens.lock.LockScreen
 import com.clawstack.shellguard.ui.screens.lock.LockViewModel
+import com.clawstack.shellguard.ui.screens.settings.SettingsAppearanceScreen
 import com.clawstack.shellguard.ui.screens.settings.SettingsHubScreen
+import com.clawstack.shellguard.ui.screens.settings.SettingsSyncScreen
 import com.clawstack.shellguard.ui.screens.settings.SettingsViewModel
 import com.clawstack.shellguard.ui.navigation.Screen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -178,6 +180,38 @@ class MainActivity : FragmentActivity() {
                                     onNavigateToAppearance = { navController.navigate(Screen.SettingsAppearance.route) },
                                     onNavigateToBackup = { navController.navigate(Screen.SettingsBackup.route) },
                                     onNavigateToAbout = { navController.navigate(Screen.SettingsAbout.route) }
+                                )
+                            }
+
+                            composable(Screen.SettingsAppearance.route) {
+                                val settingsViewModel: SettingsViewModel = viewModel(
+                                    factory = object : ViewModelProvider.Factory {
+                                        @Suppress("UNCHECKED_CAST")
+                                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                            return SettingsViewModel(appContainer) as T
+                                        }
+                                    }
+                                )
+
+                                SettingsAppearanceScreen(
+                                    viewModel = settingsViewModel,
+                                    onBackClick = { navController.popBackStack() }
+                                )
+                            }
+
+                            composable(Screen.SettingsSync.route) {
+                                val settingsViewModel: SettingsViewModel = viewModel(
+                                    factory = object : ViewModelProvider.Factory {
+                                        @Suppress("UNCHECKED_CAST")
+                                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                            return SettingsViewModel(appContainer) as T
+                                        }
+                                    }
+                                )
+
+                                SettingsSyncScreen(
+                                    viewModel = settingsViewModel,
+                                    onBackClick = { navController.popBackStack() }
                                 )
                             }
 

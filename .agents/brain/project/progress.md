@@ -145,9 +145,11 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
     - `SettingsHubScreen` root view with Reef Modernist category cards for all 6 sections.
     - Wired `Settings Hub` into `VaultDashboardScreen` overflow menu and `MainActivity.kt` NavHost with dynamic `FLAG_SECURE` window toggling.
     - 5/5 unit tests passing 100% green (`SettingsViewModelTest`). Total 10/10 Settings unit tests green.
-  - [ ] **Sub-Phase C: Appearance & Sync Settings**:
-    - `SettingsAppearanceScreen` (Theme, dynamic colors, accent, icons, density).
-    - `SettingsSyncScreen` (Server URI, manual trigger, pull-to-refresh).
+  - [x] **Sub-Phase C: Appearance & Sync Settings**:
+    - `SettingsAppearanceScreen` (Theme mode, dynamic colors, brand accent swatch row, website favicons, compact view).
+    - `SettingsSyncScreen` (Connected Reef endpoint card, manual delta sync trigger with progress and status banners, cellular sync toggle, pull-to-refresh toggle, and zero-knowledge offline guarantee disclosure).
+    - Wired destinations in `MainActivity.kt` NavHost.
+    - 8/8 unit tests passing in `SettingsViewModelTest` (13/13 green total across repository and viewmodel).
   - [ ] **Sub-Phase D: Security & Panic Purge Flow**:
     - `SettingsSecurityScreen` (Timeouts, PIN, biometrics, screen capture).
     - Configurable countdown (5s-60s) with circular dial clock-face picker.

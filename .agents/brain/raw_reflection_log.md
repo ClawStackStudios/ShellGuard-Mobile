@@ -89,5 +89,25 @@ Improvements_Identified_For_Consolidation:
 - Pattern: Return `Job` from ViewModel coroutine launches to enable deterministic `.join()` in test suites.
 - Pattern: Dynamic `FLAG_SECURE` window binding in Compose activities.
 ---
+Date: 2026-10-04
+TaskRef: "Settings Hub Sub-Phase C: Appearance & Sync Settings"
+
+Learnings:
+- In Jetpack Compose theme architecture, computing `isDarkTheme` from a reactive `AppSettings` flow at the root Activity level and passing it to `ShellGuardTheme` enables whole-app theme mode transitions (System Default, Dark, Light) with zero Activity recreations or flashes.
+- Material You Monet dynamic color palette (`dynamicDarkColorScheme` / `dynamicLightColorScheme`) requires gating on `Build.VERSION.SDK_INT >= Build.VERSION_CODES.S` (Android 12+); exposing this constraint directly in UI helper text sets clear user expectations.
+- Manual synchronization triggers in Compose work best when paired with an immediate loading state (`isSyncing`) on the button itself and dismissible status cards for informational and error outcomes.
+
+Difficulties:
+- None encountered; the Job-returning ViewModel architecture established in Sub-Phase B enabled seamless `.join()` operations for all new test cases.
+
+Successes:
+- Built `SettingsAppearanceScreen.kt` and `SettingsSyncScreen.kt` with full Reef Modernist polish and 100% reactive state bindings.
+- All 13 Settings unit tests (`SettingsViewModelTest` and `SettingsRepositoryTest`) passing 100% green in 4.3 seconds.
+
+Improvements_Identified_For_Consolidation:
+- Pattern: Whole-app theme switching via root Compose theme flow observation without Activity recreation.
+- Pattern: Clear separation of UI feedback banners (info vs error) with dismissible close buttons.
+---
+
 
 

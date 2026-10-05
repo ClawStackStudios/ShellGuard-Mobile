@@ -107,4 +107,41 @@ class SettingsViewModelTest {
         assertTrue(completed)
         assertFalse(appContainer.deviceVault.hasActiveSession())
     }
+
+    @Test
+    fun testUpdateShowFaviconsAndCompactView() = runTest(testDispatcher) {
+        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect {} }
+
+        viewModel.updateShowFavicons(false).join()
+        viewModel.updateCompactView(true).join()
+
+        val updated = appContainer.settingsRepository.settingsFlow.first()
+        assertFalse(updated.showFavicons)
+        assertTrue(updated.compactView)
+    }
+
+    @Test
+    fun testUpdateSyncOverCellularAndPullToRefresh() = runTest(testDispatcher) {
+        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect {} }
+
+        viewModel.updateSyncOverCellular(false).join()
+        viewModel.updatePullToRefreshEnabled(false).join()
+
+        val updated = appContainer.settingsRepository.settingsFlow.first()
+        assertFalse(updated.syncOverCellular)
+        assertFalse(updated.pullToRefreshEnabled)
+    }
+
+    @Test
+    fun testTriggerManualSyncWithNoActiveSession() = runTest(testDispatcher) {
+        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect {} }
+
+        // When no active session is authenticated, triggerManualSync outputs error
+        viewModel.triggerManualSync().join()
+
+        assertEquals("No active session to sync.", viewModel.uiState.value.errorMessage)
+
+        viewModel.clearMessages()
+        assertEquals(null, viewModel.uiState.value.errorMessage)
+    }
 }

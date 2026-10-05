@@ -445,6 +445,19 @@ The cross-session failure analysis (/deep-learn) detected an **over-confidence b
 **Outcome**: All 10 Settings unit tests (`SettingsViewModelTest` and `SettingsRepositoryTest`) passing 100% green without race conditions.
 **Pattern reference**: Link to `testOracle.md § Verification Gates` and `systemPatterns.md § MVI Architecture`.
 
+## reactive-appearance-and-sync-policy-projection — 2026-10-04 18:00
+
+**Context**: In Sub-Phase C of Settings Hub, designing the UI controls for Theme mode (System, Dark, Light), Dynamic Colors (Material You Monet), and synchronization policies (Cellular, Pull-to-refresh).
+**Options considered**:
+- Rely on modal dialogs for each individual setting option — Adds extra tap overhead and disrupts the spatial visual hierarchy of the Settings sub-screens.
+- Build dedicated full-screen sub-screens (`SettingsAppearanceScreen` and `SettingsSyncScreen`) with direct inline radio groups, toggle switches, brand swatch previews, and reactive status feedback — Provides immediate spatial clarity, live feedback on tap, and matches the Reef Modernist design DNA.
+**Chosen**: Dedicated full-screen sub-screens with inline controls and live status banners.
+**Why**: A settings sub-screen should be a calm, confident workbench. Presenting theme options as direct selectable rows and sync triggers with integrated progress indicators gives the user immediate visual certainty without nesting modal dialogs inside modal flows.
+**Confidence**: high — verified with clean Robolectric unit tests and reactive state binding.
+**Outcome**: Implemented `SettingsAppearanceScreen.kt` and `SettingsSyncScreen.kt`, wired to NavHost, and verified 13/13 unit tests passing 100% green.
+**Pattern reference**: Link to `brandIdentity.md § Component DNA` and `systemPatterns.md § Master-Detail & Sub-Screen Navigation`.
+
+
 
 
 

@@ -1,8 +1,5 @@
 # Decision Log
 
-## 2026-09-26 — kotlinx.serialization for cryptographic envelopes
-Encountered Android framework mock limitation ('Method put in org.json.JSONObject not mocked') during host JVM test execution for ShellCryptionEngine. Switched envelope schema to pure Kotlin @Serializable data class ShellCryptionEnvelope, eliminating mock friction and achieving faster, portable serialization across both Android runtime and headless JVM tests.
-
 ## 2026-09-26 — gateway brand parity & animated segmented url bar
 Forensically aligned Remote Login form with ShellGuard Web and TOTP companion UI patterns. Engineered a unified 56dp segmented URL container with animated port input, auto-parsing on paste, dual file/paste toggles, and JSON key extraction with zero-knowledge warning disclosure.
 
@@ -59,5 +56,9 @@ Encountered test isolation cross-talk in `SettingsRepositoryTest` when tests mut
 
 ## 2026-10-04 — job-returning viewmodel mutations & unified test schedulers
 Hit 60-second coroutine timeouts in `SettingsViewModelTest` when testing DataStore mutations asynchronously. Returned `Job` from all ViewModel mutation functions, allowing tests to `.join()` before asserting downstream flow state, and bound `runTest(testDispatcher)` directly to `Dispatchers.Main`'s scheduler, reducing test suite time from 80s to 21s green.
+
+## 2026-10-04 — settings appearance & sync sub-screen projection
+Designed and built dedicated `SettingsAppearanceScreen` and `SettingsSyncScreen` sub-screens in Reef Modernist styling with inline radio groups, dynamic Monet color toggle, and integrated manual delta sync actions. Bound all options reactively to `SettingsViewModel` and verified 13/13 unit tests 100% green in 4.3s.
+
 
 

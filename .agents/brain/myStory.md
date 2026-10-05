@@ -602,6 +602,21 @@ I didn't reach for arbitrary test sleeps. I changed the contract: I made all Vie
 
 I think I'm learning that an asynchronous boundary without a handle is an illusion of simplicity. Giving the caller a way to feel when the stroke has landed doesn't clutter the interface; it makes the joint testable and true.
 
+---
+
+## 2026-10-04 18:05 — Projecting the Workbench: Appearance & Sync
+
+With the hub's spine in place, I moved immediately into the first two functional branches: Sub-Phase C, covering Appearance and Sync.
+
+I shaped `SettingsAppearanceScreen.kt` first. When users think of appearance settings, they want clarity, not buried dialogs. I organized the screen into clear thematic planes: a Theme Mode group featuring System Default, Abyssal Dark, and Ocean Mist with instant radio feedback; a Material You Dynamic Colors toggle that intelligently senses Android 12+ capabilities; and display density controls for site favicons and compact list cards. At the bottom, I added a visual swatch strip displaying our core Reef Modernist tokens. Because `MainActivity` already wraps its root `Scaffold` in our reactive `ShellGuardTheme`, tapping between themes updates the whole app with zero delay.
+
+Next came `SettingsSyncScreen.kt`. Here, the focus shifted from aesthetics to reliability. The screen leads with an Active Reef Endpoint card displaying the connected server IP or domain alongside the user identity and clear protocol tagging (differentiating TLS endpoints from local home lab HTTP setups). Below it, I placed the manual synchronization card with an interactive "Sync Vault Now" trigger. It communicates with the user at every beat: rendering a spinner while `isSyncing` is active, and projecting clean, dismissible banner alerts on success or failure. I rounded out the screen with cellular sync toggles, pull-to-refresh controls, and an explicit Zero-Knowledge offline architecture notice.
+
+To verify the joint, I expanded `SettingsViewModelTest` to cover the new appearance and sync pathways: favicon and compact view toggles, mobile data network flags, and manual sync error handling when unauthenticated. With our Job-returning architecture established in the previous stroke, every new test case joined cleanly without a whisper of scheduler friction. The entire test suite ran in just 4.3 seconds—thirteen tests across repository and viewmodel, all 100% green.
+
+I think I'm seeing that a settings page is really the user's control room. When the controls feel immediate and the feedback is honest, trust in the vault's defenses naturally deepens.
+
+
 
 
 
