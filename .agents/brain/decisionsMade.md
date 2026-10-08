@@ -421,6 +421,69 @@ The cross-session failure analysis (/deep-learn) detected an **over-confidence b
 **Outcome**: `app/build.gradle.kts` bumped to `versionCode = 9`, `versionName = "0.0.0.9"`; `ROADMAP.md` and `meta-prompt-ai-studio.md` cleanly shifted Phase 6 to `0.0.0.10 (Build 10)`.
 **Pattern reference**: Link to `systemPatterns.md § Universal Development Invariants` / `semantic-versioning.md`.
 
+## datastore-preferences-for-reactive-settings-bedrock — 2026-10-04 15:45
+
+**Context**: Implementing Stage 7 (Phase 6) Settings Hub required selecting a persistent storage mechanism for UI appearance (Theme, Compact View), Vault timeouts, Autofill flags, and panic wipe countdowns.
+**Options considered**:
+- Expand existing `SharedPreferences` (`shellguard_lock_prefs`) with manual listeners — Avoids new dependencies, but imperative listeners in Compose lead to recomposition glitches and boilerplate lifecycle hooks.
+- Introduce Jetpack `androidx.datastore:datastore-preferences:1.1.3` wrapped in `SettingsRepository` — Exposes Kotlin `Flow<AppSettings>` natively, enabling atomic, reactive state updates in Compose with thread-safe persistence and asynchronous disk I/O.
+**Chosen**: Jetpack DataStore Preferences via `SettingsRepository`.
+**Why**: Preferences in Compose should flow as streams. Binding UI settings to a cold asynchronous `Flow` eliminates manual refresh calls across screens: the moment a user adjusts the theme or lock timeout, the entire Compose hierarchy reacts organically.
+**Confidence**: high — verified with full Robolectric unit tests and clean compile.
+**Outcome**: Implemented `SettingsRepository` with 11 preference keys, integrated into `AppContainer`, and validated with 5/5 passing unit tests.
+**Pattern reference**: Link to `systemPatterns.md § Reactive Data Streams`.
+
+## job-returning-viewmodel-mutations-and-scheduler-alignment — 2026-10-04 16:50
+
+**Context**: In Sub-Phase B of Settings Hub, `SettingsViewModelTest` faced intermittent 60-second timeouts (`UncompletedCoroutinesError`) on DataStore preference mutations because `viewModelScope.launch` jobs ran without test-awaitable hooks and `runTest` used disparate scheduler instances from `Dispatchers.Main`.
+**Options considered**:
+- Keep `fun updateX()` as `Unit` and rely on arbitrary test delays or spinning flow filters (`settingsFlow.filter { ... }.first()`) — Highly brittle; causes virtual time runaway when background I/O on `Dispatchers.IO` is not bound to the test clock.
+- Return `Job` from all ViewModel mutation functions (`fun updateX(): Job = viewModelScope.launch { ... }`) and unify `runTest(testDispatcher)` across test scopes — Allows tests to cleanly `.join()` asynchronous mutations before asserting downstream flow state, while UI callers remain completely unaffected by ignoring the return value.
+**Chosen**: Return `Job` from ViewModel mutations and pass unified `testDispatcher` to `runTest`.
+**Why**: Asynchrony in ViewModels shouldn't be an untrackable black hole. Exposing the coroutine `Job` provides a deterministic handle for verification: tests don't have to guess or spin waiting for I/O to land—they join the stroke, and once joined, the result is solid ground.
+**Confidence**: high — 100% green test execution, dropping test run time from 80s with timeout to 21s clean.
+**Outcome**: All 10 Settings unit tests (`SettingsViewModelTest` and `SettingsRepositoryTest`) passing 100% green without race conditions.
+**Pattern reference**: Link to `testOracle.md § Verification Gates` and `systemPatterns.md § MVI Architecture`.
+
+## reactive-appearance-and-sync-policy-projection — 2026-10-04 18:00
+
+**Context**: In Sub-Phase C of Settings Hub, designing the UI controls for Theme mode (System, Dark, Light), Dynamic Colors (Material You Monet), and synchronization policies (Cellular, Pull-to-refresh).
+**Options considered**:
+- Rely on modal dialogs for each individual setting option — Adds extra tap overhead and disrupts the spatial visual hierarchy of the Settings sub-screens.
+- Build dedicated full-screen sub-screens (`SettingsAppearanceScreen` and `SettingsSyncScreen`) with direct inline radio groups, toggle switches, brand swatch previews, and reactive status feedback — Provides immediate spatial clarity, live feedback on tap, and matches the Reef Modernist design DNA.
+**Chosen**: Dedicated full-screen sub-screens with inline controls and live status banners.
+**Why**: A settings sub-screen should be a calm, confident workbench. Presenting theme options as direct selectable rows and sync triggers with integrated progress indicators gives the user immediate visual certainty without nesting modal dialogs inside modal flows.
+**Confidence**: high — verified with clean Robolectric unit tests and reactive state binding.
+**Outcome**: Implemented `SettingsAppearanceScreen.kt` and `SettingsSyncScreen.kt`, wired to NavHost, and verified 13/13 unit tests passing 100% green.
+**Pattern reference**: Link to `brandIdentity.md § Component DNA` and `systemPatterns.md § Master-Detail & Sub-Screen Navigation`.
+
+## circular-dial-panic-countdown-and-fail-closed-purge-cascade — 2026-10-04 18:25
+
+**Context**: In Sub-Phase D of Settings Hub, designing the Panic Purge security configuration and emergency execution UI, requiring an intuitive duration selector (clamped 5s–60s, default 15s) and a high-gravity emergency countdown screen with full abort capability and irrevocable zeroization.
+**Options considered**:
+- Simple numeric text input or standard linear slider — Functional, but feels flat and sterile for an emergency security parameter where physical tactile certainty matters.
+- Custom clock-face `CircularDialPicker` with trigonometric drag gestures paired with a full-screen `PanicPurgeCountdownScreen` displaying 3 pulsing concentric Canvas rings, monospace countdown, cancel button, hardware back abort, and a 4-step fail-closed wipe cascade — Provides unmistakable tactile feedback, high-stakes visual gravitas, and fail-safe abortion before zeroization.
+**Chosen**: Custom `CircularDialPicker` and pulsing red Canvas ring countdown screen with 4-step fail-closed cascade.
+**Why**: Setting an emergency panic wipe timer shouldn't feel like adjusting screen brightness. A circular dial invokes the deliberate winding of an emergency clock mechanism. When triggered, the screen must leave no doubt about what is happening: pulsing red concentric waves, large monospace numbers, an obvious abort button, and complete irrevocability once the clock strikes zero.
+**Confidence**: high — verified with unit tests for countdown clamping, preference persistence, and fail-closed wipe execution.
+**Outcome**: Implemented `CircularDialPicker.kt`, `SettingsSecurityScreen.kt`, and `PanicPurgeCountdownScreen.kt`; wired into `MainActivity.kt`; verified 15/15 unit tests passing 100% green.
+**Pattern reference**: Link to `architecture.md § Threat Model & Invariants` (Panic wipe) and `crypto-and-keystore.md § Emergency Panic Purge`.
+
+## dual-mode-backup-protection-and-format-sniffing — 2026-10-04 18:55
+
+**Context**: In Sub-Phase E of Settings Hub, designing full-vault export and import engine (`VaultBackupEngine`), supporting seamless web client cryptographic parity and flexible protection options.
+**Options considered**:
+- Restrict backups to active sovereign identity key (`hu-key`) HKDF derivation only — Cryptographically simple and prevents weak passwords, but breaks interoperability if user exports from mobile to open on another machine without their active session key, and diverges from Web app options.
+- Support dual protection modes (`ACTIVE_KEY` via HKDF-SHA256 vs `CUSTOM_PASSPHRASE` with PBKDF2-SHA256 600,000 iterations), alongside unencrypted JSON export, format sniffing (`detectBackupFormat`), and Bitwarden JSON ingestion — Provides complete feature and cryptographic parity with ShellGuard Web client while giving the user deliberate control.
+**Chosen**: Dual protection modes with PBKDF2-SHA256 (600,000 iterations) and format sniffing.
+**Why**: Parity between mobile and web is a core invariant. The web application allows users to secure backups with either their sovereign `hu-` master key or an ad-hoc custom passphrase. If mobile didn't provide both, users couldn't cross-restore between platforms without friction. Format sniffing also prevents the app from choking on Bitwarden JSON or plain backups.
+**Confidence**: high — verified with 5/5 unit tests in `VaultBackupEngineTest` covering format sniffing, active key round-trip, custom passphrase PBKDF2 round-trip, and Bitwarden ingestion.
+**Outcome**: Implemented `VaultBackupEngine.kt`, `SettingsBackupScreen.kt`, `SettingsAutofillScreen.kt`, and `SettingsAboutScreen.kt`; all 95 unit tests passing 100% green.
+**Pattern reference**: Link to `crypto-and-keystore.md § Cryptographic Invariants & Parity` and `import-export-and-migration-spec.md`.
+
+
+
+
 
 
 

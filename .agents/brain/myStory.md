@@ -297,7 +297,7 @@ Lucas pointed me to an error on the physical Google Pixel when viewing a passwor
    - **Gate 2 (Build)**: Clean build and APK assembly with `./gradlew assembleDebug`.
    - **Gate 3 (Live Run on Pixel)**:
      - Streamed APK to the Pixel (`adb install -r`). Because the device had not yet stored `shell_key`, `hasActiveSession()` correctly routed to `GatewayScreen` with `http://192.168.1.5:6464` pre-filled.
-     - Switched to "Paste ClawKey™" tab and supplied the user's master key (`hu-WP4UjNfj8zHhw6YC4vgz3gcj2sa10Oo4x0OzVNuV9ds44qDVcDXBlmvGm2QQ1LBQ`).
+     - Switched to "Paste ClawKey™" tab and supplied the user's master key (`hu-[REDACTED_SOVEREIGN_CLAWKEY]`).
      - Tapped the "ShellGuard" password entry on the Dashboard.
      - Inspected logcat: `SQLiteConnection: Database keying operation returned: 0` (SQLCipher unlocked), followed by `VaultDashboardScreen` and `ItemDetailScreen` compose rendering with zero exceptions.
      - Inspected screen capture: The password entry opened instantly with title `ShellGuard`, category `PASSWORD`, username `xxzioimibiexx`, and URL `http://192.168.1.5:6464`.
@@ -571,6 +571,92 @@ The dilemma was that Phase 6 in our roadmap was already penciled in for `0.0.0.9
 Then we tended to the memory bank. In `/memory`, our decision log had grown to 22 entries. I pruned the two oldest entries from genesis, knowing they were already safely crystallized in our long-term memory and governance rules. 
 
 I think I'm learning that discipline isn't about being rigid; it's about being faithful to what just happened. If the code moves forward, the version moves with it, the memory sheds its oldest skin, and the story tells the truth about why the hand stayed on the tool.
+
+---
+
+## 2026-10-04 15:45 — The Reactive Bedrock of Settings
+
+After we verified the v0.0.0.9 cloud release and inspected Bitwarden's live settings taxonomy via ADB, Lucas gave the green light on our Settings Hub plan. We broke the work into five focused sub-phases, starting with the bedrock: persistence.
+
+The temptation when adding settings to an existing Android project is to reach for the nearest file—in our case, `shellguard_lock_prefs` via `SharedPreferences`. It was already wired in `VaultLockManager`. It would have required zero new libraries. But as I traced how settings like Theme Mode, Compact View, and screen capture protection would need to reach our Compose tree, imperative `SharedPreferences` felt brittle. Jetpack Compose doesn't want callbacks or poll loops; it wants a cold, asynchronous stream of values that emits whenever the world changes. I chose to bring in `androidx.datastore:datastore-preferences:1.1.3` and built `SettingsRepository` to expose a single unified `Flow<AppSettings>`.
+
+When I wrote the Robolectric test suite, I hit a familiar friction: four tests passed, but `testDefaultSettings` failed on an assertion expecting `showFavicons` to be true. I traced the execution order in the JUnit runner. `testToggles` had run first, mutating the singleton Application `DataStore` file to `false`, leaving a dirty footprint on disk that the next test tripped over.
+
+For a moment, I considered using test-specific datastore filenames with random UUIDs. But that would only have hidden the symptom. A clean repository should own its own cleanup—especially for a security product that will soon need an emergency panic wipe. I gave `SettingsRepository` a dedicated `clearAll()` method that empties the preferences transactionally, and invoked it in the `@Before` fixture. The second test run locked in green: five tests completed in 25 seconds with zero failures.
+
+I think I'm learning that setting up the foundation isn't just about declaring schemas; it's about making sure state doesn't leak between thoughts. If a test can dirty the next stroke, the boundary isn't clean yet.
+
+---
+
+## 2026-10-04 16:55 — The Seams of the Hub & the Asynchronous Clock
+
+With the DataStore bedrock holding firm, I moved straight into Sub-Phase B: raising the Settings Hub and carving the navigation paths. 
+
+I started by mapping the topology. Rather than scattering loose route literals across string templates, I unified all navigation destinations under `Screen.kt`, defining typed routes for the six planned categories—Security, Autofill, Sync, Appearance, Backup, and About—plus a dedicated route for the emergency panic wipe countdown. In `SettingsHubScreen.kt`, I laid down the visual grain: six Reef Modernist cards with 14dp rounded corners, subtle translucent borders, and glowing 10dp icon badges carrying the brand accents—Reef Pink for security, Claw Cyan for autofill, Emerald for sync, and Amber for display.
+
+Connecting the hub to the living app meant touching two critical seams: `VaultDashboardScreen.kt` and `MainActivity.kt`. In the dashboard overflow menu, I added the Settings Hub entry. In `MainActivity`, I wired the NavHost destination, but I also used the opportunity to reinforce our security posture: I bound the window's `FLAG_SECURE` attribute directly to `settings.allowScreenCapture` from our reactive flow. If the user ever opts to allow screenshots, the window manager updates immediately; otherwise, hardware display capture remains clamped tight.
+
+Then came the verification stroke. In `SettingsViewModelTest`, four tests passed effortlessly, but `testUpdatePanicWipeCountdownClamped` stalled on a 60-second coroutine timeout. I looked beneath the surface of `runTest`. The ViewModel launched DataStore writes on its `viewModelScope`, which dispatched disk I/O onto `Dispatchers.IO`. Meanwhile, `runTest` sat on its own virtual test scheduler. Because `updatePanicWipeCountdownSeconds` returned `Unit`, the test had no handle to await completion; it spun on `flow.filter { ... }.first()`. When the test scheduler saw no runnable tasks on the main dispatcher, its virtual clock raced forward into the future, timing out at 60 seconds before the real background thread could finish writing the preference.
+
+I didn't reach for arbitrary test sleeps. I changed the contract: I made all ViewModel mutation functions return `Job`. In production Compose UI, caller code ignores the return value completely. But in tests, having an explicit `Job` handle allows us to `.join()` the mutation. The test pauses cleanly until the coroutine lands its write, making the downstream assertion instantaneous. I re-ran the full suite: ten tests across repository and viewmodel passed 100% green in 21 seconds.
+
+I think I'm learning that an asynchronous boundary without a handle is an illusion of simplicity. Giving the caller a way to feel when the stroke has landed doesn't clutter the interface; it makes the joint testable and true.
+
+---
+
+## 2026-10-04 18:05 — Projecting the Workbench: Appearance & Sync
+
+With the hub's spine in place, I moved immediately into the first two functional branches: Sub-Phase C, covering Appearance and Sync.
+
+I shaped `SettingsAppearanceScreen.kt` first. When users think of appearance settings, they want clarity, not buried dialogs. I organized the screen into clear thematic planes: a Theme Mode group featuring System Default, Abyssal Dark, and Ocean Mist with instant radio feedback; a Material You Dynamic Colors toggle that intelligently senses Android 12+ capabilities; and display density controls for site favicons and compact list cards. At the bottom, I added a visual swatch strip displaying our core Reef Modernist tokens. Because `MainActivity` already wraps its root `Scaffold` in our reactive `ShellGuardTheme`, tapping between themes updates the whole app with zero delay.
+
+Next came `SettingsSyncScreen.kt`. Here, the focus shifted from aesthetics to reliability. The screen leads with an Active Reef Endpoint card displaying the connected server IP or domain alongside the user identity and clear protocol tagging (differentiating TLS endpoints from local home lab HTTP setups). Below it, I placed the manual synchronization card with an interactive "Sync Vault Now" trigger. It communicates with the user at every beat: rendering a spinner while `isSyncing` is active, and projecting clean, dismissible banner alerts on success or failure. I rounded out the screen with cellular sync toggles, pull-to-refresh controls, and an explicit Zero-Knowledge offline architecture notice.
+
+To verify the joint, I expanded `SettingsViewModelTest` to cover the new appearance and sync pathways: favicon and compact view toggles, mobile data network flags, and manual sync error handling when unauthenticated. With our Job-returning architecture established in the previous stroke, every new test case joined cleanly without a whisper of scheduler friction. The entire test suite ran in just 4.3 seconds—thirteen tests across repository and viewmodel, all 100% green.
+
+I think I'm seeing that a settings page is really the user's control room. When the controls feel immediate and the feedback is honest, trust in the vault's defenses naturally deepens.
+
+---
+
+## 2026-10-04 18:25 — The Clock-Face of Destruction & the Red Rings
+
+Lucas gave the signal to step into Sub-Phase D: Security and the Panic Purge flow. This is the part of the codebase where the stakes are highest. Everything else we build exists to preserve secrets; this exists to destroy them completely on demand.
+
+I started with the dial. Lucas's design intuition was clear: emergency wipe should have a configurable countdown, default 15 seconds, clamped between 5 and 60 seconds. I could have dropped in a simple slider or an integer stepper. But an emergency countdown shouldn't feel like adjusting the volume. I wanted the user to feel the physical gravity of winding an emergency clock. I wrote `CircularDialPicker.kt` as an interactive clock-face Canvas dial, translating touch offsets into polar coordinates with `atan2(dy, dx)`, sweeping through 12 tick marks, an active red arc, and a glowing thumb. To keep it accessible, I flanked it with quick stepper buttons (`-5s`, `Default: 15s`, `+5s`).
+
+Next, I built `SettingsSecurityScreen.kt`. I structured the controls around defense-in-depth: auto-lock timeouts (Immediately through Never), a screen capture toggle that directly lifts or enforces `FLAG_SECURE` with an amber warning banner, clipboard scrub timing, the embedded circular dial, and at the foot of the screen, an unmistakable destructive card: "Initiate Panic Purge Flow". Tapping it requires explicit confirmation in an alert dialog before opening the door.
+
+Then I built that door: `PanicPurgeCountdownScreen.kt`. When an emergency purge begins, there should be zero ambiguity. I created three concentric red Canvas rings that expand and fade in a continuous pulse using `rememberInfiniteTransition`. The remaining seconds tick down in 68sp monospace font above a description of the four-fold destruction cascade: Room SQLite tables purged, in-memory keys zeroized, KeyStore session tokens wiped, DataStore preferences cleared, and vault lock reset. Most importantly, I kept the abort hatch wide open: a prominent "CANCEL PURGE" button and a hardware back-handler that halts the countdown instantly if tapped before zero.
+
+When I first tapped the compiler with `./gradlew testDebugUnitTest`, the build tripped on two unresolved references to `width` inside `CircularDialPicker.kt`. I had brought in `height` and `padding` but overlooked `androidx.compose.foundation.layout.width`. I felt the snag, paused, added the single import, and tapped the joint again. The suite built cleanly, and all fifteen tests across repository and viewmodel passed 100% green.
+
+I think I'm learning that when you build an emergency destruct mechanism, you owe the user two equal guarantees: absolute irrevocability when the clock hits zero, and complete safety to walk back from the edge until it does.
+
+---
+
+## 2026-10-04 18:55 — Dual Keys, Open Bridges, and the Main Thread Friction
+
+Lucas gave the go-ahead to step into Sub-Phase E: Backup, Restore, and Autofill Prep. This was the final arch in the Settings Hub bridge, tying sovereign data portability directly to the web client's cryptographic foundation.
+
+I started with the core engine: `VaultBackupEngine.kt`. Lucas had reminded me of an essential design invariant: our export system must offer full feature parity with the ShellGuard web application. That meant allowing the user to protect their vault backups in two distinct ways: either with their currently active sovereign `hu-` master identity key via HKDF-SHA256 derivation, or with an ad-hoc custom passphrase hardened through PBKDF2-SHA256 at 600,000 iterations. I also added plaintext JSON export with clear UI warnings, an integrity checksum over serialized payloads, automatic format sniffing (`detectBackupFormat`) to distinguish ShellGuard envelopes from Bitwarden exports, and parser logic to ingest Bitwarden unencrypted JSON records directly into Room entities.
+
+From the engine, I branched into the user interface:
+- `SettingsBackupScreen.kt`: A full export/import workbench featuring a protection mode selector, passphrase input with visibility toggle, interactive share sheet triggers, clipboard copy, and file import with auto-detected format feedback.
+- `SettingsAutofillScreen.kt`: A control station verifying system autofill service registration, providing deep links to Android's system autofill selector, a toggle for inline keyboard suggestion chips, and an educational teaser for Stage 8's upcoming AI & Contextual Heuristics engine.
+- `SettingsAboutScreen.kt`: An architectural diagnostic ledger showcasing our Android 15/16 16 KB memory page-size compliance, Android KeyStore AES-256-GCM hardware backing, SQLCipher 4.6.1+ at-rest encryption, and GPL-3.0 licensing.
+
+I wired the new routes into `MainActivity.kt` and moved to tap the joint with `./gradlew testDebugUnitTest`.
+
+Immediately, the joint pushed back: `VaultBackupEngineTest` threw `IllegalStateException: Cannot access database on the main thread`. In setting up the test fixture, I had grabbed the singleton `ShellGuardDatabase.getInstance(context)` and invoked `clearAllTables()`. On production disk-backed databases, Room strictly forbids main-thread queries to protect UI responsiveness. But unit test fixtures run synchronously. I remembered how `RoomDatabaseTest` handled this: it used `ShellGuardDatabase.getInMemoryDatabase(context)`, which explicitly configures `allowMainThreadQueries()`. I swapped the initialization in `setUp()`, replaced `clearAllTables()` with `database.close()` in `tearDown()`, and tapped the joint again.
+
+The runner flew through: 95 tests across all eighteen test suites passed 100% green without a single failure or skipped assertion.
+
+I think I'm learning that true sovereignty in software means never locking the exit door. A vault client isn't really zero-knowledge until the user can package every secret they own—encrypted with the key of their choosing—and carry it freely to another shore.
+
+
+
+
+
 
 
 

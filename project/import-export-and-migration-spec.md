@@ -130,73 +130,64 @@ object DeduplicationEngine {
 
 ---
 
-## 5. `BackupManager.kt` Implementation
+## 5. `VaultBackupEngine.kt` Implementation
 
 ```kotlin
 package com.clawstack.shellguard.data.backup
 
-import android.content.Context
-import android.net.Uri
 import com.clawstack.shellguard.crypto.ClawCrypto
+import com.clawstack.shellguard.crypto.EncryptedDeviceVault
 import com.clawstack.shellguard.crypto.ShellCryptionEngine
 import com.clawstack.shellguard.data.local.ShellGuardDatabase
-import com.clawstack.shellguard.data.local.entities.VaultPearlEntity
 import kotlinx.serialization.json.Json
-import java.io.InputStream
-import java.io.OutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class BackupManager @Inject constructor(
+class VaultBackupEngine @Inject constructor(
     private val db: ShellGuardDatabase,
-    private val cryptoEngine: ShellCryptionEngine
+    private val deviceVault: EncryptedDeviceVault
 ) {
     private val json = Json { ignoreUnknownKeys = true; prettyPrint = true }
 
     /**
-     * Exports full encrypted vault backup (.sgvault.bak) to destination URI.
+     * Exports full encrypted vault backup.
+     * Uses HKDF-SHA256 for active hu- key or PBKDF2 for custom passphrase.
      */
-    suspend fun exportVaultBackup(
-        context: Context,
-        destinationUri: Uri,
-        exportPassphrase: String,
-        ownerUuid: String
-    ): Result<Int> {
+    suspend fun exportVault(
+        ownerUuid: String,
+        protectionMode: BackupProtectionMode,
+        customPassphrase: String? = null,
+        activeClawKey: String? = null
+    ): Result<ExportResult> {
         return try {
-            val pearls = db.vaultPearlDao().getAllItems(ownerUuid)
-            val notes = db.secureNoteDao().getAllItems(ownerUuid)
-            val keys = db.sshKeyDao().getAllItems(ownerUuid)
+            val pearls = db.vaultPearlDao().getAllActivePearls(ownerUuid)
+            val notes = db.secureNoteDao().getAllActiveNotes(ownerUuid)
+            val keys = db.sshKeyDao().getAllActiveSshKeys(ownerUuid)
 
-            val rawBackup = VaultBackupPayload(
-                pearls = pearls,
-                notes = notes,
-                sshKeys = keys
-            )
-            val serializedJson = json.encodeToString(VaultBackupPayload.serializer(), rawBackup)
-            val checksum = ClawCrypto.sha256Hex(serializedJson)
+            val sessionShellKey = deviceVault.getShellKey()
+            
+            // Map into unified polymorphic items
+            val allItems = mutableListOf<BackupVaultItem>()
+            // ... (Mapping logic mapping entities into BackupVaultItem) ...
 
-            val salt = ownerUuid.toByteArray()
-            val exportKey = cryptoEngine.deriveExportKey(exportPassphrase, salt)
-            val envelope = cryptoEngine.encryptBytes(
-                serializedJson.toByteArray(Charsets.UTF_8),
-                exportKey,
-                aad = "vault_backup:$ownerUuid"
-            )
-
-            val container = VaultBackupContainer(
-                version = "shellguard-vault-backup-v1",
-                createdAt = java.time.Instant.now().toString(),
+            val payload = VaultBackupPayload(
                 ownerUuid = ownerUuid,
-                checksum = checksum,
-                cipher = envelope
+                itemCount = allItems.size,
+                items = allItems
             )
+            val serializedJson = json.encodeToString(VaultBackupPayload.serializer(), payload)
 
-            context.contentResolver.openOutputStream(destinationUri)?.use { stream ->
-                stream.write(json.encodeToString(VaultBackupContainer.serializer(), container).toByteArray(Charsets.UTF_8))
+            val secretKey = when (protectionMode) {
+                BackupProtectionMode.ACTIVE_KEY -> activeClawKey ?: throw IllegalArgumentException("activeClawKey required")
+                BackupProtectionMode.CUSTOM_PASSPHRASE -> customPassphrase ?: throw IllegalArgumentException("customPassphrase required")
+                BackupProtectionMode.PLAINTEXT -> ""
             }
 
-            Result.success(pearls.size + notes.size + keys.size)
+            // Export container with cipher/kdf information
+            
+            // Return ExportResult
+            Result.success(ExportResult(...))
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -205,47 +196,14 @@ class BackupManager @Inject constructor(
     /**
      * Imports and restores encrypted vault backup.
      */
-    suspend fun importVaultBackup(
-        context: Context,
-        sourceUri: Uri,
-        passphrase: String,
+    suspend fun importPayload(
+        payload: VaultBackupPayload,
         ownerUuid: String
-    ): Result<Int> {
+    ): Result<ImportResult> {
         return try {
-            val content = context.contentResolver.openInputStream(sourceUri)?.use {
-                it.bufferedReader().readText()
-            } ?: throw IllegalArgumentException("Could not read backup file")
-
-            val container = json.decodeFromString(VaultBackupContainer.serializer(), content)
-            val salt = container.ownerUuid.toByteArray()
-            val exportKey = cryptoEngine.deriveExportKey(passphrase, salt)
-
-            val decryptedBytes = cryptoEngine.decryptBytes(
-                container.cipher,
-                exportKey,
-                aad = "vault_backup:${container.ownerUuid}"
-            )
-            val decryptedJson = String(decryptedBytes, Charsets.UTF_8)
-
-            // Verify checksum
-            val computedChecksum = ClawCrypto.sha256Hex(decryptedJson)
-            if (!computedChecksum.equals(container.checksum, ignoreCase = true)) {
-                throw SecurityException("Backup integrity checksum verification failed")
-            }
-
-            val payload = json.decodeFromString(VaultBackupPayload.serializer(), decryptedJson)
-
-            // Deduplicate and insert
-            val existing = db.vaultPearlDao().getAllItems(ownerUuid).map {
-                DeduplicationEngine.computePearlFingerprint(it.title, it.username, it.secret)
-            }.toSet()
-
-            val uniquePearls = DeduplicationEngine.filterDuplicates(payload.pearls, existing) {
-                DeduplicationEngine.computePearlFingerprint(it.title, it.username, it.secret)
-            }.map { it.copy(ownerUuid = ownerUuid, syncState = "PENDING_SYNC") }
-
-            db.vaultPearlDao().upsertItems(uniquePearls)
-            Result.success(uniquePearls.size)
+            // Re-encrypt with device session key and insert into DAO with PENDING_SYNC state
+            // Deduplication via Fingerprint calculation
+            Result.success(ImportResult(...))
         } catch (e: Exception) {
             Result.failure(e)
         }

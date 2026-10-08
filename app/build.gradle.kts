@@ -14,8 +14,8 @@ android {
     applicationId = "com.clawstack.shellguard"
     minSdk = 24
     targetSdk = 36
-    versionCode = 9
-    versionName = "0.0.0.9"
+    versionCode = 10
+    versionName = "0.0.0.10"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -134,6 +134,7 @@ dependencies {
   implementation(libs.google.mlkit.barcode.scanning)
   implementation(libs.accompanist.permissions)
   implementation(libs.androidx.work.runtime.ktx)
+  implementation(libs.androidx.datastore.preferences)
 
   testImplementation(libs.junit)
   testImplementation(libs.androidx.junit)

@@ -1,20 +1,5 @@
 # Decision Log
 
-## 2026-09-25 — bitwarden parity audit and settings hub expansion
-Audited ShellGuard Mobile straight up against Bitwarden Android; expanded ui-ux-design-system.md §10 with 6 dedicated Settings sub-screens (Vault Timeout, Timeout Action, Sensitive Clipboard timer, Screen Capture toggle, and Auto-Copy TOTP on Autofill), confirming 98%+ MVP specification coverage.
-
-## 2026-09-25 — stage 0 scaffold and appcontainer lazy di
-Scaffolded foundational Android application baseline in chore/stage-0-initial-scaffold; adopted frameworkless AppContainer lazy DI from ShellGuard ecosystem (avoiding KSP annotation processor churn with Kotlin 2.2+ and enabling deterministic RAM zeroization), passing testDebugUnitTest and assembleDebug 100% green.
-
-## 2026-09-26 — kotlinx.serialization for cryptographic envelopes
-Encountered Android framework mock limitation ('Method put in org.json.JSONObject not mocked') during host JVM test execution for ShellCryptionEngine. Switched envelope schema to pure Kotlin @Serializable data class ShellCryptionEnvelope, eliminating mock friction and achieving faster, portable serialization across both Android runtime and headless JVM tests.
-
-## 2026-09-26 — gateway brand parity & animated segmented url bar
-Forensically aligned Remote Login form with ShellGuard Web and TOTP companion UI patterns. Engineered a unified 56dp segmented URL container with animated port input, auto-parsing on paste, dual file/paste toggles, and JSON key extraction with zero-knowledge warning disclosure.
-
-## 2026-09-26 — unified multi-domain reactive stream
-Combined VaultPearl, SecureNote, and SshKey Room flows in SyncRepository using kotlinx.coroutines.flow.combine to project polymorphic records into UnifiedVaultItem for the VaultDashboard. Enabled instant sub-16ms search and Pod filtering while isolating domain-specific Room table schemas.
-
 ## 2026-09-26 — base62 sovereign key validation parity
 Discovered ShellGuard master identity keys use Base62 alphanumeric encoding (`hu-[0-9a-zA-Z]{64}`), not strictly lowercase hexadecimal. Found by inspecting live Pixel device state where a valid identity file (`shellguard_identity_xxzioimibiexx.json`) was loaded but the login button remained disabled due to overly restrictive `[0-9a-f]` regex in `ClawCrypto`. Upgraded `CLAW_KEY_REGEX` and `GatewayViewModel` to Base62 and extracted UUID directly.
 
@@ -60,3 +45,23 @@ While researching 2026 Autofill implementation patterns, discovered we must aggr
 ## 2026-10-04 — context-aware locked inline chips & add-item deep linking
 Transformed the Autofill suggestion pipeline: when locked, rather than hiding accounts or leaking titles, we present matched domain strings with 'Unlock Vault' inline above the keyboard. When 0 matches exist, we only show 'Add Item', which deep links directly to MainActivity's item form with the active URI pre-populated, preserving context via a global LockScreen overlay.
 
+## 2026-10-04 — datastore preferences isolation & test state reset
+Encountered test isolation cross-talk in `SettingsRepositoryTest` when tests mutated the singleton Application `context.dataStore` without resetting state between runs. Added explicit `clearAll()` method to `SettingsRepository` and invoked it inside `@Before setUp()`, ensuring pure deterministic state across all test passes.
+
+## 2026-10-04 — job-returning viewmodel mutations & unified test schedulers
+Hit 60-second coroutine timeouts in `SettingsViewModelTest` when testing DataStore mutations asynchronously. Returned `Job` from all ViewModel mutation functions, allowing tests to `.join()` before asserting downstream flow state, and bound `runTest(testDispatcher)` directly to `Dispatchers.Main`'s scheduler, reducing test suite time from 80s to 21s green.
+
+## 2026-10-04 — settings appearance & sync sub-screen projection
+Designed and built dedicated `SettingsAppearanceScreen` and `SettingsSyncScreen` sub-screens in Reef Modernist styling with inline radio groups, dynamic Monet color toggle, and integrated manual delta sync actions. Bound all options reactively to `SettingsViewModel` and verified 13/13 unit tests 100% green in 4.3s.
+
+## 2026-10-04 — circular dial countdown and fail-closed panic purge cascade
+Engineered interactive `CircularDialPicker` with trigonometric angle mapping (5s–60s clamp) and full-screen `PanicPurgeCountdownScreen` with 3 pulsing concentric red Canvas rings. Implemented a 4-step fail-closed destruction cascade in `executePanicPurge` wiping Room tables, clearing EncryptedSharedPreferences session, wiping DataStore preferences, and unlocking vault state, verified green via Robolectric unit tests.
+
+## 2026-10-04 — dual-mode backup parity and test database isolation
+Engineered `VaultBackupEngine` supporting web-parity dual protection modes (`ACTIVE_KEY` via HKDF vs `CUSTOM_PASSPHRASE` with PBKDF2-SHA256 600,000 iterations), automatic format sniffing, and Bitwarden JSON ingestion. Resolved Robolectric `IllegalStateException` on main thread Room queries by initializing isolated in-memory test databases (`getInMemoryDatabase`) with explicit `.allowMainThreadQueries()`, passing 95/95 unit tests 100% green.
+
+
+
+
+## 2026-10-04 — polymorphic payload schema and sovereign key alignment
+While auditing the backup engine for Web Parity, I identified that the initial implementation exported isolated lists (`pearls`, `notes`, `sshKeys`), whereas the ShellGuard Web counterpart requires a unified polymorphic `items` JSON array. I refactored `VaultBackupPayload` to serialize and deserialize polymorphic `BackupVaultItem` objects using a `type` discriminator. I also replaced the active key string extraction with a dedicated `hu-` Sovereign ClawKey input field enforcing Base62 validation (`^hu-[0-9a-zA-Z]{64}$`), matching HKDF-SHA256 active-key backup protection perfectly with the Web client.

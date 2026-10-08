@@ -18,6 +18,9 @@ interface SecureNoteDao {
     @Query("SELECT * FROM vault_secure_notes WHERE owner_uuid = :ownerUuid AND sync_state != 'PENDING_DELETE' AND title LIKE '%' || :query || '%'")
     fun search(ownerUuid: String, query: String): Flow<List<SecureNoteEntity>>
 
+    @Query("SELECT * FROM vault_secure_notes WHERE owner_uuid = :ownerUuid AND sync_state != 'PENDING_DELETE'")
+    suspend fun getAllActiveNotes(ownerUuid: String): List<SecureNoteEntity>
+
     @Query("SELECT * FROM vault_secure_notes WHERE owner_uuid = :ownerUuid AND sync_state = 'PENDING_SYNC'")
     suspend fun getPendingSyncItems(ownerUuid: String): List<SecureNoteEntity>
 

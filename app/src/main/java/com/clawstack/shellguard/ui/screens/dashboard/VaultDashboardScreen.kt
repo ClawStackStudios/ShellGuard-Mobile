@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -95,6 +96,7 @@ fun VaultDashboardScreen(
     onItemClick: (UnifiedVaultItem) -> Unit = {},
     onAddItemClick: () -> Unit = {},
     onLockClick: () -> Unit = {},
+    onSettingsClick: () -> Unit = {},
     onLogoutClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -222,6 +224,16 @@ fun VaultDashboardScreen(
                                     onClick = {
                                         isMenuExpanded = false
                                         showAutofillDialog = true
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Settings Hub", color = TextPrimary) },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.Settings, contentDescription = null, tint = TextPrimary)
+                                    },
+                                    onClick = {
+                                        isMenuExpanded = false
+                                        onSettingsClick()
                                     }
                                 )
                                 DropdownMenuItem(

@@ -1,7 +1,7 @@
 ---
 roadmap_version: 1.0.0
 last_updated: 2026-10-04
-current_position: "Hotfix 5.5 Complete (Task 10.3) — Baseline v0.0.0.9 (Build 9): Context-Aware Inline Autofill & Add-Item Deep Linking verified 100% green; ready for Phase 6"
+current_position: "Phase 6 Settings Hub (Stage 7) - Completed Sub-Phase C (Web Parity Backup Enhancements). Ready for Phase 7 (Stage 8) Context-Aware Autofill Expansion."
 statistics:
   description: "Deterministic build roadmap for ShellGuard Mobile (Full Vault Android Client). Engineered strictly in synergistic 2-task phases where Task A delivers core functionality and Task B delivers the corresponding UI/UX component."
   features_completed: "████████░░ 87%"
@@ -200,3 +200,26 @@ statistics:
   - Configure `jniLibs.useLegacyPackaging = false` in `app/build.gradle.kts` for 16 KB page-size alignment.
   - Verify release build gates (`./gradlew testDebugUnitTest assembleDebug`).
   - *Success Criteria*: App icon displays correctly on home screens; splash screen launches cleanly without API <31 inflation crashes; APK passes 16 KB ELF alignment verification.
+
+---
+
+## Phase 7: Context-Aware Autofill Expansion & Heuristics [Baseline: v0.0.0.11 (Build 11)]
+
+> Phase Feature Set Overview:
+> Expands the Jetpack Autofill integration to intelligently detect and bind usernames and emails alongside passwords, enabling simultaneous multi-field dataset injection while maintaining strict zero-knowledge privacy in the presentation layer. Engineered in 3 sub-phases.
+
+- [ ] **Task 13.1: [Sub-Phase] Heuristic Field Detection (Parser)**
+  - Expand `AutofillStructureParser.kt` to identify username/email nodes via `AUTOFILL_HINT_USERNAME`, `AUTOFILL_HINT_EMAIL_ADDRESS`, `TYPE_TEXT_VARIATION_EMAIL_ADDRESS`, and heuristic `idEntry` substrings (`user`, `login`, `email`).
+  - *Checkpoint*: Stop and update `/memory` & `/story` before proceeding to 13.2.
+
+- [ ] **Task 13.2: [Sub-Phase] Multi-Field Dataset Construction**
+  - Refactor `ShellGuardAutofillService.kt` to bind both the parsed username `AutofillId` and password `AutofillId` into a single `Dataset`.
+  - Enable simultaneous fill of both fields from a single tap on the username or password chip.
+  - *Checkpoint*: Stop and update `/memory` & `/story` before proceeding to 13.3.
+
+- [ ] **Task 13.3: [Sub-Phase] Visual Disambiguation & Iconography**
+  - Refactor `AutofillInlineHelper.kt` to append `category` or `tags` to the chip subtitle for disambiguation (e.g., "Google (Work)" vs "Google (Personal)").
+  - Support the raw duplicate fallback: if no tags exist, display multiple identical chips and let the user tap to try.
+  - Integrate high-res App Icons (via `PackageManager`) or generic placeholder icons onto the inline chips.
+  - *Success Criteria*: Usernames are never displayed raw; multi-field datasets fill simultaneously; ambiguity is resolved via tags; tests pass 100%.
+  - *Checkpoint*: Stop and update `/memory` & `/story` to conclude Phase 7.

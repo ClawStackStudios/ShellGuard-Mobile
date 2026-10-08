@@ -18,6 +18,9 @@ interface SshKeyDao {
     @Query("SELECT * FROM vault_ssh_keys WHERE owner_uuid = :ownerUuid AND sync_state != 'PENDING_DELETE' AND (title LIKE '%' || :query || '%' OR username LIKE '%' || :query || '%')")
     fun search(ownerUuid: String, query: String): Flow<List<SshKeyEntity>>
 
+    @Query("SELECT * FROM vault_ssh_keys WHERE owner_uuid = :ownerUuid AND sync_state != 'PENDING_DELETE'")
+    suspend fun getAllActiveKeys(ownerUuid: String): List<SshKeyEntity>
+
     @Query("SELECT * FROM vault_ssh_keys WHERE owner_uuid = :ownerUuid AND sync_state = 'PENDING_SYNC'")
     suspend fun getPendingSyncItems(ownerUuid: String): List<SshKeyEntity>
 

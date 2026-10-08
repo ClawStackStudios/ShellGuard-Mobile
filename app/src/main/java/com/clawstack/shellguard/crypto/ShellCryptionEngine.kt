@@ -173,13 +173,31 @@ object ShellCryptionEngine {
         return okm.copyOfRange(0, length)
     }
 
-    private fun hkdf(ikm: ByteArray, salt: ByteArray, info: ByteArray, length: Int): ByteArray {
+    fun hkdf(ikm: ByteArray, salt: ByteArray, info: ByteArray, length: Int): ByteArray {
         val prk = hkdfExtract(salt, ikm)
         return hkdfExpand(prk, info, length)
     }
 
+    fun aesGcmEncryptRaw(key: ByteArray, iv: ByteArray, plaintext: ByteArray, aad: ByteArray): ByteArray {
+        val cipher = Cipher.getInstance(ALGORITHM)
+        val secretKeySpec = SecretKeySpec(key, "AES")
+        val gcmParameterSpec = GCMParameterSpec(TAG_LENGTH_BIT, iv)
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, gcmParameterSpec)
+        cipher.updateAAD(aad)
+        return cipher.doFinal(plaintext)
+    }
+
+    fun aesGcmDecryptRaw(key: ByteArray, iv: ByteArray, ciphertext: ByteArray, aad: ByteArray): ByteArray {
+        val cipher = Cipher.getInstance(ALGORITHM)
+        val secretKeySpec = SecretKeySpec(key, "AES")
+        val gcmParameterSpec = GCMParameterSpec(TAG_LENGTH_BIT, iv)
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, gcmParameterSpec)
+        cipher.updateAAD(aad)
+        return cipher.doFinal(ciphertext)
+    }
+
     // Platform-agnostic Base64 helpers for JVM and Android compatibility
-    private fun base64Encode(bytes: ByteArray): String {
+    fun base64Encode(bytes: ByteArray): String {
         return try {
             java.util.Base64.getEncoder().encodeToString(bytes)
         } catch (e: Throwable) {
@@ -187,7 +205,7 @@ object ShellCryptionEngine {
         }
     }
 
-    private fun base64Decode(str: String): ByteArray {
+    fun base64Decode(str: String): ByteArray {
         return try {
             java.util.Base64.getDecoder().decode(str.trim())
         } catch (e: Throwable) {

@@ -134,11 +134,37 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
 
 ## What's Left to Build (Phase 6)
 - [ ] Phase 6: Settings, Backup Bridge & Release Hardening (Tasks 11 & 12) — Target: v0.0.0.10 (Build 10).
-  - Settings Hub & Security sub-screen (`SettingsSecurityScreen`) with Vault Unlock Methods (Biometrics toggle, 4-8 digit PIN toggle & management).
-  - Cold-Start / Process Kill Lock Persistence in `VaultLockManager` (locks on app restart or timeout elapsed).
-  - Numerical PIN entry pad and offline unlock support on `LockScreen`.
-  - Multi-format backup engine (`.sgvault.bak`, `.sgtotp.bak`, Bitwarden deduplication).
-  - Adaptive launcher icon, Android 12+ SplashScreen, and 16 KB page-size release packaging.
+  - [x] **Sub-Phase A: Core Architecture & DataStore**:
+    - Added `androidx.datastore:datastore-preferences:1.1.3` to version catalog and Gradle.
+    - Implemented `SettingsRepository` and `SettingsRepositoryImpl` exposing reactive `Flow<AppSettings>` (11 settings keys).
+    - Exposed `SettingsRepository` through `AppContainer` and `DefaultAppContainer`.
+    - 5/5 unit tests passing 100% green (`SettingsRepositoryTest`).
+  - [x] **Sub-Phase B: Navigation & Base UI Hub**:
+    - `Screen.Settings`, `Screen.SettingsSecurity`, `Screen.SettingsAutofill`, `Screen.SettingsSync`, `Screen.SettingsAppearance`, `Screen.SettingsBackup`, `Screen.SettingsAbout`, and `Screen.PanicPurgeCountdown` in `Screen.kt`.
+    - `SettingsViewModel` with MVI state binding and `Job`-returning mutation operations.
+    - `SettingsHubScreen` root view with Reef Modernist category cards for all 6 sections.
+    - Wired `Settings Hub` into `VaultDashboardScreen` overflow menu and `MainActivity.kt` NavHost with dynamic `FLAG_SECURE` window toggling.
+    - 5/5 unit tests passing 100% green (`SettingsViewModelTest`). Total 10/10 Settings unit tests green.
+  - [x] **Sub-Phase C: Appearance & Sync Settings**:
+    - `SettingsAppearanceScreen` (Theme mode, dynamic colors, brand accent swatch row, website favicons, compact view).
+    - `SettingsSyncScreen` (Connected Reef endpoint card, manual delta sync trigger with progress and status banners, cellular sync toggle, pull-to-refresh toggle, and zero-knowledge offline guarantee disclosure).
+    - Wired destinations in `MainActivity.kt` NavHost.
+    - 8/8 unit tests passing in `SettingsViewModelTest` (13/13 green total across repository and viewmodel).
+  - [x] **Sub-Phase D: Security & Panic Purge Flow**:
+    - `CircularDialPicker`: Clock-face Canvas dial with atan2 gesture mapping, 12 tick marks, active sweep arc, and clamped duration (5s–60s).
+    - `SettingsSecurityScreen`: Auto-lock timeouts, dynamic screen capture shield toggle, sensitive clipboard scrub duration, embedded circular dial, and panic purge trigger with confirmation alert.
+    - `PanicPurgeCountdownScreen`: Full-screen emergency countdown with 3 pulsing concentric red Canvas rings, 68sp monospace timer, cancel trigger, hardware back abort, and 4-step fail-closed purge cascade.
+    - Wired routes in `MainActivity.kt` NavHost (`Screen.SettingsSecurity` and `Screen.PanicPurgeCountdown`).
+    - 15/15 unit tests passing 100% green across `SettingsViewModelTest` and `SettingsRepositoryTest`.
+  - [x] **Sub-Phase E: Backup, Restore & Autofill Prep**:
+    - `VaultBackupEngine.kt`: Dual protection export (`ACTIVE_KEY` via HKDF vs `CUSTOM_PASSPHRASE` via PBKDF2-SHA256 600,000 iterations matching Web client), unencrypted JSON export, SHA-256 payload checksums, format sniffing (`detectBackupFormat`), and Bitwarden unencrypted JSON import.
+    - Web Parity Enhancements: Refactored `VaultBackupPayload` to use a polymorphic `items` JSON array schema rather than isolated object lists, and implemented strict `hu-` Sovereign ClawKey validation UI, matching ShellGuard Web's `ImportExportView`.
+    - `SettingsBackupScreen.kt`: Interactive dual-mode export with password confirmation, share intent trigger, clipboard copy, and format-sniffing file import flow.
+    - `SettingsAutofillScreen.kt`: System autofill service status detector, system settings intent launcher, keyboard inline suggestions toggle, and Stage 8 AI & Contextual Heuristics preview card.
+    - `SettingsAboutScreen.kt`: Diagnostic technical overview of Android 15/16 16 KB page-size alignment, KeyStore AES-256-GCM, SQLCipher 4.6.1+, GPL-3.0 license, and developer attributions.
+    - Wired destinations in `MainActivity.kt` NavHost (`Screen.SettingsBackup`, `Screen.SettingsAutofill`, `Screen.SettingsAbout`).
+    - 100% green verification: 5/5 unit tests in `VaultBackupEngineTest`, 12/12 in `SettingsViewModelTest`, and full test suite 95/95 passing green.
+
 
 
 

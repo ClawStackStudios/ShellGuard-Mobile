@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.0.10] - 2026-10-04 (Build 10) — Phase 6: Settings Hub, Security Controls & Web-Parity Backup Engine
+### Added
+- **Categorized Settings Architecture (`SettingsHubScreen`, `SettingsViewModel`)**: 6-section navigation hub powered by `androidx.datastore` (`SettingsRepository`) covering Appearance, Security, Sync, Autofill, Backup, and System Diagnostics.
+- **Reef Modernist Theme Customization (`SettingsAppearanceScreen`)**: 6 bioluminescent accents (`REEF_DEFAULT`, `CYAN_VENT`, `PURPLE_SHELL`, `EMERALD_TRENCH`, `AMBER_FLARE`, `MONOCHROME`), dynamic Monet color toggles, Dark/Light/System theme modes, website favicon toggles, and compact view mode.
+- **Server & Sync Controls (`SettingsSyncScreen`)**: Direct visibility into connected server endpoints, on-demand delta sync trigger with animated progress and status indicators, cellular sync restrictions, and zero-knowledge offline guarantees.
+- **Interactive Security & Panic Purge Flow (`SettingsSecurityScreen`, `PanicPurgeCountdownScreen`)**: Granular auto-lock timeouts, dynamic screenshot protection (`FLAG_SECURE`), sensitive clipboard scrub timers, custom `CircularDialPicker` with trigonometric gesture tracking, and a fail-closed 4-step emergency purge cascade with a 3-ring pulsing Canvas countdown.
+- **Web-Parity Backup Engine (`VaultBackupEngine.kt`)**: Refactored the backup export schema to use a unified polymorphic `items` JSON array instead of isolated object lists (`pearls`, `notes`, `sshKeys`), enabling 100% data import/export parity with ShellGuard Web's `ImportExportView`.
+- **Sovereign ClawKey Backup Authorization (`SettingsBackupScreen`)**: Connected the `hu-` Sovereign ClawKey UI input field for HKDF-SHA256 active-key backup protection, complete with strict Base62 length validation (`^hu-[0-9a-zA-Z]{64}$`) and a fallback toggle for isolated device-only session key exports.
+- **Bitwarden Format Ingestion & Deduplication**: Unencrypted Bitwarden JSON intake with pre-DAO fingerprint deduplication, preventing collision anomalies during migration.
+- **Autofill Status & System Diagnostics (`SettingsAutofillScreen`, `SettingsAboutScreen`)**: System autofill provider status detection, one-tap Android settings launcher, keyboard inline suggestions toggle, Stage 8 heuristics preview, and complete Android 15/16 16 KB page-size compliance diagnostics.
+
+### Changed
+- **Test Oracle & Hardware Verification**: Full suite of 105 unit and Robolectric tests passing 100% green (`BUILD SUCCESSFUL in 3m 32s`), clean `./gradlew assembleDebug` APK generation, and verified test oracle parity across `SettingsRepositoryTest`, `SettingsViewModelTest`, and `VaultBackupEngineTest`.
+
 ## [0.0.0.9] - 2026-10-04 (Build 9) — Phase 5: Context-Aware Autofill, Inline Chips & Add-Item Deep Linking
 ### Added
 - **Context-Aware Locked Inline Suggestions (`ShellGuardAutofillService`)**: When the vault is locked and matching pearls exist for the active domain/subdomain, ShellGuard presents the clean domain string inline above the keyboard with a locked shell icon (🔒) and `"Unlock Vault"` subtitle, confirming site recognition without leaking sensitive plaintext titles or usernames.
@@ -143,7 +157,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   <sub>Engineered with precision for the ClawStack / ShellGuard ecosystem.</sub>
 </div>
 
-[Unreleased]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.9...HEAD
+[Unreleased]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.10...HEAD
+[0.0.0.10]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.9...v0.0.0.10
 [0.0.0.9]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.8...v0.0.0.9
 [0.0.0.8]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.7...v0.0.0.8
 [0.0.0.7]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.6...v0.0.0.7

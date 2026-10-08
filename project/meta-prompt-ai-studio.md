@@ -21,6 +21,7 @@ flowchart TD
     Phase4["⏱️ Stage 5: Phase 4 — TOTP Engine & Biometric Security Lifecycle<br/>(Task 07: TOTP Engine & KeyStore Biometrics · Task 08: Generator & Scanner)"]
     Phase5["🔑 Stage 6: Phase 5 — Android Autofill & Credential Provider<br/>(Task 09: Autofill Framework & Domain Matcher · Task 10: Autofill UI & Biometric Gate)"]
     Phase6["⚙️ Stage 7: Phase 6 — Settings, Backup Bridge & Release Hardening<br/>(Task 11: Settings & Multi-Format Backup · Task 12: Adaptive Icon, Splash & 16KB Alignment)"]
+    Phase7["🔍 Stage 8: Phase 7 — Autofill Username Expansion & Heuristics<br/>(Task 13: 3 Sub-Phases with /memory & /story Checkpoints)"]
 
     Step0 --> UploadContext
     UploadContext --> Phase1
@@ -29,6 +30,7 @@ flowchart TD
     Phase3 --> Phase4
     Phase4 --> Phase5
     Phase5 --> Phase6
+    Phase6 --> Phase7
 ```
 
 ---
@@ -389,4 +391,60 @@ Execute Phase 6 adhering to the Functionality + Polish pairing:
 - Run full verification trilogy (`./gradlew testDebugUnitTest assembleDebug`) verifying 100% test pass rate.
 
 Verify that swiping away the app and relaunching prompts for Biometrics or PIN according to settings, PIN can be enrolled and used to unlock without entering the ClawKey, backups export and import valid encrypted archives, and release binaries pass 16 KB page-alignment.
+```
+
+---
+
+## 🔍 Stage 8: Phase 7 Prompt — Autofill Username Expansion & Heuristics
+
+> 🗺️ **Master Roadmap Reference**: See [`ROADMAP.md`](../ROADMAP.md#phase-7-context-aware-autofill-expansion--heuristics-baseline-v00011-build-11) for complete specifications on **Task 13 (Sub-Phases 1-3)**.  
+> **📖 Required Context Files for Phase 7**:  
+> 1. [`autofill-service-spec.md`](./autofill-service-spec.md) — For parser context and dataset construction logic.
+> 
+> 🛑 **MANDATORY CHECKPOINT RULE**: This Phase is executed in strict sub-phases. Do NOT proceed to the next sub-phase until you have paused, executed `/memory` and `/story`, and received user approval to move on.
+
+Copy and paste this prompt to execute **Phase 7 (Task 13.1)**:
+
+```markdown
+# PHASE 7 EXECUTION: Autofill Username Expansion & Heuristics
+
+## 📖 Reference Documentation
+Before writing code, inspect:
+- `autofill-service-spec.md` (specifically the parser and dataset bindings).
+- `ROADMAP.md` (Phase 7 section).
+
+Execute Phase 7 in strict sub-phases, adhering to the memory and story checkpoint protocol:
+
+### Task 13.1: [Sub-Phase] Heuristic Field Detection (Parser)
+- Expand `AutofillStructureParser.kt` to identify username/email nodes alongside passwords.
+- Implement heuristic checks: `AUTOFILL_HINT_USERNAME`, `AUTOFILL_HINT_EMAIL_ADDRESS`, `TYPE_TEXT_VARIATION_EMAIL_ADDRESS`, and `idEntry` substrings (`user`, `login`, `email`).
+- Emit the findings into the parser's result payload.
+
+🛑 **STOP HERE**. 
+Do not proceed to Task 13.2. 
+Execute `/memory` and `/story` to encode this sub-phase into the temporal brain and autobiographical narrative. Once the user approves the memory/story updates, they will instruct you to begin Task 13.2.
+```
+
+**[Wait for User Approval and Memory/Story loop, then run:]**
+
+```markdown
+### Task 13.2: [Sub-Phase] Multi-Field Dataset Construction
+- Refactor `ShellGuardAutofillService.kt` to bind both the parsed username `AutofillId` and password `AutofillId` into a single `Dataset`.
+- Ensure simultaneous fill of both fields from a single tap on the username or password chip.
+
+🛑 **STOP HERE**. 
+Do not proceed to Task 13.3. 
+Execute `/memory` and `/story`.
+```
+
+**[Wait for User Approval and Memory/Story loop, then run:]**
+
+```markdown
+### Task 13.3: [Sub-Phase] Visual Disambiguation & Iconography
+- Refactor `AutofillInlineHelper.kt` to append `category` or `tags` to the chip subtitle for disambiguation.
+- Implement the raw duplicate fallback: if no tags exist, display multiple identical chips and allow the user to try them.
+- Extract high-res App Icons (via Android `PackageManager`) or use generic placeholder icons on the inline chips.
+
+🛑 **STOP HERE**. 
+Verify tests pass. Execute `/memory` and `/story` to conclude Phase 7.
 ```

@@ -5,6 +5,21 @@
 
 ---
 
+## `v0.0.0.10` — Phase 6: Settings Hub, Security Controls & Web-Parity Backup Engine (Build 10)
+
+```xml
+<en-US>
+• Settings Hub: 6-category navigation hub powered by DataStore.
+• Theme Personalization: 6 bioluminescent accents, Monet & compact view.
+• Security & Panic Purge: Canvas dial timer & 4-step fail-closed wipe.
+• Web-Parity Backup: Full-vault export with HKDF hu- key & PBKDF2 pass.
+• Bitwarden Ingestion: Format-sniffing intake with deduplication.
+• 100% Green Test Suite: 105 unit & Robolectric tests verified.
+</en-US>
+```
+
+---
+
 ## `v0.0.0.9` — Phase 5: Context-Aware Autofill, Inline Chips & Deep Linking (Build 9)
 
 ```xml

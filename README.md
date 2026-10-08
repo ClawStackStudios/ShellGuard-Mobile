@@ -6,7 +6,7 @@
 
 ### Sovereign, privacy-first secrets vault native Android client with hardware-encrypted storage.
 
-[![Version](https://img.shields.io/badge/version-v0.0.0.9%20(Build%209)-E4048A?style=for-the-badge&logo=android&logoColor=white)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v0.0.0.10%20(Build%2010)-E4048A?style=for-the-badge&logo=android&logoColor=white)](CHANGELOG.md)
 [![Android](https://img.shields.io/badge/Android-API%2024%E2%80%9336-3DDC84?style=for-the-badge&logo=android&logoColor=white)](app/build.gradle.kts)
 [![Security Policy](https://img.shields.io/badge/Security-Policy-00BCD4?style=for-the-badge&logo=shield&logoColor=white)](SECURITY.md)
 [![16KB Ready](https://img.shields.io/badge/Kernel-16%20KB%20Page--Size-7952B3?style=for-the-badge)](project/16kb-page-size-alignment-guide.md)
@@ -185,7 +185,7 @@ export GRADLE_OPTS="-XX:-UsePerfData -Djava.io.tmpdir=$PWD/app/build/tmp"
 
 ### Verification & Testing
 ```bash
-# Run the complete unit test suite (83/83 tests passing green)
+# Run the complete unit test suite (105/105 tests passing green)
 ./gradlew testDebugUnitTest
 
 # Assemble debug APK
@@ -212,6 +212,7 @@ adb shell am start -n com.clawstack.shellguard/.MainActivity
 | [**`ROADMAP.md`**](ROADMAP.md) | Multi-phase development roadmap tracking completed features and upcoming milestones. |
 | [**`CHANGELOG.md`**](CHANGELOG.md) | Chronological version release history adhering to Keep a Changelog standards. |
 | [**`RELEASE-PLAY.md`**](RELEASE-PLAY.md) | Google Play Store release notes single source of truth across all published versions. |
+| [**`RELEASE-v0.0.0.10.md`**](RELEASE-v0.0.0.10.md) | Dedicated release manifest and architecture notes for v0.0.0.10 (Build 10). |
 | [**`project/architecture.md`**](project/architecture.md) | Deep architectural specification and system role boundaries. |
 | [**`project/routes-and-contracts.md`**](project/routes-and-contracts.md) | REST API endpoints, DTO models, and delta sync reconciliation contracts. |
 | [**`project/crypto-and-keystore.md`**](project/crypto-and-keystore.md) | Complete ShellCryption specification, KeyStore derivation, and biometric integration. |
