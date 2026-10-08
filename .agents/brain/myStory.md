@@ -297,7 +297,7 @@ Lucas pointed me to an error on the physical Google Pixel when viewing a passwor
    - **Gate 2 (Build)**: Clean build and APK assembly with `./gradlew assembleDebug`.
    - **Gate 3 (Live Run on Pixel)**:
      - Streamed APK to the Pixel (`adb install -r`). Because the device had not yet stored `shell_key`, `hasActiveSession()` correctly routed to `GatewayScreen` with `http://192.168.1.5:6464` pre-filled.
-     - Switched to "Paste ClawKey™" tab and supplied the user's master key (`hu-WP4UjNfj8zHhw6YC4vgz3gcj2sa10Oo4x0OzVNuV9ds44qDVcDXBlmvGm2QQ1LBQ`).
+     - Switched to "Paste ClawKey™" tab and supplied the user's master key (`hu-[REDACTED_SOVEREIGN_CLAWKEY]`).
      - Tapped the "ShellGuard" password entry on the Dashboard.
      - Inspected logcat: `SQLiteConnection: Database keying operation returned: 0` (SQLCipher unlocked), followed by `VaultDashboardScreen` and `ItemDetailScreen` compose rendering with zero exceptions.
      - Inspected screen capture: The password entry opened instantly with title `ShellGuard`, category `PASSWORD`, username `xxzioimibiexx`, and URL `http://192.168.1.5:6464`.
