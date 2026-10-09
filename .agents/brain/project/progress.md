@@ -1,7 +1,7 @@
 # Progress: ShellGuard Mobile
 
-## Current Status: Release v0.0.0.10 (Build 10) Shipped · Phase 7 Autofill Heuristics Verified (114/114)
-All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold through Phase 6 (Settings Hub, Security Controls & Web-Parity Backup Engine) have been shipped to GitHub and Google Play Internal testing (`v0.0.0.10`). Phase 7 (Stage 8: Context-Aware Autofill Expansion & Blast-Radius Containment) is implemented and verified on branch `feat/phase-7-autofill-heuristics` with 114/114 unit and Robolectric tests passing 100% green. Ready for Phase 7 commit/release cadence or transition into Phase 8 (Stage 9: SSH Key Management & Generator).
+## Current Status: Release v0.0.0.11 (Build 11) Drafted & Merged to `main` (114/114 Tests Green)
+All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold through Phase 7 (Stage 8: Context-Aware Autofill Expansion, 2-Step Login Support & Blast-Radius Containment) are implemented, verified on Google Pixel hardware (`114/114` unit tests passing), merged to `main`, and drafted for `v0.0.0.11 (Build 11)`. Ready for release tag push or transition into Phase 8 (Stage 9: SSH Key Management & Generator).
 
 
 ## What Works (Documented, Designed & Scaffolded)

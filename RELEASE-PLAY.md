@@ -5,6 +5,21 @@
 
 ---
 
+## `v0.0.0.11` — Phase 7: Context-Aware Autofill Expansion, 2-Step Login & Option B Masking (Build 11)
+
+```xml
+<en-US>
+• 5-Tier Autofill Heuristics: Context-aware username & password detection.
+• 2-Step Login Support: Inline chips & Add Item on email-first sign-ins.
+• Option B Masked Chips: Category/tag + masked username (lu***@gmail.com).
+• 1-Tap Multi-Field Fill: Simultaneous username & password injection.
+• Omnibox & AutoSpill Guard: Excludes browser URL bars & isolates WebViews.
+• 100% Green Test Suite: 114 unit & Robolectric tests verified on Pixel.
+</en-US>
+```
+
+---
+
 ## `v0.0.0.10` — Phase 6: Settings Hub, Security Controls & Web-Parity Backup Engine (Build 10)
 
 ```xml

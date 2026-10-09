@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Phase 7: Context-Aware Autofill Expansion & Blast-Radius Containment
+## [Unreleased]
+
+## [0.0.0.11] - 2026-10-08 (Build 11) — Phase 7: Context-Aware Autofill Expansion & Blast-Radius Containment
 ### Added
 - **5-Tier Confidence-Ranked Autofill Parser (`AutofillStructureParser.kt`)**: Extracted `AutofillNode` abstraction and `parseNodes` traversal entry point with 5-tier confidence ranking (`RANK_EXPLICIT_HINT = 1` through `RANK_PROXIMITY = 5`), HTML `<input type="email">` / `autocomplete` inspection, Android `InputType` email/web-email variation matching, preceding-editable-input proximity fallback, and negative exclusion filtering (`search`, `url_bar`, `omnibox`, `autocompletetextview`, `otp`, `totp`, `captcha`).
 - **Option B Inline Chip Disambiguation (`AutofillInlineHelper.kt`)**: Added `formatUnlockedChipSubtitle`, `maskUsername`, `extractCategoryOrTag`, and `resolveChipIcon` (zero-copy `Icon.createWithResource`) to disambiguate multi-account inline keyboard suggestions (`Work · lu***@company.com`, `lu***@gmail.com`) without exposing raw usernames or exceeding Android Binder IPC limits.
@@ -175,7 +177,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   <sub>Engineered with precision for the ClawStack / ShellGuard ecosystem.</sub>
 </div>
 
-[Unreleased]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.10...HEAD
+[Unreleased]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.11...HEAD
+[0.0.0.11]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.10...v0.0.0.11
 [0.0.0.10]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.9...v0.0.0.10
 [0.0.0.9]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.8...v0.0.0.9
 [0.0.0.8]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.7...v0.0.0.8

@@ -234,7 +234,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **Test Oracle & Hardware Verification**: Full suite of 105 unit and Robolectric tests passing 100% green (`BUILD SUCCESSFUL in 3m 32s`), clean `./gradlew assembleDebug` APK generation, and verified test oracle parity across `SettingsRepositoryTest`, `SettingsViewModelTest`, and `VaultBackupEngineTest`.
 
-## [Unreleased] — Phase 7: Context-Aware Autofill Expansion & Blast-Radius Containment
+## [0.0.0.11] - 2026-10-08 (Build 11) — Phase 7: Context-Aware Autofill Expansion & Blast-Radius Containment
 
 ### Added
 - **5-Tier Confidence-Ranked Autofill Parser (`AutofillStructureParser.kt`)**:
