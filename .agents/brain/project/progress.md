@@ -1,7 +1,7 @@
 # Progress: ShellGuard Mobile
 
-## Current Status: Release v0.0.0.10 (Build 10) Shipped & Deployed — Full Test Oracle Green (105/105)
-All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold through Phase 6 (Settings Hub, Security Controls & Web-Parity Backup Engine) have been shipped to GitHub and Google Play Internal testing. Full test oracle passes 100% green across 105 unit and Robolectric tests. Ready to transition into Phase 7 (Stage 8): Context-Aware Autofill Expansion & Heuristics targeting `0.0.0.11 (Build 11)`.
+## Current Status: Release v0.0.0.10 (Build 10) Shipped · Phase 7 Autofill Heuristics Verified (114/114)
+All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold through Phase 6 (Settings Hub, Security Controls & Web-Parity Backup Engine) have been shipped to GitHub and Google Play Internal testing (`v0.0.0.10`). Phase 7 (Stage 8: Context-Aware Autofill Expansion & Blast-Radius Containment) is implemented and verified on branch `feat/phase-7-autofill-heuristics` with 114/114 unit and Robolectric tests passing 100% green. Ready for Phase 7 commit/release cadence or transition into Phase 8 (Stage 9: SSH Key Management & Generator).
 
 
 ## What Works (Documented, Designed & Scaffolded)
@@ -132,8 +132,7 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
   - Elevated `LockScreen` to a global Compose overlay in `MainActivity`, preserving deep-linked backstack and form arguments across unlock.
   - Full test suite passing 100% green (83/83 unit tests); `app-debug.apk` deployed and live verified on Google Pixel (`sailfish`).
 
-## What's Left to Build (Phase 6)
-- [ ] Phase 6: Settings, Backup Bridge & Release Hardening (Tasks 11 & 12) — Target: v0.0.0.10 (Build 10).
+- [x] **Phase 6: Settings, Backup Bridge & Release Hardening (Tasks 11 & 12) (`v0.0.0.10`, Build 10)**:
   - [x] **Sub-Phase A: Core Architecture & DataStore**:
     - Added `androidx.datastore:datastore-preferences:1.1.3` to version catalog and Gradle.
     - Implemented `SettingsRepository` and `SettingsRepositoryImpl` exposing reactive `Flow<AppSettings>` (11 settings keys).
@@ -161,9 +160,32 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
     - Web Parity Enhancements: Refactored `VaultBackupPayload` to use a polymorphic `items` JSON array schema rather than isolated object lists, and implemented strict `hu-` Sovereign ClawKey validation UI, matching ShellGuard Web's `ImportExportView`.
     - `SettingsBackupScreen.kt`: Interactive dual-mode export with password confirmation, share intent trigger, clipboard copy, and format-sniffing file import flow.
     - `SettingsAutofillScreen.kt`: System autofill service status detector, system settings intent launcher, keyboard inline suggestions toggle, and Stage 8 AI & Contextual Heuristics preview card.
-    - `SettingsAboutScreen.kt`: Diagnostic technical overview of Android 15/16 16 KB page-size alignment, KeyStore AES-256-GCM, SQLCipher 4.6.1+, GPL-3.0 license, and developer attributions.
+    - `SettingsAboutScreen.kt` & `SettingsHubScreen.kt`: Diagnostic technical overview of Android 15/16 16 KB page-size alignment, KeyStore AES-256-GCM, SQLCipher 4.6.1+, GNU AGPL v3.0 license attribution, and dynamic `BuildConfig.VERSION_NAME` / `BuildConfig.VERSION_CODE` footer display.
     - Wired destinations in `MainActivity.kt` NavHost (`Screen.SettingsBackup`, `Screen.SettingsAutofill`, `Screen.SettingsAbout`).
     - 100% green verification: 5/5 unit tests in `VaultBackupEngineTest`, 12/12 in `SettingsViewModelTest`, and full test suite 105/105 passing green.
+- [x] **Phase 7: Context-Aware Autofill Expansion & Blast-Radius Containment (Complete & Hardware-Verified)**:
+  - [x] **5-Tier Confidence-Ranked Structure Parser (`AutofillStructureParser`)**:
+    - Extracted testable `AutofillNode` abstraction and `parseNodes` traversal entry point.
+    - Implemented 5-tier confidence ranking (`RANK_EXPLICIT_HINT = 1` through `RANK_PROXIMITY = 5`) so explicit hints and `<input>` attributes always override generic layout IDs (e.g., `login_username` overrides `login_tenant`).
+    - Added **Strict Editable-Input Gate (`isEditableInputNode`)** and `AutoCompleteTextView` URL-bar exclusion to prevent parent containers (`<form id="login-form">`, `LinearLayout`) and browser omniboxes from hijacking `usernameId`.
+    - Enforced **Password/Username Mutual Exclusion** so password nodes with composite identifiers (`id="login_password"`, `hint="User Password"`) never fall through to overwrite `usernameId`.
+    - Added **Co-Presence Gate** suppressing low-confidence Rank 4/5 username heuristics when no password field (`passwordId == null`) is present on screen, while preserving explicit Rank 1–3 email/username fields for 2-step split login flows (`accounts.google.com`).
+    - Hardened **AutoSpill WebView Isolation**: entering a WebView (`webDomain != null`) clears any fields previously captured from outer native host views.
+  - [x] **Simultaneous Multi-Field Dataset Binding & 2-Step Login Support (`ShellGuardAutofillService` & `AutofillAuthActivity`)**:
+    - Bound both `usernameId` (when `pearl.username.isNotBlank()`) and `passwordId` in unlocked, locked/reprompt, and `"Add Item"` fallback datasets so tapping either chip populates both fields simultaneously without clobbering user-typed text with blank usernames.
+    - Enabled Case A (`"Add Item"`) whenever `userFieldId != null || passFieldId != null`, supporting 2-step email-first login flows (`accounts.google.com`) where Step 1 renders only an explicit Rank 1–3 email/username field.
+    - Guarded `AutofillAuthActivity` with a `hasValue` check prior to `datasetBuilder.build()`.
+  - [x] **Option B Inline Chip Disambiguation (`AutofillInlineHelper`)**:
+    - Implemented `formatUnlockedChipSubtitle`, `maskUsername`, and `extractCategoryOrTag` to format unlocked chip subtitles with non-default category/tag + partially masked username (`Work · lu***@company.com`, `lu***@gmail.com`, `ad***n`), preventing shoulder-surfing leaks and IME HorizontalScrollView truncation.
+    - Added `resolveChipIcon` using zero-copy `Icon.createWithResource` references to prevent Binder `TransactionTooLargeException`.
+  - [x] **Unit Test & Physical Pixel Hardware Verification (`AutofillStructureParserTest`)**:
+    - Added 12 unit tests covering all 5 confidence tiers, container hijack defense, password/username mutual exclusion, Co-Presence Gate suppression, AutoSpill WebView clearing, and Option B username masking (`114/114` total unit tests passing 100% green).
+    - Verified live on physical Google Pixel (`sailfish`) across SimpleLogin (Option B chip + simultaneous 2-field fill) and Google Sign-In (2-step email-first `"Add Item · accounts.google.com"` chip).
+
+## What's Left to Build (Phase 8+)
+- [ ] Phase 8 (Stage 9): SSH Key Management & Cryptographic Key Generator (Tasks 14 & 15).
+- [ ] Phase 9 (Stage 10): Encrypted File Attachments & Streaming Vault (Tasks 16 & 17).
+- [ ] Phase 10 (Stage 11): Glance Home Screen Widgets, Quick Settings Tile & Audit Log Viewer (Tasks 18 & 19).
 
 
 

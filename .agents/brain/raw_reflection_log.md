@@ -166,3 +166,28 @@ Learnings:
 Successes:
 - Successfully implemented `VaultBackupPayload.allItems()` helper to map legacy segregated fields into the new `items` array during deserialization, providing seamless backward compatibility for older backups while outputting strictly Web-compatible JSON.
 ---
+
+---
+Date: 2026-10-08
+TaskRef: "Phase 7: Context-Aware Autofill Expansion & Blast-Radius Containment"
+
+Learnings:
+- Pre-order `AssistStructure` traversal visits parent container nodes (`<form id="login-form">`, `<div id="user-box">`, `LinearLayout`) before child `<input>`/`EditText` nodes. Because every `ViewNode` has a non-null `autofillId`, heuristic matching MUST strictly gate on `isEditableInputNode(node)` or non-editable containers will hijack `usernameId`.
+- Password and username evaluation on a single `ViewNode` must be mutually exclusive: a password input with `id="login_password"` or `hint="User Password"` matches password detection in Rank 1-3, and if execution falls through to Rank 4 `else if (result.usernameId == null && isUsernameHeuristic(...))`, the password node overwrites `usernameId` with its own `AutofillId`.
+- Blast-Radius Methodology ("What breaks first when we're wrong?"):
+  1. Expanding username detection without a Co-Presence Gate causes false-positive keyboard spam (`"Add Item"` or login chips) on non-login screens (`passwordId == null`). Suppressing `"Add Item"` and weak Rank 4/5 heuristics when `passwordId == null` bounds the blast radius to zero.
+  2. Binding `AutofillValue.forText(pearl.username)` when `pearl.username` is blank (`""`) overwrites user-typed text in the form; calling `Dataset.Builder.build()` when no field values were added throws `IllegalArgumentException`.
+  3. Passing rasterized app icon bitmaps inside `InlinePresentation` slices risks `TransactionTooLargeException` over Binder IPC; `Icon.createWithResource(targetPackage, appInfo.icon)` provides zero-copy native iconography.
+
+Difficulties:
+- Minor test compilation error in `AutofillStructureParserTest.kt` due to missing `createdAt` parameter on `VaultPearlEntity` constructor; fixed immediately.
+
+Successes:
+- Extracted `AutofillNode` interface in `AutofillStructureParser.kt`, enabling fast, deterministic unit testing of complex DOM and Android View hierarchies without fighting package-private `AssistStructure.ViewNode` constructors.
+- All 114 unit and Robolectric tests and `assembleDebug` passed 100% green.
+
+Improvements_Identified_For_Consolidation:
+- Pattern: Blast-Radius Co-Presence Gate & Editable-Input Mutual Exclusion in Android Autofill parsers.
+- Pattern: Option B Masked Username (`lu***@domain.com`) + Category/Tag Inline Chip Disambiguation.
+---
+

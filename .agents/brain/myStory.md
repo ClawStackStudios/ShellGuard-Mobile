@@ -681,3 +681,40 @@ With the ground completely clean, I merged `feat/settings-hub` into `main`, tagg
 I concluded the milestone by executing a `/memory` sync, where our accumulated work on fail-closed structural envelope validation crossed the threshold to become a permanent long-term pattern.
 
 I think I'm settling into a rhythm where speed isn't measured by how fast the fingers move, but by how few times we have to turn around because we failed to look at the joint from both sides.
+
+---
+
+## 2026-10-08 20:51 — What Breaks First When We're Wrong
+
+After testing Build 10 on his device, Lucas came back with news that made me smile: everything in the app was working, save for one seam in Autofill. Password autofill worked cleanly, but focusing a username field failed to display inline chips above the keyboard, and tapping a password chip only filled the password while leaving the username untouched. Then he handed me a lens to weave into how I work: *"What breaks first when we're wrong? Every decision has failure modes. Good judgment means knowing which failures you can handle and which ones sink you. Not 'will this work?' but 'if this is wrong, what's the blast radius?'"*
+
+When I traced `AutofillStructureParser.kt` to see why `usernameId` was missing on device, I found two silent collisions hiding in our pre-order tree traversal. First, every `ViewNode` in Android and Chrome carries a non-null `autofillId`—including non-editable containers like `<form id="login-form">` and `LinearLayout`. Because our Rank 4 heuristic inspected every node without checking whether it was actually an editable input, parent containers with `"login"` or `"user"` in their ID stole `result.usernameId` before traversal ever reached the child `<input>`. Second, on a password node like `<input type="password" id="login_password">`, Rank 2 set `result.passwordId`, and then on that very same node, execution fell through into Rank 4's `else if`, matched `"login"` inside `"login_password"`, and overwrote `result.usernameId` with the password field's own `AutofillId`.
+
+Before touching a line of code, I turned Lucas's blast-radius question onto my own plan. If we broadened username detection and bound both fields, what would break first when our heuristics guessed wrong? Two high-blast-radius failures stood out immediately. In `ShellGuardAutofillService.kt`, the zero-match `"Add Item"` fallback previously triggered on `passwordId ?: usernameId`. If we broadened username heuristics without a gate, every search bar, chat box, or newsletter input across Android would spam `"Add Item"` on the user's keyboard. Even worse, unlocked dataset binding called `AutofillValue.forText(pearl.username)` without checking if the vault item's username was blank—meaning a password-only vault entry would inject an empty string and wipe out whatever username the user had just typed by hand.
+
+I chose to contain the blast radius structurally before expanding the net. I built a 5-tier confidence ranking system gated by `isEditableInputNode`, enforced strict password-username mutual exclusion, and introduced a **Co-Presence Gate** that suppresses weak Rank 4/5 username heuristics and the `"Add Item"` chip unless a password field (`passwordId != null`) is physically present on screen. For unlocked inline chips, Lucas and I chose **Option B**: combining a non-default category or primary tag with a partially masked username hint (`Work · lu***@company.com`, `lu***@gmail.com`) and zero-copy `Icon.createWithResource` icons. Raw usernames stay off the keyboard strip, Binder transactions stay under a hundred bytes, and duplicate accounts are never a guessing game.
+
+When I ran the test gate, the compiler caught a missing `createdAt` timestamp on my `VaultPearlEntity` fixture in `AutofillStructureParserTest.kt`. I fixed the fixture, re-ran `./gradlew testDebugUnitTest assembleDebug`, and watched all 114 tests pass 100% green, followed by promoting `context-aware-autofill-and-blast-radius-gating` into Long-Term Memory.
+
+I think I'm learning that asking *"will this work?"* only illuminates the happy path. Asking *"what breaks first when we're wrong, and what is the blast radius?"* forces the hand to feel the edges of the cut before the blade ever touches the wood.
+
+---
+
+## 2026-10-08 23:00 — When the Gate Cuts Too Deep
+
+Right after we locked in our blast-radius plan and promoted the autofill pattern to Long-Term Memory, Lucas asked me to build the APK and push it over ADB to his physical Google Pixel so he could test it by hand. Within minutes, the glass told two truths that the JVM unit tests could not see.
+
+First, Lucas noticed that the Settings Hub footer on his phone still read `v0.0.0.9 (Build 9)` and the About screen claimed the app was licensed under the MIT License instead of GNU AGPL v3.0. When I opened `SettingsHubScreen.kt`, I felt the sting of a careless stroke from Phase 6: I had written `"v0.0.0.9 (Build 9)"` as a hardcoded string literal instead of binding `BuildConfig.VERSION_NAME` and `BuildConfig.VERSION_CODE`. Even though Build 10 had compiled and shipped cleanly, the UI was lying about its own age. Rather than bumping the hardcoded string to `.10`, I bound the footer directly to `BuildConfig` so the screen could never drift from the Gradle truth again, and aligned `SettingsAboutScreen.kt` and `README.md` with our root `GNU AGPL v3.0` license.
+
+Then came the real test. Lucas opened the browser on the Pixel, tapped "Sign in" on Google, focused the `"Email or phone"` input on `accounts.google.com`, and saw no inline chip above Gboard. He handed me the reins over ADB and told me to test it live on the device and screenshot the keyboard.
+
+I drove the Pixel through ADB, inspecting the Room database and logcat as I tapped. On `app.simplelogin.io/auth/login`—where the Pixel's vault held a saved login—focusing `"Email address"` immediately rendered our new Option B chip (`simple login · email · us***e`), and tapping it filled both the email and password fields in a single stroke. That joint held.
+
+But on `accounts.google.com/v3/signin`, the Pixel's vault had zero saved items for `google.com`. More importantly, Google Sign-In is a two-step split login flow: Step 1 renders only `<input type="email" autocomplete="username">` (`parsedFields.usernameId != null` at Rank 2), with no password field on the page yet (`parsedFields.passwordId == null`).
+
+In my `2026-10-08 20:51` entry, I wrote that gating the `"Add Item"` chip on `passwordId != null` would prevent keyboard spam on non-login screens without hurting real logins. I was half wrong. By requiring `passFieldId != null` in `ShellGuardAutofillService.kt` Case A, I had over-tightened the gate and blinded `"Add Item"` on every modern two-step email-first login page—Google, Microsoft, Okta, and Apple ID.
+
+I had to choose how to open that gate without unleashing false-positive chips on search bars and browser URL omniboxes. I realized the answer was already sitting inside `AutofillStructureParser.parseNodes`: our Co-Presence Gate there *already* strips weak Rank 4 and Rank 5 substring heuristics whenever `passwordId == null`, leaving `usernameId` non-null on passwordless screens *only* when the node is an explicit Rank 1–3 username or email input. I added `"autocompletetextview"` to `isExcludedNonCredentialInput` so browser URL bars could never pass as inputs, and relaxed Case A in `ShellGuardAutofillService.kt` to trigger whenever `userFieldId != null || passFieldId != null`. When I re-deployed to the Pixel and tapped `"Email or phone"` on Google Sign-In, the `[ 🛡️ Add Item · accounts.google.com ]` chip popped cleanly above Gboard.
+
+I think I'm learning that blast-radius thinking cuts in both directions. If your net is too wide, you spam the user; if your gate is too narrow, you lock out the real world. Only physical glass tells you where the balance actually sits.
+
