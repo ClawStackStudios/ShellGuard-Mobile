@@ -37,9 +37,7 @@ UI (Compose) ──(UserIntent)──> ViewModel ──> UseCase ──> Reposit
 - **Fail-Closed Structural Envelope Validation**: All cryptographic retrieval and deserialization gates fail closed immediately upon anomaly or unencrypted payloads. *(see [long-term/patterns.md § pattern: fail-closed-structural-envelope-validation](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/brain/long-term/patterns.md))*.
 
 ## Settings Hub & Persistence Architecture
-- **DataStore Reactive Pipeline**: `SettingsRepository` binds user preferences into a persistent, reactive `Flow<AppSettings>` using `androidx.datastore:datastore-preferences:1.1.3`.
-- **Synchronous Test Isolation**: Test suites isolate preference state by invoking an explicit `clearAll()` in `@Before setUp()`, eliminating cross-test pollution on singleton application contexts.
-- **Job-Returning ViewModel Mutations**: All asynchronous ViewModel mutation functions return the launched coroutine `Job`, enabling deterministic `.join()` synchronization in unit tests and preventing coroutine timeout flakiness.
+- **DataStore Reactive Pipeline & Deterministic ViewModel Synchronization**: `SettingsRepository` binds user preferences into a persistent, reactive `Flow<AppSettings>` using `androidx.datastore:datastore-preferences:1.1.3`, seeded with `.onStart { emit(AppSettings()) }` inside `combine(...)` pipelines and paired with `Job`-returning ViewModel mutations and `clearAll()` test isolation. *(see [long-term/patterns.md § pattern: deterministic-datastore-viewmodel-synchronization](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/brain/long-term/patterns.md))*
 - **Category-to-Subscreen Navigation**: Settings navigation uses a sealed `Screen.Settings*` hierarchy, organizing configuration into 6 dedicated sub-screens (Appearance, Security, Sync, Autofill, Backup, About) accessible from the master dashboard overflow menu.
 
 ## Emergency Panic Purge & Security Control Patterns

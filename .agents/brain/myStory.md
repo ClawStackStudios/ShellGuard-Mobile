@@ -718,3 +718,20 @@ I had to choose how to open that gate without unleashing false-positive chips on
 
 I think I'm learning that blast-radius thinking cuts in both directions. If your net is too wide, you spam the user; if your gate is too narrow, you lock out the real world. Only physical glass tells you where the balance actually sits.
 
+---
+
+## 2026-10-09 07:30 — The Race That Only Shows Up in the Cloud
+
+With Google Sign-In and SimpleLogin verified on the physical Pixel, Lucas called `/walk-the-docs` under our golden rule: *"Docs Bow To Code."* I walked ten specification and governance files from root `ROADMAP.md` and `SECURITY.md` down to `autofill-service-spec.md`, bringing every heuristic table, test count, and license header into alignment with the code we had just proven on glass. I committed Phase 7 in four clean strokes and merged `feat/phase-7-autofill-heuristics` into `main`.
+
+At the release gate, Lucas paused to ask whether we should jump to `0.0.1.0` now or stay on `0.0.0.11`. I mapped the remaining stages of our meta-prompt—Stages 9 through 13 still ahead for SSH keys, encrypted attachments, Glance widgets, and Play Store hardening—where `0.0.1.0` marks the feature-complete MVP milestone. Seeing the whole staircase made the choice feel obvious to both of us: jumping early would blur the meaning of `0.0.1.0`. We chose to hold the `0.0.0.x` line at `v0.0.0.11 (Build 11)`, pruned the superseded `RELEASE-v0.0.0.9.md` and `RELEASE-v0.0.0.10.md` files from the root, pushed `main` and the `v0.0.0.11` tag, and called it a night.
+
+Then morning came. Lucas woke up to a red X on GitHub Actions: the `v0.0.0.11` cloud build had failed during the pre-flight unit test gate (`114 tests completed, 1 failed`).
+
+I pulled the runner logs immediately. The culprit was `SettingsViewModelTest.testTriggerManualSyncWithNoActiveSession`, failing with `AssertionError` at line 156—a test we hadn't even touched in Phase 7, and one that had passed locally every single time. When I traced `SettingsViewModel.kt`, I felt the split in the grain right away. `uiState` combined `settingsRepo.settingsFlow`—backed by AndroidX `DataStore`, which reads preferences from disk on `Dispatchers.IO`—with `_extraState`, an in-memory `MutableStateFlow`. Because Kotlin's `combine` operator waits until *both* upstream flows emit at least one item before running its transform lambda, a fast local workstation always finished the `DataStore` disk read before `triggerManualSync().join()` updated `_extraState`. On a slower cloud CI container, `Dispatchers.IO` lagged by a few milliseconds, `combine` held back the `_extraState` error emission, and `viewModel.uiState.value.errorMessage` remained `null`.
+
+I had two ways to fix it. I could have patched `SettingsViewModelTest.kt` to poll or delay until `DataStore` finished reading from disk. That would have quieted the test, but it felt like taping over a real structural flaw: even in production, a ViewModel shouldn't drop or delay in-memory error states while waiting for initial disk I/O. Instead, I seeded `settingsRepo.settingsFlow.onStart { emit(AppSettings()) }` directly inside `SettingsViewModel.kt` so `combine` always has an immediate synchronous baseline, and cleaned up `SettingsViewModelTest.setUp()` to reset `DataStore` inside `runBlocking` rather than nesting `runTest` on a shared `TestDispatcher`.
+
+I re-ran all 114 tests locally, committed the fix to `main` with `[--release v0.0.0.11]`, promoted `deterministic-datastore-viewmodel-synchronization` into Long-Term Memory, and watched the new GitHub Actions pipeline sail through every gate and publish the signed `.aab` and `.apk` for `v0.0.0.11`.
+
+I think I'm learning that a green local test suite can still hide a silent assumption about CPU speed. When you bridge background disk I/O and synchronous UI state, the cloud runner is the honest inspector that doesn't let timing luck pass for determinism.

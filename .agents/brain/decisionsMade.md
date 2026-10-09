@@ -560,3 +560,26 @@ The cross-session failure analysis (/deep-learn) detected an **over-confidence b
 **Outcome**: Focusing `"Email or phone"` on `accounts.google.com` immediately renders `[ 🛡️ Add Item · accounts.google.com ]` above Gboard while search bars and URL omniboxes remain silent.
 **Pattern reference**: `long-term/patterns.md § pattern: context-aware-autofill-and-blast-radius-gating` and `testOracle.md § Redline 10`.
 
+## retaining-0-0-0-x-progression-until-mvp-completion — 2026-10-09 00:01
+
+**Context**: After merging Phase 7 (Stage 8) into `main`, Lucas considered bumping the release version from `0.0.0.10` to `0.0.1.0` instead of `0.0.0.11`.
+**Options considered**:
+- Bump to `v0.0.1.0 (Build 11)` immediately — Signals a milestone jump, but consumes the `0.0.1.0` MVP feature-complete designation defined in `productVersion.md` five stages early (before Stages 9–13 are built).
+- Keep the `0.0.0.x` active development progression (`v0.0.0.11`, Build 11) through Stage 12 and reserve `v0.0.1.0` for Stage 13 (MVP Feature Complete) — Preserves the semantic meaning of the four-segment version calculus across the remaining roadmap stages.
+**Chosen**: Keep the `0.0.0.x` progression (`v0.0.0.11`, Build 11) and prune superseded `RELEASE-v0.0.0.9.md` / `RELEASE-v0.0.0.10.md` root files.
+**Why**: A version number is a compass for where the codebase sits in its lifecycle. Saving `0.0.1.0` for the true MVP completion keeps our version history legible and grounded in the actual roadmap.
+**Confidence**: high — aligns 1:1 with `productVersion.md` and `semantic-versioning.md`.
+**Outcome**: Drafted and shipped `v0.0.0.11 (Build 11)` with a clean repository root containing only `RELEASE-v0.0.0.11.md` and `RELEASE-PLAY.md`.
+**Pattern reference**: Link to `project/productVersion.md § Semantic Progression Strategy`.
+
+## seeding-datastore-combine-with-onstart-for-ci-determinism — 2026-10-09 06:35
+
+**Context**: Overnight GitHub Actions CI run `37897075874` (`v0.0.0.11`) failed on `SettingsViewModelTest.testTriggerManualSyncWithNoActiveSession` because `combine(settingsRepo.settingsFlow, _extraState)` held back synchronous `_extraState` error updates while waiting for AndroidX `DataStore` to finish its initial disk read on `Dispatchers.IO`.
+**Options considered**:
+- Patch `SettingsViewModelTest.kt` to await `settingsFlow.first()` or insert a retry loop before asserting `uiState.value.errorMessage` — Makes the test pass, but leaves `SettingsViewModel.uiState` deaf to `_extraState` updates during cold-start disk reads in production.
+- Seed `settingsRepo.settingsFlow.onStart { emit(AppSettings()) }` inside `SettingsViewModel.uiState`'s `combine(...)` pipeline and replace the nested `runTest(testDispatcher)` in `SettingsViewModelTest.setUp()` with `runBlocking` — Guarantees `combine` has an immediate synchronous emission on subscription in both production and tests, eliminating the `Dispatchers.IO` startup race entirely.
+**Chosen**: Seed `.onStart { emit(AppSettings()) }` on `settingsRepo.settingsFlow` in `SettingsViewModel.kt` and use `runBlocking` in `SettingsViewModelTest.setUp()`.
+**Why**: Fixing a race condition only inside the test file feels like silencing the smoke alarm instead of putting out the fire. Giving the production `combine` flow an immediate default emission ensures that in-memory state updates are never hostage to disk latency.
+**Confidence**: high — verified across `114/114` local unit tests (`--rerun-tasks`) and confirmed 100% green on GitHub Actions cloud run `37938055022`.
+**Outcome**: `v0.0.0.11` passed the pre-flight test gate on GitHub Actions and published signed `shellguard-mobile-v0.0.0.11.aab` and `.apk` release assets.
+**Pattern reference**: `long-term/patterns.md § pattern: deterministic-datastore-viewmodel-synchronization` and `testOracle.md § Redline 11`.

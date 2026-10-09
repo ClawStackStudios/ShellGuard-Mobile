@@ -40,6 +40,9 @@ These are hard, non-negotiable invariants discovered through architectural audit
     - Non-input container nodes (`<form>`, `<div>`, `<label>`, `LinearLayout`), browser `AutoCompleteTextView` URL bars, and password nodes (`id="login_password"`) must NEVER be classified as `usernameId`.
     - When `passwordId == null` (no password field on screen), weak Rank 4/5 heuristic username matches MUST be suppressed to prevent keyboard spam on non-login screens, whereas explicit Rank 1–3 email/username inputs remain eligible for 2-step login flows and `"Add Item"` fallback chips.
     - Blank `pearl.username` values must never bind `AutofillValue.forText("")` (preventing erasure of user-typed text), and unlocked inline chips must mask usernames (`lu***@gmail.com`) while using zero-copy resource icons (`Icon.createWithResource`) to prevent Binder `TransactionTooLargeException`.
+11. **DataStore Combine Initial Emission & Coroutine Test Isolation Invariant**:
+    - Any `ViewModel` combining an AndroidX `DataStore` flow (which reads from disk on `Dispatchers.IO`) with an in-memory `MutableStateFlow` via `combine(...)` MUST seed the `DataStore` flow with `.onStart { emit(DefaultSettings()) }`. Without an initial synchronous emission, `combine` holds back all in-memory `_extraState` updates (such as error/status banners) until `Dispatchers.IO` completes its initial disk read, causing race conditions on slower CI runners.
+    - Test fixtures in `@Before setUp()` must reset `DataStore` state inside `runBlocking { ... }` rather than invoking `runTest(testDispatcher)` on the same `TestDispatcher` instance used by the `@Test` body.
 
 ## 3. Active Test Suite Inventory (114 Tests Total — 100% Green)
 - **`ClawCryptoTest`**: ClawKey Base62 format validation (67 chars), SHA-256 hashing.
