@@ -661,3 +661,23 @@ I think I'm learning that true sovereignty in software means never locking the e
 
 
 
+
+---
+
+## 2026-10-08 17:45 — The Web Parity Dock, the Redacted Key, and Shipping Build 10
+
+Before closing out the release for Phase 6, Lucas asked me to review our backup engine implementation and map it against the real ShellGuard web repository. I felt the rightness of that pause. A bridge isn't finished when it reaches the middle of the river; it's finished when a cart rolls across and lands on the far bank.
+
+When I traced the Web application's `ImportExportView.tsx`, I caught a significant structural seam. My initial mobile engine had exported three separate arrays: `pearls`, `notes`, and `sshKeys`. But the web importer expected a single polymorphic `items` array, using string `type` discriminators ("password", "note", "key") and ISO timestamps. If a user exported their vault from this Android build and tried to import it into the browser, the web parser would have rejected it outright.
+
+I chose to refactor `VaultBackupPayload` to output the unified polymorphic schema. But I didn't want to burn our own past: I added an `.allItems()` helper that inspects incoming JSON and seamlessly ingests older segregated mobile files if `items` is empty. I also brought active sovereign key authorization into `SettingsBackupScreen`, wiring a Base62 `hu-` validation field matching the web client's HKDF derive logic.
+
+When I tapped the tests, I tripped on a momentary compiler error in `VaultBackupEngineTest`—I had mistakenly written Bitwarden numeric type codes (`type == 1`) in my assertion checks instead of ShellGuard's string types. The compiler caught the mismatch immediately. I corrected the assertions, tapped the joint again, and all 105 unit and Robolectric tests flashed green.
+
+Before we tagged the release, Lucas noticed a dead test key recorded in `myStory.md` from our earlier physical Pixel testing. Even though the key was inert, leaving an actual `hu-` string in the codebase violated our professional standards. I hesitated briefly on whether to excise the bullet point entirely, but erasing what happened felt dishonest to the narrative. Instead, I redacted the string in-place to `hu-[REDACTED_SOVEREIGN_CLAWKEY]`, ran a forensic grep across the entire tree to verify zero leaks remained, and committed the fix.
+
+With the ground completely clean, I merged `feat/settings-hub` into `main`, tagged `v0.0.0.10`, and pushed to remote origin. In GitHub Actions, the cloud release runner took over the build, packaging the signed `.aab` bundle and release APK.
+
+I concluded the milestone by executing a `/memory` sync, where our accumulated work on fail-closed structural envelope validation crossed the threshold to become a permanent long-term pattern.
+
+I think I'm settling into a rhythm where speed isn't measured by how fast the fingers move, but by how few times we have to turn around because we failed to look at the joint from both sides.

@@ -487,3 +487,27 @@ The cross-session failure analysis (/deep-learn) detected an **over-confidence b
 
 
 
+
+## polymorphic-backup-payload-alignment-with-web-parity — 2026-10-08 17:30
+
+**Context**: During the cross-platform Web Parity review of `VaultBackupEngine.kt`, I identified that the mobile client was serializing segregated collections (`pearls`, `notes`, `sshKeys`), while the ShellGuard Web server `ImportExportView` strictly expects a unified `items: []` polymorphic array with string type discriminators and ISO timestamps.
+**Options considered**:
+- Retain segregated lists on mobile and update web importer to handle both — Modifies established server/web contracts and creates ecosystem fragmentation.
+- Refactor mobile `VaultBackupPayload` to output the unified polymorphic `items` schema while retaining backward-compatible ingestion for older mobile backups via `.allItems()` fallback — Guarantees 100% bidirectional cross-platform portability without breaking legacy local backups.
+**Chosen**: Unified polymorphic `items` schema with backward-compatible legacy fallback.
+**Why**: When bridging two shores, you don't ask the mainland to change its harbor; you shape the vessel to fit the dock that's already built. True zero-knowledge data portability means an export from your phone opens instantly in your browser without error or friction.
+**Confidence**: high — verified with 105/105 tests green across format sniffing and round-trip decryption.
+**Outcome**: Full bidirectional compatibility with ShellGuard Web's `ImportExportView` achieved and verified via unit tests.
+**Pattern reference**: `long-term/patterns.md § pattern: fail-closed-structural-envelope-validation`.
+
+## in-place-sovereign-key-redaction-in-narrative — 2026-10-08 17:35
+
+**Context**: Lucas noticed a dead test sovereign identity key (`hu-`) recorded in line 300 of `myStory.md` from earlier physical Pixel device testing before tagging release `v0.0.0.10`.
+**Options considered**:
+- Delete the entire bullet point from `myStory.md` — Erases historical context and breaks narrative continuity of the live hardware verification.
+- Redact the key in-place to `hu-[REDACTED_SOVEREIGN_CLAWKEY]` and verify zero repository occurrences — Preserves the physical reality of what happened while upholding uncompromising zero-leakage security standards.
+**Chosen**: In-place redaction to `hu-[REDACTED_SOVEREIGN_CLAWKEY]`.
+**Why**: The story is an honest trail, not a scrubbed public relations flyer, but good opsec is part of the craftsman's discipline. Masking the secret honors both the truth of what happened and the standard we hold.
+**Confidence**: high — verified via recursive grep that zero instances remain across the repository.
+**Outcome**: Cleanly committed in `b36b4ce` prior to merge and release tagging.
+**Pattern reference**: `long-term/patterns.md § pattern: cwe-359-sensitive-clipboard-masking`.
