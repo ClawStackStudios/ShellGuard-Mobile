@@ -1,7 +1,7 @@
 # Progress: ShellGuard Mobile
 
-## Current Status: Release v0.0.0.9 (Build 9) Staged & Verified — Documentation Synchronized per docs-hygiene.md
-All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold, Phase 1 through Phase 5 have been released to GitHub. Hotfix 5.5 (`0.0.0.9`, Build 9) delivers context-aware inline autofill suggestion chips when locked, resolves translucent activity flash with direct deep-link PendingIntents, pre-populates URI into `ItemFormScreen`, and elevates `LockScreen` to a global overlay in `MainActivity`. 83 unit tests passing 100% green. Phase 6 baseline is targeted at `0.0.0.10 (Build 10)`.
+## Current Status: Release v0.0.0.10 (Build 10) Shipped & Deployed — Full Test Oracle Green (105/105)
+All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold through Phase 6 (Settings Hub, Security Controls & Web-Parity Backup Engine) have been shipped to GitHub and Google Play Internal testing. Full test oracle passes 100% green across 105 unit and Robolectric tests. Ready to transition into Phase 7 (Stage 8): Context-Aware Autofill Expansion & Heuristics targeting `0.0.0.11 (Build 11)`.
 
 
 ## What Works (Documented, Designed & Scaffolded)
@@ -163,7 +163,7 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
     - `SettingsAutofillScreen.kt`: System autofill service status detector, system settings intent launcher, keyboard inline suggestions toggle, and Stage 8 AI & Contextual Heuristics preview card.
     - `SettingsAboutScreen.kt`: Diagnostic technical overview of Android 15/16 16 KB page-size alignment, KeyStore AES-256-GCM, SQLCipher 4.6.1+, GPL-3.0 license, and developer attributions.
     - Wired destinations in `MainActivity.kt` NavHost (`Screen.SettingsBackup`, `Screen.SettingsAutofill`, `Screen.SettingsAbout`).
-    - 100% green verification: 5/5 unit tests in `VaultBackupEngineTest`, 12/12 in `SettingsViewModelTest`, and full test suite 95/95 passing green.
+    - 100% green verification: 5/5 unit tests in `VaultBackupEngineTest`, 12/12 in `SettingsViewModelTest`, and full test suite 105/105 passing green.
 
 
 

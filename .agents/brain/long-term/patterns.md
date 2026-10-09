@@ -105,4 +105,20 @@ Designated high-security items (`reprompt == true`) must enforce an explicit bio
 
 **Shaped perspective:** This holds because vault unlock is a coarse-grained perimeter defense, whereas credentials inside a vault possess heterogeneous threat levels. A compromised device left unlocked on a desk or handed to a colleague breaches all items unless individual high-value pearls require re-authentication. What it costs to maintain is an extra cryptographic/biometric challenge state machine in detail views and autofill flows, along with educating users on why certain items challenge them again.
 
+---
+
+## pattern: fail-closed-structural-envelope-validation
+**weight**: 4 | **last validated**: 2026-10-04 | **first observed**: 2026-09-27
+**pinned**: false
+**status**: hot
+
+All cryptographic retrieval, detail getters, and backup decoders must strictly fail closed on anomalies, returning explicit `Result.failure` or throwing fatal validation errors rather than silently falling back to raw ciphertext or partial payloads. Payloads originating from cross-platform web endpoints must structurally validate via `ShellCryptionEngine.isEncryptedEnvelope()` prior to AES-GCM decryption to safely handle unencrypted empty collections (`"[]"`) without crashing or triggering double-ciphertext corruption.
+
+**History:**
+- 2026-09-27: Subjected sync and detail getters to dual adversarial audit; eliminated dangerous fallback that exposed raw ciphertext strings on decryption failures, enforcing fail-closed termination.
+- 2026-10-03: Diagnosed JSON deserialization crash on web items storing empty unencrypted arrays (`"[]"`); implemented `isEncryptedEnvelope` structural sniffing and fail-closed `decryptField` boundaries.
+- 2026-10-04: Extended fail-closed envelope sniffing and checksum verification into `VaultBackupEngine`, rejecting corrupt or mismatched backups during import.
+
+**Shaped perspective:** In zero-knowledge architecture, partial failure is a security breach. A system that falls back to raw data when decryption fails turns a cryptographic error into an information disclosure vulnerability. True security demands that every layer either decrypts completely with valid authentication or halts execution immediately.
+
 

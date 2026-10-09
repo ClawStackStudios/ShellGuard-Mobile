@@ -8,6 +8,7 @@
 - **Dependency Injection**: Frameworkless lazy dependency injection (`AppContainer` / `DefaultAppContainer`).
 - **Local Database**: AndroidX Room (`2.7.0`) with KSP.
 - **At-Rest Encryption**: SQLCipher for Android (`net.zetetic:sqlcipher-android:4.6.1`).
+- **Settings & Preferences**: AndroidX DataStore Preferences (`androidx.datastore:datastore-preferences:1.1.3`).
 - **Networking**: Ktor Client (`2.3.12`) with OkHttp engine & Kotlinx Serialization.
 - **Biometrics & Security**: AndroidX Biometric (`1.2.0-alpha05`), AndroidX Security Crypto (`1.1.0-alpha06`).
 - **Autofill**: Android Autofill Framework (API 26+) & Credential Manager (API 34+).

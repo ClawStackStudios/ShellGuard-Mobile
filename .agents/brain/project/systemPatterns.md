@@ -34,6 +34,23 @@ UI (Compose) ──(UserIntent)──> ViewModel ──> UseCase ──> Reposit
 - **Biometric Recovery State Machine**: Hardware biometric keys invalidated by new biometric enrollments (`KeyPermanentlyInvalidatedException`) automatically route to Master Password/PIN fallback to regenerate keys without user lockout or data loss.
 - **Zero-Knowledge Session Atomicity & KeyStore Key Persistence**: Active sessions atomically couple transport authorization (`sessionToken`) with cryptographic capability (`shellKey`). `hasActiveSession()` strictly verifies `getInMemoryShellKey() != null`. Derived 32-byte symmetric keys are persisted at rest in hardware KeyStore-backed `EncryptedSharedPreferences` (AES-256-GCM) with dynamic RAM re-hydration to survive Android process death without user lockout. Server connection parameters (`protocol`, `host`, `port`) are preserved and pre-filled upon session fallback to ensure frictionless re-entry. *(see [long-term/patterns.md § pattern: zero-knowledge-session-atomicity](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/brain/long-term/patterns.md))*.
 - **Pre-DAO Fingerprint Deduplication**: `title | username | secret` hash comparison before database writes prevents duplicate false negatives.
+- **Fail-Closed Structural Envelope Validation**: All cryptographic retrieval and deserialization gates fail closed immediately upon anomaly or unencrypted payloads. *(see [long-term/patterns.md § pattern: fail-closed-structural-envelope-validation](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/brain/long-term/patterns.md))*.
+
+## Settings Hub & Persistence Architecture
+- **DataStore Reactive Pipeline**: `SettingsRepository` binds user preferences into a persistent, reactive `Flow<AppSettings>` using `androidx.datastore:datastore-preferences:1.1.3`.
+- **Synchronous Test Isolation**: Test suites isolate preference state by invoking an explicit `clearAll()` in `@Before setUp()`, eliminating cross-test pollution on singleton application contexts.
+- **Job-Returning ViewModel Mutations**: All asynchronous ViewModel mutation functions return the launched coroutine `Job`, enabling deterministic `.join()` synchronization in unit tests and preventing coroutine timeout flakiness.
+- **Category-to-Subscreen Navigation**: Settings navigation uses a sealed `Screen.Settings*` hierarchy, organizing configuration into 6 dedicated sub-screens (Appearance, Security, Sync, Autofill, Backup, About) accessible from the master dashboard overflow menu.
+
+## Emergency Panic Purge & Security Control Patterns
+- **Trigonometric Dial Duration Picker (`CircularDialPicker`)**: Canvas clock-face dial with atan2 gesture mapping for selecting emergency countdown durations clamped between 5s and 60s.
+- **Fail-Closed 4-Step Destruction Cascade**: Emergency purge executes a deterministic cascade: (1) wipes all Room database tables via `clearAllTables()`, (2) purges session tokens and symmetric keys from KeyStore `EncryptedSharedPreferences`, (3) clears DataStore preferences, and (4) unlocks vault state to force clean re-entry.
+- **Abortable Concentric Ring Countdown**: Full-screen emergency countdown screen renders 3 pulsing concentric red Canvas rings and a 68sp monospace timer that can be safely cancelled via on-screen button or hardware back gesture prior to expiry.
+
+## Web-Parity Backup & Migration Engine Patterns
+- **Polymorphic Payload Schema**: Serializes backups into a unified `items: List<BackupVaultItem>` array with string type discriminators ("password", "note", "key") and ISO timestamps, achieving 100% interoperability with ShellGuard Web's `ImportExportView`.
+- **Dual-Protection Derive Pipeline**: Supports both `ACTIVE_KEY` derivation (HKDF-SHA256 from the active 67-char Base62 `hu-` sovereign key) and `CUSTOM_PASSPHRASE` derivation (PBKDF2-SHA256 with 600,000 iterations).
+- **Format Sniffing & Backward Ingestion**: `detectBackupFormat` distinguishes ShellGuard encrypted envelopes, legacy mobile backups, and Bitwarden JSON files. The deserializer automatically falls back to reading legacy segregated collections (`pearls`, `notes`, `sshKeys`) if modern `items` are absent.
 
 ## Autofill & System Integration Patterns
 - **Configurable URI Match Detection (`UriMatchMode`)**: 5 matching algorithms (`BASE_DOMAIN`, `HOST`, `EXACT`, `STARTS_WITH`, `NEVER`) supporting multi-tenant subdomains and exact port matching for local home labs.
