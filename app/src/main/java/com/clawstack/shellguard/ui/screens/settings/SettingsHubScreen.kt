@@ -49,6 +49,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.clawstack.shellguard.BuildConfig
 import com.clawstack.shellguard.ui.theme.BorderSubtle
 import com.clawstack.shellguard.ui.theme.BrandClawCyan
 import com.clawstack.shellguard.ui.theme.OceanDark
@@ -184,7 +185,7 @@ fun SettingsHubScreen(
                 item {
                     SettingsCategoryCard(
                         title = "About ShellGuard",
-                        subtitle = "v0.0.0.9 (Build 9) • Zero-Knowledge Cryptographic Client",
+                        subtitle = "v${BuildConfig.VERSION_NAME} (Build ${BuildConfig.VERSION_CODE}) • Zero-Knowledge Cryptographic Client",
                         icon = Icons.Default.Info,
                         accentColor = TextMuted,
                         onClick = onNavigateToAbout
