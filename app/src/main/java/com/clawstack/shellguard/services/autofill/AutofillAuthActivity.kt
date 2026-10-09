@@ -242,19 +242,26 @@ class AutofillAuthActivity : FragmentActivity() {
             // Build completed Dataset
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val datasetBuilder = Dataset.Builder()
+                var hasValue = false
 
                 if (usernameId != null && pearl.username.isNotBlank()) {
                     datasetBuilder.setValue(usernameId, AutofillValue.forText(pearl.username))
+                    hasValue = true
                 }
 
                 if (passwordId != null) {
                     datasetBuilder.setValue(passwordId, AutofillValue.forText(decryptedPassword))
+                    hasValue = true
                 }
 
-                val replyIntent = Intent().apply {
-                    putExtra(AutofillManager.EXTRA_AUTHENTICATION_RESULT, datasetBuilder.build())
+                if (hasValue) {
+                    val replyIntent = Intent().apply {
+                        putExtra(AutofillManager.EXTRA_AUTHENTICATION_RESULT, datasetBuilder.build())
+                    }
+                    setResult(Activity.RESULT_OK, replyIntent)
+                } else {
+                    setResult(Activity.RESULT_CANCELED)
                 }
-                setResult(Activity.RESULT_OK, replyIntent)
             } else {
                 setResult(Activity.RESULT_OK)
             }

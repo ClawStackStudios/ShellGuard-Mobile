@@ -121,4 +121,21 @@ All cryptographic retrieval, detail getters, and backup decoders must strictly f
 
 **Shaped perspective:** In zero-knowledge architecture, partial failure is a security breach. A system that falls back to raw data when decryption fails turns a cryptographic error into an information disclosure vulnerability. True security demands that every layer either decrypts completely with valid authentication or halts execution immediately.
 
+---
+
+## pattern: context-aware-autofill-and-blast-radius-gating
+**weight**: 4 | **last validated**: 2026-10-08 | **first observed**: 2026-09-27
+**pinned**: false
+**status**: hot
+
+Android Autofill and IME inline suggestion pipelines must treat view hierarchy traversal, cross-origin WebView boundaries, and Binder IPC payloads as hostile, high-blast-radius surfaces. Specifically: (1) entering a WebView (`webDomain != null`) immediately invalidates outer native host package matching and clears any fields captured outside the WebView to prevent AutoSpill credential cross-contamination; (2) only verified editable leaf nodes (`isEditableInputNode`) may bind `AutofillId` targets, with password classification mutually exclusive from username heuristics; (3) low-confidence heuristics (Rank 4/5) and `"Add Item"` creation fallbacks must be gated on password field co-presence (`passwordId != null`); and (4) inline keyboard `Slice` views must use zero-copy `Icon.createWithResource` references and partially masked username subtitles (`Work · lu***@company.com`) to prevent Binder `TransactionTooLargeException` crashes and shoulder-surfing leaks.
+
+**History:**
+- 2026-09-27: Engineered `AutofillStructureParser`, `ShellGuardAutofillService`, and `DomainMatcher` with strict AutoSpill WebView domain precedence (`webDomain` overrides `packageName`) and immutable `PendingIntent` codes.
+- 2026-10-03: Resolved Gboard/Samsung Keyboard silent chip drops by migrating inline `Dataset` presentations to Jetpack `androidx.autofill.inline.v1.InlineSuggestionUi` slices with `Icon.createWithResource` zero-copy icons.
+- 2026-10-04: Implemented context-aware locked vault inline chips (`"Unlock ShellGuard"` vs. `"Add Item"` fallback) and `EXTRA_AUTOFILL_SAVE_MODE` overlay routing so the user returns cleanly to the host app after credential creation.
+- 2026-10-08: Hardened `AutofillStructureParser` and `ShellGuardAutofillService` with 5-tier confidence ranking, Strict Editable-Input Gate (preventing `<form>`/`<div>` container hijacking), Password/Username mutual exclusion (`login_password` fallthrough prevention), Co-Presence Gate (`passwordId != null`), simultaneous multi-field binding, and Option B masked username disambiguation.
+
+**Shaped perspective:** In an OS-level autofill service, every false positive is visible on the user's keyboard across every app they own, and every structural misbinding either silently drops their tap or injects credentials into the wrong node. Security and UX reliability converge when heuristics are ranked by confidence and gated by blast radius: aggressive enough to recognize broken real-world login markup via proximity, yet strictly silence-defaulting whenever a password field is absent or a WebView boundary is crossed.
+
 

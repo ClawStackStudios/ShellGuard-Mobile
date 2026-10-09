@@ -279,7 +279,7 @@ fun SettingsAboutScreen(
                             Spacer(modifier = Modifier.height(8.dp))
 
                             Text(
-                                text = "Licensed under MIT License. Complete data portability with sovereign JSON & Bitwarden ingestion.",
+                                text = "Licensed under GNU AGPL v3.0. Complete data portability with sovereign JSON & Bitwarden ingestion.",
                                 color = TextSecondary,
                                 fontSize = 11.sp
                             )

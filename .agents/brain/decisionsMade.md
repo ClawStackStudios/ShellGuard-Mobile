@@ -511,3 +511,52 @@ The cross-session failure analysis (/deep-learn) detected an **over-confidence b
 **Confidence**: high — verified via recursive grep that zero instances remain across the repository.
 **Outcome**: Cleanly committed in `b36b4ce` prior to merge and release tagging.
 **Pattern reference**: `long-term/patterns.md § pattern: cwe-359-sensitive-clipboard-masking`.
+
+## autofill-co-presence-gate-and-container-hijack-defense — 2026-10-08 18:35
+
+**Context**: On physical device testing, focusing username fields failed to show inline keyboard chips and tapping a password chip only filled the password field; expanding username heuristics risked spamming non-login screens or overwriting user-typed input.
+**Options considered**:
+- Naively broaden substring heuristics and bind `"Add Item"` whenever `usernameId != null` — Solves missing username detection on login pages, but creates a massive blast radius where every search bar, comment box, or email input on non-login screens triggers `"Add Item"` or login chips.
+- Enforce a Blast-Radius Co-Presence Gate, strict editable-input gating, password/username mutual exclusion, and 5-tier confidence ranking — Rejects non-input containers (`<form>`, `<div>`), prevents `login_password` from hijacking `usernameId`, allows Rank 4/5 heuristics and `"Add Item"` fallback ONLY when a password field is confirmed on screen (`passwordId != null`), and guards against blank `pearl.username` overwrites.
+**Chosen**: Blast-Radius Co-Presence Gate with 5-tier confidence ranking, editable-input gating, and non-blank value guards.
+**Why**: Asking "what breaks first when we're wrong?" immediately exposed that a false-positive username match on a screen with no password field would spam the user's keyboard across every app on their phone, and a blank username in a vault item would erase text the user had already typed. Containing the blast radius before expanding the net let us catch every real login field without polluting non-login screens.
+**Confidence**: high — verified across 12 Robolectric unit tests in `AutofillStructureParserTest` and full 114/114 suite pass.
+**Outcome**: Both username and password fields bind simultaneously and cleanly without false-positive keyboard spam or container hijacking.
+**Pattern reference**: `long-term/patterns.md § pattern: context-aware-autofill-and-blast-radius-gating` and `testOracle.md § Redline 10`.
+
+## option-b-masked-username-and-category-disambiguation — 2026-10-08 18:35
+
+**Context**: Unlocked inline autofill chips must never expose raw plaintext usernames to shoulder-surfing, yet users with multiple accounts for the same service (e.g., two Google accounts) must be able to tell them apart immediately even if they haven't assigned custom categories or tags.
+**Options considered**:
+- Option A: Display `category` or `tag` only, falling back to `"Password"` — Protects raw usernames, but produces identical indistinguishable chips (`Google · Password`) whenever a user hasn't tagged duplicate accounts.
+- Option B: Combine non-default `category` or primary `tag` with a partially masked username hint (`Work · lu***@company.com`, `lu***@gmail.com`, `ad***n`) and zero-copy resource `Icon.createWithResource` app icons — Eliminates raw username exposure on the keyboard while guaranteeing instant visual disambiguation and avoiding Binder `TransactionTooLargeException` from bitmap serialization.
+**Chosen**: Option B (Category/Tag badge + partially masked username hint + zero-copy resource Icon).
+**Why**: A security feature that forces the user to play a 50/50 guessing game on their own login chips is a broken joint. Masking the middle of the username (`lu***@gmail.com`) keeps shoulder-surfers blind while letting the owner recognize their account in a heartbeat.
+**Confidence**: high — verified via unit tests in `AutofillStructureParserTest`.
+**Outcome**: Implemented in `AutofillInlineHelper.kt` and wired into `ShellGuardAutofillService.kt`.
+**Pattern reference**: `long-term/patterns.md § pattern: context-aware-autofill-and-blast-radius-gating` and `pattern: cwe-359-sensitive-clipboard-masking`.
+
+## dynamic-buildconfig-version-binding-and-agpl3-license-parity — 2026-10-08 23:00
+
+**Context**: On physical Pixel testing of Build 10, `SettingsHubScreen.kt` still displayed `"v0.0.0.9 (Build 9)"` and `SettingsAboutScreen.kt` displayed `"Licensed under MIT License"` instead of `"GNU AGPL v3.0"`.
+**Options considered**:
+- Update the hardcoded string literal in `SettingsHubScreen.kt` to `"v0.0.0.10 (Build 10)"` — Fixes the immediate display mismatch, but guarantees the exact same version drift bug on every future release bump.
+- Bind `SettingsHubScreen.kt` directly to `BuildConfig.VERSION_NAME` and `BuildConfig.VERSION_CODE`, and align `SettingsAboutScreen.kt` and `README.md` to `GNU AGPL v3.0` — Eliminates manual version synchronization in UI strings permanently.
+**Chosen**: Dynamic `BuildConfig.VERSION_NAME` / `BuildConfig.VERSION_CODE` interpolation and `GNU AGPL v3.0` alignment.
+**Why**: A version string written by hand in two places is a lie waiting to happen. Binding the UI directly to the compiler-generated `BuildConfig` makes version drift structurally impossible.
+**Confidence**: high — verified live on physical Google Pixel (`sailfish`).
+**Outcome**: Settings Hub footer and About screen dynamically reflect `v0.0.0.10 (Build 10)` and `GNU AGPL v3.0` on device.
+**Pattern reference**: Link to `project/productVersion.md § Central Version Source`.
+
+## rank-1-to-3-two-step-login-allowance-vs-strict-password-gate — 2026-10-08 23:00
+
+**Context**: Live testing on Google Sign-In (`accounts.google.com/v3/signin`) on the physical Pixel revealed that two-step split login flows render only an email/username input on Step 1 (`passwordId == null`), causing our strict `if (passFieldId != null)` guard in `ShellGuardAutofillService.kt` Case A to suppress the `"Add Item"` chip when 0 domain matches existed.
+**Options considered**:
+- Keep Case A (`"Add Item"`) strictly gated on `passFieldId != null` — Prevents any possibility of `"Add Item"` appearing on non-password screens, but completely breaks `"Add Item"` on all two-step login flows (Google, Microsoft, Okta, Apple ID).
+- Allow Case A (`"Add Item"`) whenever `userFieldId != null || passFieldId != null`, relying on `AutofillStructureParser.parseNodes` to strip weak Rank 4/5 heuristics when `passwordId == null` and excluding `AutoCompleteTextView` browser URL bars — Supports two-step email-first login pages (which declare explicit Rank 1–3 email/username signals) while still blocking generic text boxes, search bars, and URL omniboxes.
+**Chosen**: Allow Case A on `userFieldId != null || passFieldId != null` backed by parser-level Rank 4/5 Co-Presence stripping and `AutoCompleteTextView` exclusion.
+**Why**: When I tested Google Sign-In on the Pixel and saw an empty keyboard strip, I realized my blast-radius gate had cut too deep. Because the parser already strips weak substring guesses when no password field is present, any surviving `usernameId` on a passwordless screen is a high-confidence Rank 1–3 email or username input—trusting that boundary gave us two-step login support without reopening the spam floodgates.
+**Confidence**: high — verified live on physical Google Pixel (`accounts.google.com` and `app.simplelogin.io`) and across all 114 unit tests.
+**Outcome**: Focusing `"Email or phone"` on `accounts.google.com` immediately renders `[ 🛡️ Add Item · accounts.google.com ]` above Gboard while search bars and URL omniboxes remain silent.
+**Pattern reference**: `long-term/patterns.md § pattern: context-aware-autofill-and-blast-radius-gating` and `testOracle.md § Redline 10`.
+

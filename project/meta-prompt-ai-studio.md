@@ -415,10 +415,10 @@ Before writing code, inspect:
 
 Execute Phase 7 in strict sub-phases, adhering to the memory and story checkpoint protocol:
 
-### Task 13.1: [Sub-Phase] Heuristic Field Detection (Parser)
-- Expand `AutofillStructureParser.kt` to identify username/email nodes alongside passwords.
-- Implement heuristic checks: `AUTOFILL_HINT_USERNAME`, `AUTOFILL_HINT_EMAIL_ADDRESS`, `TYPE_TEXT_VARIATION_EMAIL_ADDRESS`, and `idEntry` substrings (`user`, `login`, `email`).
-- Emit the findings into the parser's result payload.
+### Task 13.1: [Sub-Phase] Heuristic Field Detection & Blast-Radius Containment (Parser)
+- Expand `AutofillStructureParser.kt` with a 5-tier confidence ranking (`RANK_EXPLICIT_HINT = 1` through `RANK_PROXIMITY = 5`) and testable `AutofillNode` abstraction.
+- Implement strict editable-input gating (`isEditableInputNode`), password/username mutual exclusion (`matchedPasswordRank` evaluated first), negative exclusion filtering (`url_bar`, `omnibox`, `autocompletetextview`, `search`, `otp`), and the Co-Presence Gate (`passwordId == null` suppresses weak Rank 4/5 heuristics while preserving Rank 1–3 explicit email/username fields).
+- Verify with 12 unit tests in `AutofillStructureParserTest.kt`.
 
 🛑 **STOP HERE**. 
 Do not proceed to Task 13.2. 
@@ -428,9 +428,9 @@ Execute `/memory` and `/story` to encode this sub-phase into the temporal brain 
 **[Wait for User Approval and Memory/Story loop, then run:]**
 
 ```markdown
-### Task 13.2: [Sub-Phase] Multi-Field Dataset Construction
-- Refactor `ShellGuardAutofillService.kt` to bind both the parsed username `AutofillId` and password `AutofillId` into a single `Dataset`.
-- Ensure simultaneous fill of both fields from a single tap on the username or password chip.
+### Task 13.2: [Sub-Phase] Multi-Field Dataset Construction & Non-Blank Guards
+- Refactor `ShellGuardAutofillService.kt` and `AutofillAuthActivity.kt` to bind both `usernameId` (when `pearl.username.isNotBlank()`) and `passwordId` into unlocked, locked/reprompt, and `"Add Item"` datasets.
+- Support 2-step email-first login flows (such as `accounts.google.com`) by allowing Case A `"Add Item"` and Case B matched datasets when `userFieldId != null || passFieldId != null` for surviving high-confidence Rank 1–3 fields.
 
 🛑 **STOP HERE**. 
 Do not proceed to Task 13.3. 
@@ -440,11 +440,10 @@ Execute `/memory` and `/story`.
 **[Wait for User Approval and Memory/Story loop, then run:]**
 
 ```markdown
-### Task 13.3: [Sub-Phase] Visual Disambiguation & Iconography
-- Refactor `AutofillInlineHelper.kt` to append `category` or `tags` to the chip subtitle for disambiguation.
-- Implement the raw duplicate fallback: if no tags exist, display multiple identical chips and allow the user to try them.
-- Extract high-res App Icons (via Android `PackageManager`) or use generic placeholder icons on the inline chips.
+### Task 13.3: [Sub-Phase] Visual Disambiguation (Option B) & Binder-Safe Iconography
+- Refactor `AutofillInlineHelper.kt` with Option B subtitle disambiguation (`formatUnlockedChipSubtitle`): combine non-default `category` or primary `tag` with a partially masked username (`Work · lu***@company.com`, `lu***@gmail.com`), never exposing raw usernames on keyboard chips.
+- Implement `resolveChipIcon` using zero-copy `Icon.createWithResource` for native target apps (excluding browser packages and WebViews) with fallback to `R.drawable.ic_locked_shell`.
 
 🛑 **STOP HERE**. 
-Verify tests pass. Execute `/memory` and `/story` to conclude Phase 7.
+Verify all 114 unit tests pass. Execute `/memory` and `/story` to conclude Phase 7.
 ```

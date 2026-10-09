@@ -1,8 +1,5 @@
 # Decision Log
 
-## 2026-09-26 — base62 sovereign key validation parity
-Discovered ShellGuard master identity keys use Base62 alphanumeric encoding (`hu-[0-9a-zA-Z]{64}`), not strictly lowercase hexadecimal. Found by inspecting live Pixel device state where a valid identity file (`shellguard_identity_xxzioimibiexx.json`) was loaded but the login button remained disabled due to overly restrictive `[0-9a-f]` regex in `ClawCrypto`. Upgraded `CLAW_KEY_REGEX` and `GatewayViewModel` to Base62 and extracted UUID directly.
-
 ## 2026-09-26 — debug flag_secure scoping & ime inset resolution
 Diagnosed black screen and cursor invisibility during soft keyboard IME input on physical Pixel. Traced to unconditional `FLAG_SECURE` triggering Adreno 530 compositor blackout over system IME window, combined with `Scaffold` double-subtracting IME padding. Scoped `FLAG_SECURE` to `!BuildConfig.DEBUG` (matching ShellGuard-TOTP pattern) and set `contentWindowInsets = WindowInsets(0, 0, 0, 0)` on root `Scaffold`, verifying smooth typing and visual cursor retention.
 
@@ -60,8 +57,9 @@ Engineered interactive `CircularDialPicker` with trigonometric angle mapping (5s
 ## 2026-10-04 — dual-mode backup parity and test database isolation
 Engineered `VaultBackupEngine` supporting web-parity dual protection modes (`ACTIVE_KEY` via HKDF vs `CUSTOM_PASSPHRASE` with PBKDF2-SHA256 600,000 iterations), automatic format sniffing, and Bitwarden JSON ingestion. Resolved Robolectric `IllegalStateException` on main thread Room queries by initializing isolated in-memory test databases (`getInMemoryDatabase`) with explicit `.allowMainThreadQueries()`, passing 95/95 unit tests 100% green.
 
-
-
-
 ## 2026-10-04 — polymorphic payload schema and sovereign key alignment
-While auditing the backup engine for Web Parity, I identified that the initial implementation exported isolated lists (`pearls`, `notes`, `sshKeys`), whereas the ShellGuard Web counterpart requires a unified polymorphic `items` JSON array. I refactored `VaultBackupPayload` to serialize and deserialize polymorphic `BackupVaultItem` objects using a `type` discriminator. I also replaced the active key string extraction with a dedicated `hu-` Sovereign ClawKey input field enforcing Base62 validation (`^hu-[0-9a-zA-Z]{64}$`), matching HKDF-SHA256 active-key backup protection perfectly with the Web client.
+While auditing the backup engine for Web Parity, I identified that the initial implementation exported isolated lists (`pearls`, `notes`, `sshKeys`), whereas the ShellGuard Web counterpart requires a unified polymorphic `items` JSON array. I refactored `VaultBackupPayload` to serialize and deserialize polymorphic `BackupVaultItem` objects using a `type` discriminator, and enforced Base62 `hu-` Sovereign ClawKey validation.
+
+## 2026-10-08 — autofill container hijacking defense and blast-radius co-presence gate
+Diagnosed missing username inline chips and single-field password autofill on device: pre-order traversal in `AutofillStructureParser` evaluated Rank 4 substring heuristics on non-input parent containers (`<form id="login-form">`) and password nodes (`id="login_password"`) before child `<input>` elements, stealing `usernameId`. Enforced editable-input gating (including `AutoCompleteTextView` browser URL bar exclusion), mutual exclusion between password and username nodes, a Co-Presence Gate suppressing weak Rank 4/5 heuristics when `passwordId == null` while permitting Case A `"Add Item"` chips on explicit Rank 1–3 two-step email-first login pages (`accounts.google.com`), non-blank username overwrite guards, and Option B masked username + category/tag disambiguation (`testOracle.md` § Redline 10).
+

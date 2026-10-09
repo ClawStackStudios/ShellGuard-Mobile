@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — Phase 7: Context-Aware Autofill Expansion & Blast-Radius Containment
+### Added
+- **5-Tier Confidence-Ranked Autofill Parser (`AutofillStructureParser.kt`)**: Extracted `AutofillNode` abstraction and `parseNodes` traversal entry point with 5-tier confidence ranking (`RANK_EXPLICIT_HINT = 1` through `RANK_PROXIMITY = 5`), HTML `<input type="email">` / `autocomplete` inspection, Android `InputType` email/web-email variation matching, preceding-editable-input proximity fallback, and negative exclusion filtering (`search`, `url_bar`, `omnibox`, `autocompletetextview`, `otp`, `totp`, `captcha`).
+- **Option B Inline Chip Disambiguation (`AutofillInlineHelper.kt`)**: Added `formatUnlockedChipSubtitle`, `maskUsername`, `extractCategoryOrTag`, and `resolveChipIcon` (zero-copy `Icon.createWithResource`) to disambiguate multi-account inline keyboard suggestions (`Work · lu***@company.com`, `lu***@gmail.com`) without exposing raw usernames or exceeding Android Binder IPC limits.
+- **Autofill Structure Parser Unit Test Suite (`AutofillStructureParserTest.kt`)**: Added 12 unit tests covering all 5 confidence tiers, container hijack defense, password/username mutual exclusion, Co-Presence Gate suppression, WebView AutoSpill isolation, and Option B subtitle formatting.
+
+### Changed
+- **Test Oracle & Physical Hardware Verification**: Expanded test suite to 114 unit and Robolectric tests passing 100% green (`BUILD SUCCESSFUL`), verified live on physical Google Pixel (`sailfish`) across SimpleLogin (Option B chip + simultaneous 2-field fill) and Google Sign-In (2-step email-first `"Add Item · accounts.google.com"` chip).
+
+### Fixed
+- **Container Hijack & Omnibox Defense (`isEditableInputNode`, `isExcludedNonCredentialInput`)**: Prevented parent `<form>`, `<div>`, and `ViewGroup` layout containers with login-related IDs as well as browser `AutoCompleteTextView` URL bars from capturing `usernameId` and breaking autofill text injection.
+- **Password/Username Mutual Exclusion**: Prevented password fields with composite identifiers (e.g., `id="login_password"`, `hint="User Password"`) from falling through into username heuristics and overwriting `usernameId` with `passwordId`.
+- **Simultaneous Multi-Field Binding & 2-Step Login Support (`ShellGuardAutofillService.kt`, `AutofillAuthActivity.kt`)**: Bound both `usernameId` (when non-blank) and `passwordId` across unlocked, locked, and `"Add Item"` datasets for simultaneous 1-tap login completion, while permitting explicit Rank 1–3 email/username fields to trigger inline chips and `"Add Item"` on 2-step email-first login flows (`accounts.google.com`).
+- **Dynamic Version Footer & GNU AGPL v3.0 License Alignment (`SettingsHubScreen.kt`, `SettingsAboutScreen.kt`, `README.md`)**: Replaced hardcoded `"v0.0.0.9 (Build 9)"` footer in `SettingsHubScreen.kt` with dynamic `BuildConfig.VERSION_NAME` and `BuildConfig.VERSION_CODE`, and aligned license attribution to `GNU AGPL v3.0`.
+
+### Security
+- **Co-Presence Blast-Radius Gate & AutoSpill Reset (`AutofillStructureParser.kt`)**: Suppressed weak Rank 4/5 substring username heuristics when `passwordId == null` to eliminate false-positive keyboard chip spam on non-login screens, and enforced state reset upon entering a WebView (`webDomain != null`) so outer native host views cannot leak into WebView credential datasets.
+
 ## [0.0.0.10] - 2026-10-04 (Build 10) — Phase 6: Settings Hub, Security Controls & Web-Parity Backup Engine
 ### Added
 - **Categorized Settings Architecture (`SettingsHubScreen`, `SettingsViewModel`)**: 6-section navigation hub powered by `androidx.datastore` (`SettingsRepository`) covering Appearance, Security, Sync, Autofill, Backup, and System Diagnostics.

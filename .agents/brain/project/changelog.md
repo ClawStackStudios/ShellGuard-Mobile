@@ -234,3 +234,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **Test Oracle & Hardware Verification**: Full suite of 105 unit and Robolectric tests passing 100% green (`BUILD SUCCESSFUL in 3m 32s`), clean `./gradlew assembleDebug` APK generation, and verified test oracle parity across `SettingsRepositoryTest`, `SettingsViewModelTest`, and `VaultBackupEngineTest`.
 
+## [Unreleased] — Phase 7: Context-Aware Autofill Expansion & Blast-Radius Containment
+
+### Added
+- **5-Tier Confidence-Ranked Autofill Parser (`AutofillStructureParser.kt`)**:
+  - Extracted `AutofillNode` interface and `parseNodes` entry point for deterministic JVM unit testing without Android `AssistStructure` IPC mocks.
+  - Implemented 5-tier confidence ranking (`RANK_EXPLICIT_HINT = 1` to `RANK_PROXIMITY = 5`), HTML `<input type="email">` / `autocomplete` inspection, Android `InputType` email/web-email variation matching, preceding-editable-input proximity fallback, and negative exclusion filtering (`search`, `url_bar`, `omnibox`, `autocompletetextview`, `otp`, `totp`, `captcha`).
+- **Option B Inline Chip Disambiguation (`AutofillInlineHelper.kt`)**:
+  - Added `formatUnlockedChipSubtitle`, `maskUsername`, `extractCategoryOrTag`, and `resolveChipIcon` (zero-copy `Icon.createWithResource`) to disambiguate multi-account inline keyboard suggestions (`Work · lu***@company.com`) while preventing shoulder-surfing and Binder IPC bloat.
+- **Autofill Structure Parser Unit Test Suite (`AutofillStructureParserTest.kt`)**:
+  - Added 12 unit tests verifying confidence-tier precedence, container hijack rejection, password/username mutual exclusion, Co-Presence Gate enforcement, WebView AutoSpill isolation, and Option B subtitle formatting.
+
+### Changed
+- **Multi-Field Dataset Binding & 2-Step Login Support (`ShellGuardAutofillService.kt`, `AutofillAuthActivity.kt`)**:
+  - Bound both `usernameId` (when non-blank) and `passwordId` across unlocked, locked, and `"Add Item"` datasets for simultaneous 1-tap login completion.
+  - Enabled `"Add Item"` fallback and matched datasets on high-confidence Rank 1–3 username/email fields even when `passwordId == null`, supporting 2-step email-first login flows (such as `accounts.google.com`) while suppressing weak Rank 4/5 heuristic matches via the Co-Presence Gate.
+- **GNU AGPL v3.0 License Alignment (`SettingsAboutScreen.kt`, `README.md`)**:
+  - Updated license attribution in `SettingsAboutScreen.kt` and `README.md` badge to `GNU AGPL v3.0` matching root `LICENSE`.
+
+### Fixed
+- **Dynamic Version Footer (`SettingsHubScreen.kt`)**:
+  - Replaced hardcoded `"v0.0.0.9 (Build 9)"` footer in `SettingsHubScreen.kt` with dynamic `BuildConfig.VERSION_NAME` and `BuildConfig.VERSION_CODE`.
+- **Container Hijack & Omnibox Exclusion (`AutofillStructureParser.kt`)**:
+  - Enforced `isEditableInputNode` and `isExcludedNonCredentialInput` (`autocompletetextview`, `url_bar`, `omnibox`) so parent `<form>`/`<div>`/`ViewGroup` layout containers and browser URL bars never hijack `usernameId`.
+- **Password/Username Mutual Exclusion (`AutofillStructureParser.kt`)**:
+  - Prevented password fields with composite identifiers (e.g., `id="login_password"`, `hint="User Password"`) from falling through into username heuristics and overwriting `usernameId` with `passwordId`.
+
+### Security
+- **Zero-Knowledge Inline Subtitle Masking (`AutofillInlineHelper.kt`)**: Eliminated raw plaintext username exposure on Android 11+ IME chips via Option B partial masking (`lu***@gmail.com`).
+- **WebView AutoSpill & Host-Hijack Isolation (`AutofillStructureParser.kt`)**: Cleared outer native host view fields when entering a `webDomain` subtree so native host containers cannot siphon web credentials.
+

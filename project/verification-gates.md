@@ -38,16 +38,25 @@ val factory = if (isRobolectric) {
 
 ---
 
-## §3. The Test Suites
+## §3. The Test Suites (15 Suites · 114/114 Tests)
 
 | Test Suite | File | Proves |
 |:---|:---|:---|
-| **ShellCryption Suite** | `ShellCryptionEngineTest.kt` | Deterministic HKDF derivation, AES-GCM roundtrip, and tamper detection across all 10 AAD namespaces. |
-| **Room Persistence Suite** | `RoomDatabaseTest.kt` | Encrypted CRUD, reactive `Flow` emissions, cascading deletes, and remote pruning. |
+| **ShellCryption Suite** | `ShellCryptionEngineTest.kt` | Deterministic HKDF-SHA256 derivation, AES-GCM-256 roundtrip, and tamper detection across all 10 AAD namespaces. |
+| **ClawCrypto Suite** | `ClawCryptoTest.kt` | SHA-256 key hashing and constant-time comparison primitives for `hu-` and `lb-` keys. |
+| **KeyStore Cold-Restart Suite** | `KeyStoreColdRestartSimulationTest.kt` | Hardware KeyStore AES-256-GCM wrapping and deterministic cold-restart SQLCipher key unsealing. |
+| **TOTP RFC 6238 Suite** | `TotpEngineTest.kt` | Official RFC 6238 test vectors (SHA1, SHA256, SHA512), Steam Guard encoding, and Base32 decoding. |
+| **URI & OTPAuth Parser Suite** | `UriParserTest.kt` | `otpauth://` URI parsing, issuer/account extraction, and invalid parameter rejection. |
+| **Password Generator Suite** | `PasswordGeneratorTest.kt` | CSPRNG entropy generation, character class enforcement, and EFF diceware passphrase assembly. |
+| **Room Persistence Suite** | `RoomDaoPersistenceTest.kt` | Encrypted CRUD, reactive `Flow` emissions, soft-delete tombstones, and remote pruning. |
 | **Bidirectional Sync Suite** | `SyncRepositoryTest.kt` | Upstream pending push, downstream pull, conflict resolution, and offline mutation preservation. |
-| **TOTP RFC 6238 Suite** | `TotpEngineTest.kt` | Official RFC 6238 test vectors (SHA1, SHA256, SHA512), Steam Guard encoding, Base32 decoding. |
-| **Autofill Matcher Suite** | `DomainMatcherTest.kt` | eTLD+1 extraction, subdomains, port normalization, and package name mapping. |
-| **Import / Export Suite** | `BackupManagerTest.kt` | Bitwarden JSON parsing, `.sgtotp.bak` decryption, `.sgvault.bak` export/import, and fingerprint deduplication. |
+| **Adversarial Sync Suite** | `SyncReconciliationAdversarialTest.kt` | AAD swap rejection, tombstone resurrection defense, partial batch failure isolation, and clock-skew protection. |
+| **Vault Backup Engine Suite** | `VaultBackupEngineTest.kt` | Web-compatible `.sgvault.bak` v1/v2 HKDF + PBKDF2 roundtrip, `.sgtotp.bak` import, and Bitwarden JSON deduplication. |
+| **Autofill Matcher Suite** | `DomainMatcherTest.kt` | eTLD+1 extraction, subdomains, port normalization, and `androidapp://` package name mapping. |
+| **Autofill Structure Parser Suite** | `AutofillStructureParserTest.kt` | 5-tier confidence ranking, container hijack rejection, mutual exclusion, Co-Presence Gate, and WebView AutoSpill isolation. |
+| **Autofill Inline Helper Suite** | `AutofillInlineHelperTest.kt` | Android 11+ `InlineSuggestionUi` slice construction and null-safe attribution handling. |
+| **Settings Repository Suite** | `SettingsRepositoryTest.kt` | Encrypted settings persistence, lock timeout policies, and theme/accent state transitions. |
+| **Settings ViewModel Suite** | `SettingsViewModelTest.kt` | MVI intent reducer verification for security toggles, backup workflows, and panic wipe triggers. |
 
 ---
 
