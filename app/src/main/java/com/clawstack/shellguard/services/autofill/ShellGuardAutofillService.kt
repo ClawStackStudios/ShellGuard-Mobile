@@ -137,10 +137,13 @@ class ShellGuardAutofillService : AutofillService() {
                 else -> ""
             }
 
-            // Case A: No matched items -> ONLY show "Add Item" option chip
+            // Case A: No matched items -> Show "Add Item" option chip when a confirmed password field OR
+            // a high-confidence Rank 1-3 username/email field (e.g., 2-step login like accounts.google.com) is on screen.
+            // (Weak Rank 4/5 username heuristics are already stripped by AutofillStructureParser's Co-Presence Gate when passwordId == null)
             if (matchedPearls.isEmpty()) {
-                val primaryFieldId = parsedFields.passwordId ?: parsedFields.usernameId
-                if (primaryFieldId != null) {
+                val userFieldId = parsedFields.usernameId
+                val passFieldId = parsedFields.passwordId
+                if (userFieldId != null || passFieldId != null) {
                     val fallbackDatasetBuilder = Dataset.Builder()
                     val displaySub = targetDomain ?: targetPackage ?: "ShellGuard"
 
@@ -151,7 +154,7 @@ class ShellGuardAutofillService : AutofillService() {
 
                     val fallbackInlinePresentation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && inlineRequest != null) {
                         val spec = inlineRequest.inlinePresentationSpecs.firstOrNull()
-                        if (spec != null) {
+                        if (spec != null && inlineRequest.maxSuggestionCount > 0) {
                             AutofillInlineHelper.createInlinePresentation(
                                 context = applicationContext,
                                 spec = spec,
@@ -179,19 +182,39 @@ class ShellGuardAutofillService : AutofillService() {
 
                     fallbackDatasetBuilder.setAuthentication(intentSender)
 
-                    if (fallbackInlinePresentation != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        fallbackDatasetBuilder.setValue(
-                            primaryFieldId,
-                            null,
-                            fallbackPresentation,
-                            fallbackInlinePresentation
-                        )
-                    } else {
-                        fallbackDatasetBuilder.setValue(
-                            primaryFieldId,
-                            null,
-                            fallbackPresentation
-                        )
+                    // Bind usernameId (if present) and passwordId (if present) so focusing either input shows "Add Item"
+                    if (userFieldId != null) {
+                        if (fallbackInlinePresentation != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                            fallbackDatasetBuilder.setValue(
+                                userFieldId,
+                                null,
+                                fallbackPresentation,
+                                fallbackInlinePresentation
+                            )
+                        } else {
+                            fallbackDatasetBuilder.setValue(
+                                userFieldId,
+                                null,
+                                fallbackPresentation
+                            )
+                        }
+                    }
+
+                    if (passFieldId != null) {
+                        if (fallbackInlinePresentation != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                            fallbackDatasetBuilder.setValue(
+                                passFieldId,
+                                null,
+                                fallbackPresentation,
+                                fallbackInlinePresentation
+                            )
+                        } else {
+                            fallbackDatasetBuilder.setValue(
+                                passFieldId,
+                                null,
+                                fallbackPresentation
+                            )
+                        }
                     }
 
                     responseBuilder.addDataset(fallbackDatasetBuilder.build())
@@ -204,7 +227,13 @@ class ShellGuardAutofillService : AutofillService() {
 
             // Case B: Matches found -> Display matched URI / credentials inline
             var datasetAdded = false
+            var datasetIndex = 0
             for (pearl in matchedPearls) {
+                // If this screen has NO password field (username-only step 1) and this pearl has no username, skip it
+                if (parsedFields.passwordId == null && pearl.username.isBlank()) {
+                    continue
+                }
+
                 val datasetBuilder = Dataset.Builder()
 
                 // If vault is locked, display the matched URI string inline so the user sees site parity without leaking secret titles
@@ -216,22 +245,21 @@ class ShellGuardAutofillService : AutofillService() {
                         .removePrefix("androidapp://")
                         .substringBefore("/")
                 } else {
-                    pearl.title
+                    pearl.title.ifBlank { targetDomain ?: targetPackage ?: "ShellGuard" }
                 }
 
-                val chipSubtitle = if (isVaultLocked) {
-                    "Unlock Vault"
-                } else if (pearl.reprompt) {
+                val chipSubtitle = if (isVaultLocked || pearl.reprompt) {
                     "Unlock Vault"
                 } else {
-                    pearl.username.ifBlank { "Password" }
+                    AutofillInlineHelper.formatUnlockedChipSubtitle(pearl)
                 }
 
-                val chipIcon = if (isVaultLocked || pearl.reprompt) {
-                    Icon.createWithResource(applicationContext, R.drawable.ic_locked_shell)
-                } else {
-                    null
-                }
+                val chipIcon = AutofillInlineHelper.resolveChipIcon(
+                    context = applicationContext,
+                    targetPackage = targetPackage,
+                    isFromWebView = parsedFields.isFromWebView,
+                    isLockedOrReprompt = isVaultLocked || pearl.reprompt
+                )
 
                 // RemoteViews Dropdown Presentation
                 val presentation = RemoteViews(packageName, R.layout.autofill_suggestion_item).apply {
@@ -242,8 +270,8 @@ class ShellGuardAutofillService : AutofillService() {
                 // Android 11+ (API 30+) Keyboard Inline Suggestion Chip
                 val inlinePresentation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && inlineRequest != null) {
                     val specs = inlineRequest.inlinePresentationSpecs
-                    val spec = specs.firstOrNull()
-                    if (spec != null) {
+                    if (specs.isNotEmpty() && datasetIndex < inlineRequest.maxSuggestionCount) {
+                        val spec = specs.getOrNull(datasetIndex) ?: specs.last()
                         AutofillInlineHelper.createInlinePresentation(
                             context = applicationContext,
                             spec = spec,
@@ -253,6 +281,8 @@ class ShellGuardAutofillService : AutofillService() {
                         )
                     } else null
                 } else null
+
+                var fieldBound = false
 
                 // If vault is locked or Claw Re-Prompt is enabled, require authentication
                 if (isVaultLocked || pearl.reprompt) {
@@ -271,7 +301,8 @@ class ShellGuardAutofillService : AutofillService() {
 
                     datasetBuilder.setAuthentication(intentSender)
 
-                    parsedFields.usernameId?.let { userFieldId ->
+                    if (parsedFields.usernameId != null && pearl.username.isNotBlank()) {
+                        val userFieldId = parsedFields.usernameId!!
                         if (inlinePresentation != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                             datasetBuilder.setValue(
                                 userFieldId,
@@ -286,6 +317,7 @@ class ShellGuardAutofillService : AutofillService() {
                                 presentation
                             )
                         }
+                        fieldBound = true
                     }
 
                     parsedFields.passwordId?.let { passFieldId ->
@@ -303,6 +335,7 @@ class ShellGuardAutofillService : AutofillService() {
                                 presentation
                             )
                         }
+                        fieldBound = true
                     }
                 } else {
                     // Decrypt credentials directly in memory (Fail CLOSED on decryption error)
@@ -335,7 +368,10 @@ class ShellGuardAutofillService : AutofillService() {
                         } catch (_: Exception) {}
                     }
 
-                    parsedFields.usernameId?.let { userFieldId ->
+                    // Blast-Radius Guard: Only bind usernameId when pearl.username is non-blank
+                    // so we never overwrite a user's manually typed username with an empty string "".
+                    if (parsedFields.usernameId != null && pearl.username.isNotBlank()) {
+                        val userFieldId = parsedFields.usernameId!!
                         if (inlinePresentation != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                             datasetBuilder.setValue(
                                 userFieldId,
@@ -350,6 +386,7 @@ class ShellGuardAutofillService : AutofillService() {
                                 presentation
                             )
                         }
+                        fieldBound = true
                     }
 
                     parsedFields.passwordId?.let { passFieldId ->
@@ -367,11 +404,15 @@ class ShellGuardAutofillService : AutofillService() {
                                 presentation
                             )
                         }
+                        fieldBound = true
                     }
                 }
 
-                responseBuilder.addDataset(datasetBuilder.build())
-                datasetAdded = true
+                if (fieldBound) {
+                    responseBuilder.addDataset(datasetBuilder.build())
+                    datasetAdded = true
+                    datasetIndex++
+                }
             }
 
             if (!datasetAdded) {
