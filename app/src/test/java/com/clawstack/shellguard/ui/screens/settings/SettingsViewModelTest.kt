@@ -10,6 +10,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -35,11 +36,13 @@ class SettingsViewModelTest {
     private lateinit var viewModel: SettingsViewModel
 
     @Before
-    fun setUp() = runTest(testDispatcher) {
+    fun setUp() {
         Dispatchers.setMain(testDispatcher)
         context = ApplicationProvider.getApplicationContext()
         appContainer = DefaultAppContainer(context)
-        appContainer.settingsRepository.clearAll()
+        runBlocking {
+            appContainer.settingsRepository.clearAll()
+        }
         viewModel = SettingsViewModel(appContainer)
     }
 

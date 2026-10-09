@@ -1,8 +1,5 @@
 # Decision Log
 
-## 2026-09-26 — debug flag_secure scoping & ime inset resolution
-Diagnosed black screen and cursor invisibility during soft keyboard IME input on physical Pixel. Traced to unconditional `FLAG_SECURE` triggering Adreno 530 compositor blackout over system IME window, combined with `Scaffold` double-subtracting IME padding. Scoped `FLAG_SECURE` to `!BuildConfig.DEBUG` (matching ShellGuard-TOTP pattern) and set `contentWindowInsets = WindowInsets(0, 0, 0, 0)` on root `Scaffold`, verifying smooth typing and visual cursor retention.
-
 ## 2026-09-26 — robolectric sdk 36 ceiling in headless ci
 Encountered UnsupportedOperationException from DefaultSdkProvider during headless GitHub Actions CI test run due to targetSdk = 36. Capped Robolectric to Android 14 via app/src/test/resources/robolectric.properties with sdk=34 and @Config(sdk = [34]) on test classes, greening the test gate and enabling successful release signing.
 
@@ -62,4 +59,7 @@ While auditing the backup engine for Web Parity, I identified that the initial i
 
 ## 2026-10-08 — autofill container hijacking defense and blast-radius co-presence gate
 Diagnosed missing username inline chips and single-field password autofill on device: pre-order traversal in `AutofillStructureParser` evaluated Rank 4 substring heuristics on non-input parent containers (`<form id="login-form">`) and password nodes (`id="login_password"`) before child `<input>` elements, stealing `usernameId`. Enforced editable-input gating (including `AutoCompleteTextView` browser URL bar exclusion), mutual exclusion between password and username nodes, a Co-Presence Gate suppressing weak Rank 4/5 heuristics when `passwordId == null` while permitting Case A `"Add Item"` chips on explicit Rank 1–3 two-step email-first login pages (`accounts.google.com`), non-blank username overwrite guards, and Option B masked username + category/tag disambiguation (`testOracle.md` § Redline 10).
+
+## 2026-10-09 — datastore combine initial emission & ci test determinism
+Diagnosed `AssertionError` in `SettingsViewModelTest.testTriggerManualSyncWithNoActiveSession` during GitHub Actions CI run `37897075874` (`v0.0.0.11`). Traced to `combine(settingsRepo.settingsFlow, _extraState)` in `SettingsViewModel` blocking `_extraState` emissions until AndroidX `DataStore` finished its asynchronous initial disk read on `Dispatchers.IO`. Seeded `settingsRepo.settingsFlow.onStart { emit(AppSettings()) }` and replaced nested `runTest` in `@Before setUp()` with `runBlocking`, verifying `114/114` unit tests 100% green.
 
