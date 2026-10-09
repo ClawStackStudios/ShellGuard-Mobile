@@ -342,11 +342,11 @@ Handles encrypted backup generation, file-system exports, and data imports:
 ### G. SettingsAboutScreen (`Screen.SettingsAbout`)
 Transparency and system information:
 - **App Version & Build:**
-  - Dynamic binding: `BuildConfig.VERSION_NAME` (`v0.0.0.1`) + `BuildConfig.VERSION_CODE` (`1`).
+  - Dynamic binding across `SettingsHubScreen` footer and `SettingsAboutScreen`: `BuildConfig.VERSION_NAME` + `BuildConfig.VERSION_CODE` (`v${BuildConfig.VERSION_NAME} (Build ${BuildConfig.VERSION_CODE})`).
 - **Cryptographic Specifications:**
-  - Summary of client-side algorithms (HKDF-SHA-256, AES-GCM-256, SQLCipher 4.6.1+, PBKDF2-HMAC-SHA-256).
-- **Open Source Licenses & Attribution:**
-  - View third-party open source licenses (Jetpack, SQLCipher, Ktor, OkHttp).
+  - Summary of client-side algorithms (HKDF-SHA-256, AES-GCM-256, SQLCipher 4.6.1+ 16 KB ELF aligned, Biometric StrongBox).
+- **Open Source License & Attribution:**
+  - Canonical `GNU AGPL v3.0` project license attribution alongside third-party open source library credits (Jetpack Compose, SQLCipher, Ktor, OkHttp).
 
 ## 11. Security Screens
 

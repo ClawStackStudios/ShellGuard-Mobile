@@ -10,9 +10,9 @@ We actively maintain and provide security patches for the latest release and the
 
 | Version | Supported | Status |
 | :--- | :--- | :--- |
-| `0.0.0.8` (Build 8) | ✅ Yes | Current Hotfix / Release Candidate |
-| `0.0.0.7` (Build 7) | ⚠️ Maintenance | Security critical patches only |
-| `< 0.0.0.7` | ❌ No | End of Life — upgrade to latest release |
+| `0.0.0.10` (Build 10) | ✅ Yes | Current Production / Milestone Release |
+| `0.0.0.9` (Build 9) | ⚠️ Maintenance | Security critical patches only |
+| `< 0.0.0.9` | ❌ No | End of Life — upgrade to latest release |
 
 ---
 
@@ -43,10 +43,11 @@ All contributions, audits, and security evaluations must be grounded in ShellGua
 - **16 KB Memory Page-Size Alignment**: Native ELF libraries (`libsqlcipher.so`) are uncompressed and aligned to 16 KB segment boundaries (`packaging.jniLibs.useLegacyPackaging = false`) in compliance with Android 15/16 kernel memory architecture.
 - **CWE-400 CursorWindow Defense**: Encrypted binary attachments stream directly to `filesDir/vault_attachments/{id}.enc` using bounded 64KB heap buffers, keeping SQLite query cursors lean and preventing uncatchable `SQLiteBlobTooBigException` crashes.
 
-### 5. Memory Hygiene & Leak Defenses
+### 5. Memory Hygiene, Autofill Blast-Radius & Leak Defenses
 - **Window Capture Shielding**: `FLAG_SECURE` is active in production builds, blocking OS screen recording, screenshots, and task switcher thumbnail retention.
 - **Sensitive Clipboard Masking (CWE-359)**: Password and secret copy actions declare `ClipDescription.EXTRA_IS_SENSITIVE = true` to suppress visual system previews on Android 13+, accompanied by a 30-second coroutine background scrub.
 - **Masked Secret Display & Biometric Re-Prompt Invariant**: Sensitive secrets (passwords and secure notes) render masked by default with bullet glyphs (`••••••••••••••••`) alongside adjacent Eye-beside-Copy controls. When `reprompt = true`, toggling visibility to reveal or copying the payload MUST challenge the user via biometric or device credential prompt before releasing the secret.
+- **Autofill Blast-Radius Containment & AutoSpill Defense**: Entering a WebView (`webDomain != null`) immediately invalidates outer native package matching and clears any fields captured outside the WebView. Only verified editable leaf nodes (`isEditableInputNode`, excluding `AutoCompleteTextView` URL bars) may bind `AutofillId` targets. Unlocked inline keyboard chips mask usernames (`Work · lu***@company.com`) to prevent shoulder-surfing and use zero-copy `Icon.createWithResource` references to prevent Binder `TransactionTooLargeException`.
 - **IME Hardening**: All secret text inputs use `KeyboardType.Password` with `autoCorrectEnabled = false` to block third-party predictive keyboard scraping.
 - **Zero External Telemetry**: Zero analytics, crash reporters, or tracking SDKs. All audit events log exclusively to the local encrypted `audit_logs` table.
 

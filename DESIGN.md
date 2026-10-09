@@ -1174,10 +1174,11 @@ After completing the onboarding wizard, an **Interactive Spotlight Overlay** dim
 
 ### A. Android 11+ Inline Presentation Chips (Keyboard Bar)
 When a login field is focused in Chrome, Firefox, or a native app:
-- An inline chip appears above the virtual keyboard:
-  `[ 🐚 GitHub Corporate (octocat) ]`
-- Visual styling: Deep surface background (`#171C21`), 1dp border (`#3D484E`), lobster red logo icon (`#E4048A`), high-contrast white text (`#DEE3EA`).
-- Tapping triggers biometric authentication if `reprompt == true`, then injects credentials into the username and password fields.
+- An inline chip appears above the virtual keyboard with Option B privacy-preserving disambiguation (category/tag + masked username):
+  `[ 🐚 GitHub Corporate · Work · oc***t ]`
+- Raw plaintext usernames are **never** rendered on the keyboard strip to prevent shoulder-surfing. Locked or Claw Re-Prompt items display the normalized domain title with `"Unlock Vault"` subtitle.
+- Visual styling: Deep surface background (`#171C21`), 1dp border (`#3D484E`), zero-copy resource app icon or ShellGuard emblem (`ic_locked_shell`), high-contrast white text (`#DEE3EA`).
+- Tapping triggers biometric authentication if the vault is locked or `reprompt == true`, then simultaneously injects credentials into both the username and password fields.
 
 ### B. Quick Settings TileService & Glance AppWidget
 - **Quick Tile**: "🐚 ShellGuard Vault" tile in the Android Quick Settings pull-down drawer:

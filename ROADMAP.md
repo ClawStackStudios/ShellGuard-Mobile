@@ -1,10 +1,10 @@
 ---
 roadmap_version: 1.0.0
-last_updated: 2026-10-04
-current_position: "Phase 6 Settings Hub (Stage 7) - Completed Sub-Phase C (Web Parity Backup Enhancements). Ready for Phase 7 (Stage 8) Context-Aware Autofill Expansion."
+last_updated: 2026-10-08
+current_position: "Phase 7 (Stage 8) Context-Aware Autofill Expansion & Blast-Radius Containment - Complete & Hardware-Verified (114/114 tests green). Ready for Phase 8 (Stage 9) SSH Key Management & Generator."
 statistics:
   description: "Deterministic build roadmap for ShellGuard Mobile (Full Vault Android Client). Engineered strictly in synergistic 2-task phases where Task A delivers core functionality and Task B delivers the corresponding UI/UX component."
-  features_completed: "████████░░ 87%"
+  features_completed: "█████████░ 92%"
   features_in_progress: "░░░░░░░░░░ 0%"
 ---
 
@@ -179,7 +179,7 @@ statistics:
 > Phase Feature Set Overview:
 > Delivers the categorized settings hub, `.sgvault.bak` full encrypted backup engine, and `.sgtotp.bak` companion bridge, paired immediately with adaptive launcher icons, Android 12+ splash screen, and 16 KB page alignment.
 
-- [ ] **Task 11: [Functionality] Settings Hub, Vault Unlock Methods (Biometrics & PIN), Cold-Start Lock & Backup Engine**
+- [x] **Task 11: [Functionality] Settings Hub, Vault Unlock Methods (Biometrics & PIN), Cold-Start Lock & Backup Engine**
   - Implement `SettingsScreen.kt` categorized hub and dedicated sub-screens (`SettingsSecurityScreen.kt`, `SettingsAppearanceScreen.kt`, etc.).
   - Security Settings & Alternative Vault Unlock Methods:
     - Toggle: `Unlock with Biometrics` (Fingerprint / Face Unlock via `BiometricPrompt`).
@@ -194,7 +194,7 @@ statistics:
   - Implement `PanicTriggerReceiver` for emergency instant vault purge.
   - *Success Criteria*: Swiping away the app and relaunching prompts for Biometrics or PIN according to settings; PIN unlocks the vault without requiring the ClawKey; full backups export and restore with SHA-256 verification; panic wipe purges all databases and keys.
 
-- [ ] **Task 12: [Configuration] Adaptive App Icon, Splash Screen & 16 KB Alignment**
+- [x] **Task 12: [Configuration] Adaptive App Icon, Splash Screen & 16 KB Alignment**
   - Create adaptive launcher icon (`ic_launcher_foreground.xml` with Reef Shield + Pearl Emblem).
   - Configure Android 12+ `SplashScreen` API with static vector drawable.
   - Configure `jniLibs.useLegacyPackaging = false` in `app/build.gradle.kts` for 16 KB page-size alignment.
@@ -206,20 +206,18 @@ statistics:
 ## Phase 7: Context-Aware Autofill Expansion & Heuristics [Baseline: v0.0.0.11 (Build 11)]
 
 > Phase Feature Set Overview:
-> Expands the Jetpack Autofill integration to intelligently detect and bind usernames and emails alongside passwords, enabling simultaneous multi-field dataset injection while maintaining strict zero-knowledge privacy in the presentation layer. Engineered in 3 sub-phases.
+> Expands the Jetpack Autofill integration to intelligently detect and bind usernames and emails alongside passwords, enabling simultaneous multi-field dataset injection while maintaining strict zero-knowledge privacy and blast-radius containment in the presentation layer. Engineered in 3 sub-phases.
 
-- [ ] **Task 13.1: [Sub-Phase] Heuristic Field Detection (Parser)**
-  - Expand `AutofillStructureParser.kt` to identify username/email nodes via `AUTOFILL_HINT_USERNAME`, `AUTOFILL_HINT_EMAIL_ADDRESS`, `TYPE_TEXT_VARIATION_EMAIL_ADDRESS`, and heuristic `idEntry` substrings (`user`, `login`, `email`).
-  - *Checkpoint*: Stop and update `/memory` & `/story` before proceeding to 13.2.
+- [x] **Task 13.1: [Sub-Phase] Heuristic Field Detection & Blast-Radius Containment (Parser)**
+  - Expanded `AutofillStructureParser.kt` with a 5-tier confidence ranking (`RANK_EXPLICIT_HINT = 1` through `RANK_PROXIMITY = 5`), strict editable-input gating (preventing `<form>`, `<div>`, and `LinearLayout` containers from hijacking `usernameId`), mutual exclusion between password and username nodes (`login_password` cannot overwrite `usernameId`), HTML `type="email"` and attribute inspection, Android `TYPE_TEXT_VARIATION_EMAIL_ADDRESS` / `WEB_EMAIL_ADDRESS` detection, negative exclusion filters (`url_bar`, `omnibox`, `autocompletetextview`, `search`, `otp`), and a Co-Presence Gate when `passwordId == null`.
+  - *Checkpoint*: Verified with 12 tree-traversal unit tests in `AutofillStructureParserTest.kt`.
 
-- [ ] **Task 13.2: [Sub-Phase] Multi-Field Dataset Construction**
-  - Refactor `ShellGuardAutofillService.kt` to bind both the parsed username `AutofillId` and password `AutofillId` into a single `Dataset`.
-  - Enable simultaneous fill of both fields from a single tap on the username or password chip.
-  - *Checkpoint*: Stop and update `/memory` & `/story` before proceeding to 13.3.
+- [x] **Task 13.2: [Sub-Phase] Multi-Field Dataset Construction & Non-Blank Guards**
+  - Refactored `ShellGuardAutofillService.kt` and `AutofillAuthActivity.kt` to bind both `usernameId` and `passwordId` into unlocked, locked/reprompt, and `"Add Item"` fallback datasets, enabling simultaneous multi-field autofill from a single tap on either input field.
+  - Added 2-step login support on Case A (`"Add Item"` appears when `userFieldId != null || passFieldId != null` so email-first step-1 flows like `accounts.google.com` show inline suggestions, while weak Rank 4/5 heuristics remain suppressed by the parser's Co-Presence Gate) and non-blank `pearl.username` guards so empty usernames never overwrite user-typed text or crash `Dataset.Builder.build()`.
 
-- [ ] **Task 13.3: [Sub-Phase] Visual Disambiguation & Iconography**
-  - Refactor `AutofillInlineHelper.kt` to append `category` or `tags` to the chip subtitle for disambiguation (e.g., "Google (Work)" vs "Google (Personal)").
-  - Support the raw duplicate fallback: if no tags exist, display multiple identical chips and let the user tap to try.
-  - Integrate high-res App Icons (via `PackageManager`) or generic placeholder icons onto the inline chips.
-  - *Success Criteria*: Usernames are never displayed raw; multi-field datasets fill simultaneously; ambiguity is resolved via tags; tests pass 100%.
-  - *Checkpoint*: Stop and update `/memory` & `/story` to conclude Phase 7.
+- [x] **Task 13.3: [Sub-Phase] Visual Disambiguation (Option B) & Binder-Safe Iconography**
+  - Refactored `AutofillInlineHelper.kt` with Option B subtitle disambiguation (`formatUnlockedChipSubtitle`): combines non-default `category` or primary `tag` with a partially masked username hint (`Work · lu***@company.com`, `lu***@gmail.com`, `ad***n`), never exposing raw usernames on keyboard chips.
+  - Integrated zero-copy resource `Icon.createWithResource` app iconography (`resolveChipIcon`) with automatic fallback to `ic_locked_shell`, avoiding Bitmap Binder `TransactionTooLargeException`.
+  - *Success Criteria*: Usernames are never displayed raw; multi-field datasets fill simultaneously; ambiguity is resolved via category/tag + masked username; 114/114 tests pass 100% green.
+

@@ -10,7 +10,7 @@
 [![Android](https://img.shields.io/badge/Android-API%2024%E2%80%9336-3DDC84?style=for-the-badge&logo=android&logoColor=white)](app/build.gradle.kts)
 [![Security Policy](https://img.shields.io/badge/Security-Policy-00BCD4?style=for-the-badge&logo=shield&logoColor=white)](SECURITY.md)
 [![16KB Ready](https://img.shields.io/badge/Kernel-16%20KB%20Page--Size-7952B3?style=for-the-badge)](project/16kb-page-size-alignment-guide.md)
-[![License](https://img.shields.io/badge/License-GPL%203.0-yellow.svg?style=for-the-badge)](LICENSE)
+[![License](https://img.shields.io/badge/License-AGPL%203.0-yellow.svg?style=for-the-badge)](LICENSE)
 
 <br/><br/>
 
@@ -84,8 +84,10 @@ Captured natively from physical Google Pixel hardware running Android 14 (Lineag
 - **CWE-359 Sensitive Keyboard Isolation**: All secret fields apply `PasswordVisualTransformation()` and `KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false)` to block predictive dictionary learning and keyboard telemetry scraping.
 
 ### 🌐 Autofill & Home Lab Integration
-- **Android Autofill Framework & Inline Suggestions**: Suggestion chips rendered directly above keyboards (Gboard, SwiftKey) on Android 11+ alongside standard dropdown popups.
-- **Context-Aware Locked Suggestions & Add Item**: Displays clean domain recognition with lock prompt when locked; offers single Add Item chip pre-filling website URL when zero matches exist.
+- **Android Autofill Framework & Inline Suggestions**: Suggestion chips rendered directly above keyboards (Gboard, SwiftKey) on Android 11+ alongside standard dropdown popups, with simultaneous 1-tap username and password injection.
+- **5-Tier Confidence Heuristics & Blast-Radius Co-Presence Gate**: Intelligent view hierarchy parser with editable-input gating (`<form>`/`<div>` container hijack defense), `AutoCompleteTextView` URL-bar exclusion, password/username mutual exclusion, and a Co-Presence Gate suppressing weak substring guesses when no password field is present while preserving explicit Rank 1–3 email/username fields for 2-step login flows (e.g., `accounts.google.com`).
+- **Option B Masked Username Disambiguation & Zero-Copy Icons**: Unlocked inline chips combine non-default category/tag badges with partially masked usernames (`Work · lu***@company.com`, `lu***@gmail.com`) and zero-copy `Icon.createWithResource` references, preventing shoulder-surfing leaks and Binder `TransactionTooLargeException`.
+- **Context-Aware Locked Suggestions & Add Item**: Displays clean domain recognition with lock prompt when locked; offers a single `"Add Item"` chip pre-filling the website URL when zero matches exist.
 - **Multi-Mode URI Match Detection**: 5 matching algorithms (`BASE_DOMAIN`, `HOST`, `EXACT`, `STARTS_WITH`, `NEVER`) supporting multi-service home lab setups sharing identical IPs across different ports (`:8080` vs `:9000`).
 - **Cleartext LAN & Mesh Support**: Intentional support for local home labs (Unraid, TrueNAS, LAN IPs) and Tailscale/WireGuard mesh networks where domain TLS is absent.
 
@@ -185,7 +187,7 @@ export GRADLE_OPTS="-XX:-UsePerfData -Djava.io.tmpdir=$PWD/app/build/tmp"
 
 ### Verification & Testing
 ```bash
-# Run the complete unit test suite (105/105 tests passing green)
+# Run the complete unit test suite (114/114 tests passing green)
 ./gradlew testDebugUnitTest
 
 # Assemble debug APK

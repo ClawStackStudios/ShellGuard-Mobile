@@ -136,7 +136,6 @@ import android.os.Handler
 import android.os.Looper
 import android.service.autofill.*
 import android.util.Log
-import android.view.autofill.AutofillId
 import android.view.autofill.AutofillValue
 import android.widget.RemoteViews
 import android.widget.Toast
@@ -145,10 +144,8 @@ import com.clawstack.shellguard.R
 import com.clawstack.shellguard.ShellGuardApp
 import com.clawstack.shellguard.crypto.ShellCryptionEngine
 import com.clawstack.shellguard.domain.matcher.DomainMatcher
-import com.clawstack.shellguard.domain.matcher.UriMatchMode
 import com.clawstack.shellguard.engine.TotpEngine
 import kotlinx.coroutines.*
-import java.security.SecureRandom
 
 @RequiresApi(Build.VERSION_CODES.O)
 class ShellGuardAutofillService : AutofillService() {
@@ -182,52 +179,78 @@ class ShellGuardAutofillService : AutofillService() {
         val cryptoEngine = container.cryptoEngine
 
         serviceScope.launch {
+            if (cancellationSignal.isCanceled) return@launch
+
             val ownerUuid = deviceVault.getOwnerUuid()
-            if (ownerUuid == null) {
+            if (ownerUuid.isNullOrBlank()) {
                 callback.onSuccess(null)
                 return@launch
             }
 
-            val webDomain = parsedFields.webDomain
-            val packageName = parsedFields.packageName ?: ""
-            val queryTarget = webDomain?.takeIf { it.isNotBlank() } ?: packageName
+            val targetDomain = parsedFields.webDomain
+            val targetPackage = parsedFields.packageName
+            val target = targetDomain?.ifBlank { null } ?: targetPackage?.let { "androidapp://$it" }
 
-            // Query matching credentials from encrypted local Room database
-            val candidatePearls = database.vaultPearlDao().search(ownerUuid, queryTarget)
-                .ifEmpty {
-                    // Match against all Pearls using DomainMatcher heuristic
-                    val allPearls = database.vaultPearlDao().search(ownerUuid, "")
-                    allPearls.filter { pearl ->
-                        pearl.url.isNotBlank() && webDomain != null &&
-                                DomainMatcher.isMatch(pearl.url, "https://$webDomain", UriMatchMode.BASE_DOMAIN)
-                    }
-                }
+            if (target.isNullOrBlank()) {
+                callback.onSuccess(null)
+                return@launch
+            }
 
-            val shellKey = deviceVault.getInMemoryShellKey()
-            val isVaultLocked = (shellKey == null)
+            val allPearls = database.vaultPearlDao().getAllActivePearls(ownerUuid)
+            if (cancellationSignal.isCanceled) return@launch
+
+            val matchedPearls = allPearls.filter { pearl ->
+                val primaryMatch = pearl.url.isNotBlank() && DomainMatcher.isMatch(pearl.url, target)
+                val packageMatch = targetPackage != null && DomainMatcher.isMatch(pearl.url, "androidapp://$targetPackage")
+                primaryMatch || packageMatch
+            }.take(5)
+
+            if (cancellationSignal.isCanceled) return@launch
 
             val responseBuilder = FillResponse.Builder()
+            val packageName = applicationContext.packageName
+
+            // Configure defensive SaveInfo for password/username saving when passwordId is present
+            parsedFields.passwordId?.let { passId ->
+                val saveInfoBuilder = SaveInfo.Builder(SaveInfo.SAVE_DATA_TYPE_PASSWORD, arrayOf(passId))
+                parsedFields.usernameId?.let { userId ->
+                    saveInfoBuilder.setOptionalIds(arrayOf(userId))
+                }
+                responseBuilder.setSaveInfo(saveInfoBuilder.build())
+            }
+
+            val lockManager = app.appContainer.vaultLockManager
+            val shellKey = deviceVault.getInMemoryShellKey()
+            val isVaultLocked = (shellKey == null) || (lockManager.isVaultLocked.value)
+
             val inlineRequest = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 request.inlineSuggestionsRequest
             } else null
 
-            val fillUrl = webDomain?.let { "https://$it" } ?: if (packageName.isNotBlank()) "androidapp://$packageName" else ""
+            val fillUrl = when {
+                !targetDomain.isNullOrBlank() -> if (targetDomain.startsWith("http://") || targetDomain.startsWith("https://")) targetDomain else "https://$targetDomain"
+                !targetPackage.isNullOrBlank() -> "androidapp://$targetPackage"
+                else -> ""
+            }
 
-            // Case A: No matched items -> ONLY show "Add Item" option chip with direct deep link
-            if (candidatePearls.isEmpty()) {
-                val primaryFieldId = parsedFields.passwordId ?: parsedFields.usernameId
-                if (primaryFieldId != null) {
+            // Case A: No matched items -> Show "Add Item" option chip when a confirmed password field OR
+            // a high-confidence Rank 1-3 username/email field (e.g., 2-step login like accounts.google.com) is on screen.
+            // (Weak Rank 4/5 username heuristics are already stripped by AutofillStructureParser's Co-Presence Gate when passwordId == null)
+            if (matchedPearls.isEmpty()) {
+                val userFieldId = parsedFields.usernameId
+                val passFieldId = parsedFields.passwordId
+                if (userFieldId != null || passFieldId != null) {
                     val fallbackDatasetBuilder = Dataset.Builder()
-                    val displaySub = webDomain ?: packageName.ifBlank { "ShellGuard" }
+                    val displaySub = targetDomain ?: targetPackage ?: "ShellGuard"
 
-                    val fallbackPresentation = RemoteViews(applicationContext.packageName, R.layout.autofill_suggestion_item).apply {
+                    val fallbackPresentation = RemoteViews(packageName, R.layout.autofill_suggestion_item).apply {
                         setTextViewText(R.id.autofill_title, "Add Item")
                         setTextViewText(R.id.autofill_subtitle, displaySub)
                     }
 
                     val fallbackInlinePresentation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && inlineRequest != null) {
                         val spec = inlineRequest.inlinePresentationSpecs.firstOrNull()
-                        if (spec != null) {
+                        if (spec != null && inlineRequest.maxSuggestionCount > 0) {
                             AutofillInlineHelper.createInlinePresentation(
                                 context = applicationContext,
                                 spec = spec,
@@ -242,7 +265,7 @@ class ShellGuardAutofillService : AutofillService() {
                         Intent.ACTION_VIEW,
                         Uri.parse("shellguard://app/form/NEW/PASSWORD/new?url=${Uri.encode(fillUrl)}")
                     ).apply {
-                        setPackage(applicationContext.packageName)
+                        setPackage(packageName)
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
                     }
 
@@ -254,11 +277,24 @@ class ShellGuardAutofillService : AutofillService() {
                     ).intentSender
 
                     fallbackDatasetBuilder.setAuthentication(intentSender)
-                    if (fallbackInlinePresentation != null) {
-                        fallbackDatasetBuilder.setValue(primaryFieldId, null, fallbackPresentation, fallbackInlinePresentation)
-                    } else {
-                        fallbackDatasetBuilder.setValue(primaryFieldId, null, fallbackPresentation)
+
+                    // Bind both usernameId and passwordId so focusing either input shows "Add Item"
+                    if (userFieldId != null) {
+                        if (fallbackInlinePresentation != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                            fallbackDatasetBuilder.setValue(userFieldId, null, fallbackPresentation, fallbackInlinePresentation)
+                        } else {
+                            fallbackDatasetBuilder.setValue(userFieldId, null, fallbackPresentation)
+                        }
                     }
+
+                    if (passFieldId != null) {
+                        if (fallbackInlinePresentation != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                            fallbackDatasetBuilder.setValue(passFieldId, null, fallbackPresentation, fallbackInlinePresentation)
+                        } else {
+                            fallbackDatasetBuilder.setValue(passFieldId, null, fallbackPresentation)
+                        }
+                    }
+
                     responseBuilder.addDataset(fallbackDatasetBuilder.build())
                     callback.onSuccess(responseBuilder.build())
                 } else {
@@ -267,45 +303,61 @@ class ShellGuardAutofillService : AutofillService() {
                 return@launch
             }
 
-            // Case B: Matches found -> Display matched URI / credentials inline
-            for ((index, pearl) in candidatePearls.withIndex()) {
+            // Case B: Matches found -> Display matched URI / credentials inline with Option B disambiguation
+            var datasetAdded = false
+            var datasetIndex = 0
+            for (pearl in matchedPearls) {
+                if (parsedFields.passwordId == null && pearl.username.isBlank()) {
+                    continue
+                }
+
                 val datasetBuilder = Dataset.Builder()
 
-                // Standard Dropdown Presentation (RemoteViews)
-                val dropdownPresentation = RemoteViews(applicationContext.packageName, R.layout.autofill_suggestion_item).apply {
-                    setTextViewText(R.id.autofill_title, pearl.title)
-                    setTextViewText(
-                        R.id.autofill_subtitle,
-                        pearl.username.ifBlank { "No Username" }
-                    )
-                }
-
-                // If vault is locked, display the matched domain string inline so the user sees site recognition without leaking secret titles
                 val chipTitle = if (isVaultLocked) {
-                    pearl.url.removePrefix("https://").removePrefix("http://").removePrefix("androidapp://").substringBefore("/")
+                    val uriCandidate = pearl.url.ifBlank { targetDomain ?: targetPackage ?: "ShellGuard" }
+                    uriCandidate
+                        .removePrefix("https://")
+                        .removePrefix("http://")
+                        .removePrefix("androidapp://")
+                        .substringBefore("/")
                 } else {
-                    pearl.title
+                    pearl.title.ifBlank { targetDomain ?: targetPackage ?: "ShellGuard" }
                 }
-                val chipSubtitle = if (isVaultLocked || pearl.reprompt) "Unlock Vault" else pearl.username.ifBlank { "ShellGuard" }
-                val chipIcon = if (isVaultLocked || pearl.reprompt) Icon.createWithResource(applicationContext, R.drawable.ic_locked_shell) else null
 
-                // Android 11+ Keyboard Inline Suggestion Chip
+                val chipSubtitle = if (isVaultLocked || pearl.reprompt) {
+                    "Unlock Vault"
+                } else {
+                    AutofillInlineHelper.formatUnlockedChipSubtitle(pearl)
+                }
+
+                val chipIcon = AutofillInlineHelper.resolveChipIcon(
+                    context = applicationContext,
+                    targetPackage = targetPackage,
+                    isFromWebView = parsedFields.isFromWebView,
+                    isLockedOrReprompt = isVaultLocked || pearl.reprompt
+                )
+
+                val presentation = RemoteViews(packageName, R.layout.autofill_suggestion_item).apply {
+                    setTextViewText(R.id.autofill_title, chipTitle)
+                    setTextViewText(R.id.autofill_subtitle, chipSubtitle)
+                }
+
                 val inlinePresentation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && inlineRequest != null) {
                     val specs = inlineRequest.inlinePresentationSpecs
-                    val spec = specs.getOrNull(index) ?: specs.firstOrNull()
-                    if (spec != null) {
+                    if (specs.isNotEmpty() && datasetIndex < inlineRequest.maxSuggestionCount) {
+                        val spec = specs.getOrNull(datasetIndex) ?: specs.last()
                         AutofillInlineHelper.createInlinePresentation(
                             context = applicationContext,
                             spec = spec,
                             title = chipTitle,
                             subtitle = chipSubtitle,
-                            icon = chipIcon,
-                            pinned = (index == 0) // Pin highest-confidence match
+                            icon = chipIcon
                         )
                     } else null
                 } else null
 
-                // Claw Re-Prompt or Locked Vault: Wrap Dataset with Biometric Authorization Gate
+                var fieldBound = false
+
                 if (isVaultLocked || pearl.reprompt) {
                     val authIntent = Intent(applicationContext, AutofillAuthActivity::class.java).apply {
                         data = Uri.parse("shellguard://autofill/pearl/${pearl.id}")
@@ -315,33 +367,36 @@ class ShellGuardAutofillService : AutofillService() {
                     }
                     val intentSender = PendingIntent.getActivity(
                         applicationContext,
-                        pearl.id.hashCode() xor SecureRandom().nextInt(0xFFFF),
+                        pearl.id.hashCode(),
                         authIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                     ).intentSender
 
                     datasetBuilder.setAuthentication(intentSender)
 
-                    // Attach BOTH dropdown and inline presentation to the unauthenticated placeholder values
-                    parsedFields.usernameId?.let { userFieldId ->
+                    if (parsedFields.usernameId != null && pearl.username.isNotBlank()) {
+                        val userFieldId = parsedFields.usernameId!!
                         if (inlinePresentation != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                            datasetBuilder.setValue(userFieldId, null, dropdownPresentation, inlinePresentation)
+                            datasetBuilder.setValue(userFieldId, null, presentation, inlinePresentation)
                         } else {
-                            datasetBuilder.setValue(userFieldId, null, dropdownPresentation)
+                            datasetBuilder.setValue(userFieldId, null, presentation)
                         }
-                    } ?: parsedFields.passwordId?.let { passFieldId ->
+                        fieldBound = true
+                    }
+
+                    parsedFields.passwordId?.let { passFieldId ->
                         if (inlinePresentation != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                            datasetBuilder.setValue(passFieldId, null, dropdownPresentation, inlinePresentation)
+                            datasetBuilder.setValue(passFieldId, null, presentation, inlinePresentation)
                         } else {
-                            datasetBuilder.setValue(passFieldId, null, dropdownPresentation)
+                            datasetBuilder.setValue(passFieldId, null, presentation)
                         }
+                        fieldBound = true
                     }
                 } else {
-                    // Vault is unlocked and no re-prompt required: Decrypt in memory immediately
                     val decryptedPassword = try {
                         cryptoEngine.decryptField(
                             pearl.secret,
-                            shellKey,
+                            shellKey!!,
                             ShellCryptionEngine.AadNamespace.pearlSecret(pearl.id)
                         )
                     } catch (e: Exception) {
@@ -350,16 +405,14 @@ class ShellGuardAutofillService : AutofillService() {
                     }
 
                     if (decryptedPassword == null) {
-                        // Fail CLOSED: Never emit raw ciphertext or corrupted bytes
                         continue
                     }
 
-                    // Auto-copy TOTP to sensitive clipboard if present (Bitwarden Parity)
                     if (pearl.totpSecret.isNotBlank()) {
                         try {
                             val plainTotpSecret = cryptoEngine.decryptField(
                                 pearl.totpSecret,
-                                shellKey,
+                                shellKey!!,
                                 ShellCryptionEngine.AadNamespace.pearlTotp(pearl.id)
                             )
                             val totpCode = TotpEngine.generateTotp(plainTotpSecret)
@@ -367,21 +420,23 @@ class ShellGuardAutofillService : AutofillService() {
                         } catch (_: Exception) {}
                     }
 
-                    parsedFields.usernameId?.let { userFieldId ->
+                    if (parsedFields.usernameId != null && pearl.username.isNotBlank()) {
+                        val userFieldId = parsedFields.usernameId!!
                         if (inlinePresentation != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                             datasetBuilder.setValue(
                                 userFieldId,
                                 AutofillValue.forText(pearl.username),
-                                dropdownPresentation,
+                                presentation,
                                 inlinePresentation
                             )
                         } else {
                             datasetBuilder.setValue(
                                 userFieldId,
                                 AutofillValue.forText(pearl.username),
-                                dropdownPresentation
+                                presentation
                             )
                         }
+                        fieldBound = true
                     }
 
                     parsedFields.passwordId?.let { passFieldId ->
@@ -389,28 +444,36 @@ class ShellGuardAutofillService : AutofillService() {
                             datasetBuilder.setValue(
                                 passFieldId,
                                 AutofillValue.forText(decryptedPassword),
-                                dropdownPresentation,
+                                presentation,
                                 inlinePresentation
                             )
                         } else {
                             datasetBuilder.setValue(
                                 passFieldId,
                                 AutofillValue.forText(decryptedPassword),
-                                dropdownPresentation
+                                presentation
                             )
                         }
+                        fieldBound = true
                     }
                 }
 
-                responseBuilder.addDataset(datasetBuilder.build())
+                if (fieldBound) {
+                    responseBuilder.addDataset(datasetBuilder.build())
+                    datasetAdded = true
+                    datasetIndex++
+                }
             }
 
-            callback.onSuccess(responseBuilder.build())
+            if (!datasetAdded) {
+                callback.onSuccess(null)
+            } else {
+                callback.onSuccess(responseBuilder.build())
+            }
         }
     }
 
     override fun onSaveRequest(request: SaveRequest, callback: SaveCallback) {
-        // Prompts user to save newly entered credentials to ShellGuard
         callback.onSuccess()
     }
 
@@ -429,7 +492,6 @@ class ShellGuardAutofillService : AutofillService() {
             Toast.makeText(this, "Verification code copied to clipboard", Toast.LENGTH_SHORT).show()
         }
 
-        // Schedule 30-second automated clipboard scrub
         Handler(Looper.getMainLooper()).postDelayed({
             try {
                 if (clipboard.hasPrimaryClip()) {
@@ -458,7 +520,7 @@ class ShellGuardAutofillService : AutofillService() {
 
 ---
 
-## 3.1. Keyboard Inline Suggestion Protocol (`AutofillInlineHelper.kt`)
+## 3.1. Keyboard Inline Suggestion Protocol & Option B Disambiguation (`AutofillInlineHelper.kt`)
 
 ### The Silent Drop Bug (Root Cause Analysis)
 Android 11+ IMEs (Gboard, SwiftKey) do **not** render raw, unformatted `android.app.slice.Slice` objects. When an Autofill service returns a slice constructed via:
@@ -468,41 +530,54 @@ val slice = Slice.Builder(uri, SliceSpec("inline_suggestion", 1)).build()
 ```
 Gboard invokes `androidx.autofill.inline.v1.InlineSuggestionUi.fromSlice(slice)`. Because the raw slice lacks the mandatory action PendingIntent, title bundle, and RemoteViews content templates, the parser returns `null` or throws an exception. Gboard catches this and **silently drops the chip** from the keyboard strip with zero user feedback.
 
-### Production Solution: Jetpack `InlineSuggestionUi`
-To render correctly on Gboard, the slice must be built using `androidx.autofill.inline.v1.InlineSuggestionUi.newContentBuilder(attributionIntent)`:
+### Production Solution: Jetpack `InlineSuggestionUi` + Option B Disambiguation
+To render correctly on Gboard while preventing shoulder-surfing and Binder IPC `TransactionTooLargeException`, `AutofillInlineHelper` builds slices with `InlineSuggestionUi.newContentBuilder(safeAttribution)`, formats subtitles via Option B (`category/tag · maskedUsername`), and resolves icons via zero-copy `Icon.createWithResource`:
 
 ```kotlin
 package com.clawstack.shellguard.services.autofill
 
 import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.service.autofill.InlinePresentation
 import android.widget.inline.InlinePresentationSpec
 import androidx.annotation.RequiresApi
 import androidx.autofill.inline.v1.InlineSuggestionUi
+import com.clawstack.shellguard.R
+import com.clawstack.shellguard.data.local.entities.VaultPearlEntity
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonPrimitive
 
-/**
- * Helper to construct Android 11+ (API 30+) Keyboard Inline Suggestion chips
- * for Gboard, SwiftKey, and modern IME keyboards.
- *
- * Utilizes the official AndroidX Autofill Inline Suggestion Slice Protocol
- * to guarantee that suggestion chips are parsed and rendered by IMEs.
- */
-@RequiresApi(Build.VERSION_CODES.R)
 object AutofillInlineHelper {
 
+    private val BROWSER_PACKAGES = setOf(
+        "com.android.chrome", "com.chrome.beta", "com.chrome.dev", "com.chrome.canary",
+        "org.mozilla.firefox", "org.mozilla.firefox_beta", "org.mozilla.fenix",
+        "com.brave.browser", "com.microsoft.emmx", "com.opera.browser",
+        "com.duckduckgo.mobile.android", "com.vivaldi.browser", "com.sec.android.app.sbrowser"
+    )
+
+    @RequiresApi(Build.VERSION_CODES.R)
     fun createInlinePresentation(
         context: Context,
         spec: InlinePresentationSpec,
         title: String,
         subtitle: String = "",
-        attributionIntent: PendingIntent,
         icon: Icon? = null,
-        pinned: Boolean = false
+        pinned: Boolean = false,
+        attributionIntent: PendingIntent? = null
     ): InlinePresentation {
-        val builder = InlineSuggestionUi.newContentBuilder(attributionIntent)
+        val safeAttribution = attributionIntent ?: PendingIntent.getActivity(
+            context,
+            0,
+            Intent(),
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val builder = InlineSuggestionUi.newContentBuilder(safeAttribution)
             .setTitle(title)
             .setContentDescription(title)
 
@@ -517,6 +592,80 @@ object AutofillInlineHelper {
         val slice = builder.build().slice
 
         return InlinePresentation(slice, spec, pinned)
+    }
+
+    fun formatUnlockedChipSubtitle(pearl: VaultPearlEntity): String {
+        val badge = extractCategoryOrTag(pearl)
+        val maskedUser = maskUsername(pearl.username)
+
+        return when {
+            badge != null && maskedUser.isNotBlank() -> "$badge · $maskedUser"
+            badge != null -> badge
+            maskedUser.isNotBlank() -> maskedUser
+            else -> "Password"
+        }
+    }
+
+    fun maskUsername(rawUsername: String): String {
+        val trimmed = rawUsername.trim()
+        if (trimmed.isEmpty()) return ""
+
+        val atIndex = trimmed.indexOf('@')
+        if (atIndex > 0 && atIndex < trimmed.length - 1) {
+            val local = trimmed.substring(0, atIndex)
+            val domain = trimmed.substring(atIndex + 1)
+            val visiblePrefix = if (local.length <= 2) local.take(1) else local.take(2)
+            return "$visiblePrefix***@$domain"
+        }
+
+        return when {
+            trimmed.length <= 2 -> "${trimmed.take(1)}***"
+            trimmed.length in 3..4 -> "${trimmed.take(1)}***${trimmed.last()}"
+            else -> "${trimmed.take(2)}***${trimmed.last()}"
+        }
+    }
+
+    fun extractCategoryOrTag(pearl: VaultPearlEntity): String? {
+        val category = pearl.category.trim()
+        if (category.isNotEmpty() && !category.equals("General", ignoreCase = true)) {
+            return category
+        }
+
+        val rawTags = pearl.tags.trim()
+        if (rawTags.isNotEmpty() && rawTags != "[]") {
+            try {
+                val array = Json.parseToJsonElement(rawTags).jsonArray
+                val firstTag = array.firstOrNull()?.jsonPrimitive?.content?.trim()
+                if (!firstTag.isNullOrEmpty()) {
+                    return firstTag
+                }
+            } catch (_: Exception) {}
+        }
+
+        return null
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    fun resolveChipIcon(
+        context: Context,
+        targetPackage: String?,
+        isFromWebView: Boolean,
+        isLockedOrReprompt: Boolean
+    ): Icon {
+        if (isLockedOrReprompt) {
+            return Icon.createWithResource(context, R.drawable.ic_locked_shell)
+        }
+
+        if (!isFromWebView && !targetPackage.isNullOrBlank() && targetPackage !in BROWSER_PACKAGES) {
+            try {
+                val appInfo = context.packageManager.getApplicationInfo(targetPackage, 0)
+                if (appInfo.icon != 0) {
+                    return Icon.createWithResource(targetPackage, appInfo.icon)
+                }
+            } catch (_: Exception) {}
+        }
+
+        return Icon.createWithResource(context, R.drawable.ic_locked_shell)
     }
 }
 ```
@@ -683,13 +832,22 @@ class AutofillAuthActivity : FragmentActivity() {
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val datasetBuilder = Dataset.Builder()
+                var fieldBound = false
 
                 if (usernameId != null && pearl.username.isNotBlank()) {
                     datasetBuilder.setValue(usernameId, AutofillValue.forText(pearl.username))
+                    fieldBound = true
                 }
 
                 if (passwordId != null) {
                     datasetBuilder.setValue(passwordId, AutofillValue.forText(decryptedPassword))
+                    fieldBound = true
+                }
+
+                if (!fieldBound) {
+                    setResult(Activity.RESULT_CANCELED)
+                    finish()
+                    return@launch
                 }
 
                 val replyIntent = Intent().apply {
@@ -714,79 +872,23 @@ class AutofillAuthActivity : FragmentActivity() {
 
 ---
 
-## 4. AssistStructure Parser & Anti-AutoSpill Protections
+## 4. AssistStructure Parser, 5-Tier Confidence Ranking & Anti-AutoSpill Protections
 
-To protect against credential harvesting and malicious invisible iframes (AutoSpill attacks), the parser enforces strict visibility and structure checks:
+To protect against credential harvesting, layout container hijacking, and malicious WebView overlays (AutoSpill attacks), `AutofillStructureParser` implements a **5-tier confidence-ranked heuristic** with strict blast-radius containment:
 
-1. **Node Visibility Filtering**: Inactive or invisible nodes (`node.visibility != View.VISIBLE`) are strictly ignored.
-2. **Web Domain Extraction**: Web domains are extracted from `viewNode.webDomain` (supported in Chrome, Firefox, Custom Tabs).
-3. **Autofill Hints Precedence**: Explicit platform hints (`View.AUTOFILL_HINT_USERNAME`, `View.AUTOFILL_HINT_PASSWORD`) always take precedence over view ID regex heuristics.
+1. **5-Tier Confidence Hierarchy**:
+   - **Rank 1 (`RANK_EXPLICIT_HINT = 1`)**: Standard Android `autofillHints` (`AUTOFILL_HINT_USERNAME`, `AUTOFILL_HINT_EMAIL_ADDRESS`, `AUTOFILL_HINT_PASSWORD`, `current-password`, `new-password`).
+   - **Rank 2 (`RANK_HTML_PRIMARY = 2`)**: HTML `<input>` primary attributes (`type="password"`, `type="email"`, `autocomplete="username|email|*-password"`).
+   - **Rank 3 (`RANK_INPUT_TYPE = 3`)**: Android `InputType` variations (`TYPE_TEXT_VARIATION_PASSWORD`, `TYPE_TEXT_VARIATION_WEB_PASSWORD`, `TYPE_TEXT_VARIATION_EMAIL_ADDRESS`, `TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS`) and explicit `username`/`email` field labels.
+   - **Rank 4 (`RANK_HEURISTIC = 4`)**: Editable-input resource ID, hint, placeholder, and content-description heuristics (`login`, `account`, `user_id`, `identifier`).
+   - **Rank 5 (`RANK_PROXIMITY = 5`)**: Positional proximity fallback — captures the immediately preceding editable text input only when a confirmed password field is on screen (`passwordId != null`) and no Rank 1–4 username was found.
+2. **Editable-Input Gating (`isEditableInputNode`)**: Non-editable layout containers (`<form>`, `<div>`, `LinearLayout`, `ViewGroup`, `TextView`) are strictly rejected from Ranks 2–5 so a parent container with `id="login_form"` never hijacks `usernameId`.
+3. **Password/Username Mutual Exclusion**: Password signals are evaluated first across Ranks 1–4; any node matching as a password field returns early and can never be classified as `usernameId` (preventing `id="login_password"` from overwriting `usernameId`).
+4. **Negative Exclusion Filter (`isExcludedNonCredentialInput`)**: Rejects browser URL/omnibox bars (`url_bar`, `omnibox`, `autocompletetextview`, `location_bar`, `address_bar`), search inputs, OTP/2FA fields, and server/host configuration inputs.
+5. **Co-Presence Gate**: When `passwordId == null`, weak Rank 4/5 heuristic username matches are cleared while high-confidence Rank 1–3 email/username fields survive for 2-step login flows (e.g., `accounts.google.com`).
+6. **AutoSpill WebView Isolation**: Entering a `webDomain` subtree immediately clears any fields captured from outer native host views and restricts binding to the WebView hierarchy.
 
-```kotlin
-package com.clawstack.shellguard.services.autofill
-
-import android.app.assist.AssistStructure
-import android.os.Build
-import android.view.View
-import android.view.autofill.AutofillId
-import androidx.annotation.RequiresApi
-
-data class ParsedAutofillFields(
-    var usernameId: AutofillId? = null,
-    var passwordId: AutofillId? = null,
-    var webDomain: String? = null,
-    var packageName: String? = null
-)
-
-@RequiresApi(Build.VERSION_CODES.O)
-object AutofillStructureParser {
-
-    fun parse(structure: AssistStructure): ParsedAutofillFields {
-        val result = ParsedAutofillFields()
-        val nodeCount = structure.windowNodeCount
-
-        for (i in 0 until nodeCount) {
-            val windowNode = structure.getWindowNodeAt(i)
-            traverseNode(windowNode.rootViewNode, result)
-        }
-
-        return result
-    }
-
-    private fun traverseNode(node: AssistStructure.ViewNode, result: ParsedAutofillFields) {
-        // Anti-AutoSpill Defense: Disregard hidden, zero-sized, or non-visible view nodes
-        if (node.visibility != View.VISIBLE || node.width <= 0 || node.height <= 0) return
-
-        // Capture web domain if browser or custom tab
-        node.webDomain?.let { if (result.webDomain == null) result.webDomain = it }
-        node.idPackage?.let { if (result.packageName == null) result.packageName = it }
-
-        val hints = node.autofillHints
-        val idEntry = node.idEntry?.lowercase() ?: ""
-        val hintText = node.hint?.toString()?.lowercase() ?: ""
-
-        if (hints != null) {
-            for (hint in hints) {
-                when (hint.lowercase()) {
-                    View.AUTOFILL_HINT_USERNAME, View.AUTOFILL_HINT_EMAIL_ADDRESS -> result.usernameId = node.autofillId
-                    View.AUTOFILL_HINT_PASSWORD -> result.passwordId = node.autofillId
-                }
-            }
-        }
-
-        // Heuristic fallback if explicit hints are missing
-        if (result.passwordId == null && (idEntry.contains("password") || idEntry.contains("pwd") || hintText.contains("password"))) {
-            result.passwordId = node.autofillId
-        } else if (result.usernameId == null && (idEntry.contains("username") || idEntry.contains("login") || idEntry.contains("email") || hintText.contains("email"))) {
-            result.usernameId = node.autofillId
-        }
-
-        for (i in 0 until node.childCount) {
-            traverseNode(node.getChildAt(i), result)
-        }
-    }
-}
-```
+See [`AutofillStructureParser.kt`](../app/src/main/java/com/clawstack/shellguard/services/autofill/AutofillStructureParser.kt) and [`AutofillStructureParserTest.kt`](../app/src/test/java/com/clawstack/shellguard/services/autofill/AutofillStructureParserTest.kt) for the full 5-tier parser implementation and 12 tree-traversal unit tests.
 
 ---
 
