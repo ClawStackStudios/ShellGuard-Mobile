@@ -788,7 +788,11 @@ fun ItemDetailScreen(
                                 AttachmentListSection(
                                     attachments = state.attachments,
                                     onOpenAttachment = { attId -> viewModel.openAttachment(context, attId) { uri, mime ->
-                                        context.startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri, mime).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))
+                                        try {
+                                            context.startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri, mime).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))
+                                        } catch (e: android.content.ActivityNotFoundException) {
+                                            Toast.makeText(context, "No app found to open this file type", Toast.LENGTH_SHORT).show()
+                                        }
                                     }}
                                 )
                             }

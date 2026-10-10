@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.AttachFile
 import com.clawstack.shellguard.ui.components.PasswordGeneratorSheet
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -846,7 +847,7 @@ fun MultiUriEditorSection(
 
 @Composable
 fun AttachmentPickerSection(
-    attachments: List<String>,
+    attachments: List<com.clawstack.shellguard.ui.screens.detail.AttachmentItemDetail>,
     onLaunchPicker: () -> Unit,
     onRemoveAttachment: (String) -> Unit
 ) {
@@ -864,14 +865,21 @@ fun AttachmentPickerSection(
             )
             Spacer(modifier = Modifier.height(12.dp))
 
-            attachments.forEach { attId ->
+            attachments.forEach { att ->
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp).background(SurfaceDark, RoundedCornerShape(8.dp)).padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Attachment Staged", color = TextMuted, fontSize = 12.sp)
-                    androidx.compose.material3.IconButton(onClick = { onRemoveAttachment(attId) }) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.AttachFile, contentDescription = null, tint = TextMuted, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(att.fileName, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                            Text("${att.sizeBytes / 1024} KB • ${att.mimeType}", color = TextMuted, fontSize = 12.sp)
+                        }
+                    }
+                    androidx.compose.material3.IconButton(onClick = { onRemoveAttachment(att.id) }) {
                         Icon(imageVector = Icons.Default.Close, contentDescription = "Remove", tint = TextSecondary)
                     }
                 }
