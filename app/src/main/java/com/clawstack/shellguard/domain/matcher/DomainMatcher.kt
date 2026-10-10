@@ -158,5 +158,20 @@ object DomainMatcher {
         }
     }
 
-    // TODO(jules): Implement matchesAnyUri(primaryUrl, urisJson, requestedUrlOrPackage, matchMode) per .jules/tasks/task-1-attachments-and-multi-uri.md
+    fun matchesAnyUri(
+        primaryUrl: String,
+        urisJson: String?,
+        requestedUrlOrPackage: String,
+        matchMode: UriMatchMode = UriMatchMode.BASE_DOMAIN
+    ): Boolean {
+        if (isMatch(primaryUrl, requestedUrlOrPackage, matchMode)) return true
+        if (urisJson.isNullOrBlank() || urisJson == "[]") return false
+        try {
+            val uris = com.clawstack.shellguard.domain.models.CustomFieldSerializer.deserializeUris(urisJson)
+            return uris.any { isMatch(it, requestedUrlOrPackage, matchMode) }
+        } catch (e: Exception) {
+            // Ignore parse errors and fallback to false
+            return false
+        }
+    }
 }
