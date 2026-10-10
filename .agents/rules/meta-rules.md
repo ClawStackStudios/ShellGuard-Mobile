@@ -38,3 +38,23 @@ These meta-rules are synthesized from cross-session failure analyses and error t
 - **Heuristic**: When executing queries, bulk updates, or deletions referencing in-memory collections (`WHERE id IN (:list)` or `NOT IN (:list)`), prefer chunking the collection into batches of ≤ 500 items (`collection.chunked(500)`) over unbounded SQL parameter passing.
 - **Evidence**: 2 recorded instances (`2026-09-24` CursorWindow crash on attachment blobs, `2026-09-27` SQLite 999 parameter ceiling crash on vault pruning).
 - **External Evidence Framing**: The data shows that mobile relational database engines enforce hard platform resource ceilings (2MB CursorWindow, 999 host parameter variables) that fail silently on small datasets but crash catastrophically at scale. The boundary is: database operations succeed when batch operations partition dynamic collections into bounded chunks before dispatching SQL statements.
+
+---
+
+## 5. meta-rule: seeded-cross-dispatcher-combine
+
+- **Scope**: Domain-Specific (MVI ViewModels, Kotlin Flows & AndroidX DataStore)
+- **Failure Condition**: Combining an asynchronous disk/network `Flow` (`DataStore.data` on `Dispatchers.IO`) with a synchronous in-memory `MutableStateFlow` via `combine(...)` without an initial value causes `combine` to drop or stall in-memory UI updates whenever disk I/O is slower than main-thread execution (e.g. cold start or cloud CI runners).
+- **Minimal-Code Heuristic**: Seed the disk flow with `.onStart { emit(DefaultState()) }` (1 line), return `Job` from ViewModel mutations, and reset singleton `DataStore` state in `@Before setUp()` via `runBlocking`.
+- **Evidence**: 3 recorded instances (`2026-10-03` `SyncRepository` init collector, `2026-10-04` DataStore mutation `.join()`, `2026-10-09` `v0.0.0.11` CI failure in `SettingsViewModelTest`).
+- **Application Note**: Write the one boring line that makes the race condition structurally impossible. Never mask an unseeded `combine` with artificial test delays or polling loops.
+
+---
+
+## 6. meta-rule: tight-loop-hardware-and-counterpart-calibration
+
+- **Scope**: Universal (Cross-Platform Parity, OS Autofill Heuristics & Hardware Boundaries)
+- **Failure Condition**: Treating synthetic unit test trees or single-repo mocks as the final completion gate leaves cross-repo schema mismatches (segregated arrays vs. polymorphic `items`) and real-world DOM quirks (container `<form>` IDs, 2-step split logins) undiscovered until post-merge.
+- **Minimal-Code Heuristic**: Read the external counterpart's source code during **Plan**, gate OS view traversal on leaf editability (`isEditableInputNode`) and Rank 4/5 password co-presence (`passwordId != null`), and always close the loop on **Physical Hardware** (`Plan → Implement → Test Code → Test Physical Hardware`) before marking a feature complete.
+- **Evidence**: 3 recorded instances (`2026-10-04` Web backup schema alignment, `2026-10-08` `<form>` container hijacking defense, `2026-10-08` 2-step Google Sign-In on physical Pixel).
+

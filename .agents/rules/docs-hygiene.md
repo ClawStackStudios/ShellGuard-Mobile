@@ -66,7 +66,7 @@ Every version entry in `CHANGELOG.md` and `.agents/brain/project/changelog.md` M
   4. `README.md`: Update version badge and verified test suite count.
   5. `SECURITY.md`: Update supported versions table, cryptographic invariants, and disclosure channels.
   6. `CHANGELOG.md` (Repository Root): Add `## [X.Y.Z.N] - YYYY-MM-DD (Build N)` entry following Keep a Changelog format with comparison links.
-  7. `RELEASE-vX.Y.Z.N.md`: Ensure root release note exists for `.github/workflows/release.yml`.
+  7. `RELEASE-vX.Y.Z.N.md`: Ensure root release note exists for `.github/workflows/release.yml`, and git rm any superseded prior `RELEASE-v*.md` files from the repository root so only the active release manifest and `RELEASE-PLAY.md` remain.
   8. `RELEASE-PLAY.md`: Ensure `<en-US>` block is strictly under 500 characters.
   9. Domain & Storage Specs: Update `project/room-storage-schema.md`, `project/crypto-and-keystore.md`, and `ARCHITECTURE.md` if schema, crypto, or security flags were introduced.
   10. Cross-Repository Compatibility: Synchronize partner repository `compatibility_layer.md` if payload schemas or sync endpoints were modified.

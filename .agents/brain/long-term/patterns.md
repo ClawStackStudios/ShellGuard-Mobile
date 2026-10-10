@@ -138,4 +138,18 @@ Android Autofill and IME inline suggestion pipelines must treat view hierarchy t
 
 **Shaped perspective:** In an OS-level autofill service, every false positive is visible on the user's keyboard across every app they own, and every structural misbinding either silently drops their tap or injects credentials into the wrong node. Security and UX reliability converge when heuristics are ranked by confidence and gated by blast radius: aggressive enough to recognize broken real-world login markup via proximity, yet strictly silence-defaulting whenever a password field is absent or a WebView boundary is crossed.
 
+---
 
+## pattern: deterministic-datastore-viewmodel-synchronization
+**weight**: 3 | **last validated**: 2026-10-09 | **first observed**: 2026-10-03
+**pinned**: false
+**status**: hot
+
+Reactive ViewModel state pipelines backed by AndroidX `DataStore` (`Dispatchers.IO`) and background connectivity flows must enforce four synchronization invariants for deterministic production and JVM/Robolectric execution: (1) seed `DataStore` flows inside `combine(...)` with `.onStart { emit(DefaultState()) }` so synchronous UI state mutations never stall waiting for initial disk I/O; (2) return the launched `Job` from all ViewModel mutation methods so tests can `.join()` completion deterministically; (3) reset singleton `context.dataStore` state in `@Before setUp()` via `runBlocking { repository.clearAll() }` without nesting `runTest` on a shared `TestDispatcher`; and (4) gate background connectivity collectors on state transitions (`isOnline && !wasOnline`) with explicit scope teardown.
+
+**History:**
+- 2026-10-03: Diagnosed CI `ComparisonFailure` in `SyncReconciliationAdversarialTest` caused by `SyncRepository.init` launching an unshielded `syncAll` on collector startup; constrained collector to transition events and enforced scope teardown.
+- 2026-10-04: Resolved singleton `context.dataStore` cross-test pollution via explicit `clearAll()` in `@Before setUp()` and eliminated 60-second coroutine test timeouts by returning `Job` from ViewModel mutation functions.
+- 2026-10-09: Diagnosed GitHub Actions CI `AssertionError` (`v0.0.0.11`, run `37897075874`) in `SettingsViewModelTest.testTriggerManualSyncWithNoActiveSession` where `combine(settingsRepo.settingsFlow, _extraState)` blocked in-memory error emissions until `DataStore` completed its initial disk read on `Dispatchers.IO`; fixed by seeding `.onStart { emit(AppSettings()) }` and using `runBlocking` in `setUp()`.
+
+**Shaped perspective:** This holds because `DataStore` intentionally confines file I/O to background threads (`Dispatchers.IO`), whereas MVI ViewModels and `UnconfinedTestDispatcher` tests mutate UI state synchronously on the main/test thread. When `combine` bridges those two worlds without an immediate initial value, fast local CPUs mask the race while slower cloud CI runners expose it as missing state updates. Explicit `.onStart` seeding, `Job` return contracts, and `runBlocking` fixture resets make the boundary deterministic across every hardware speed.

@@ -55,7 +55,7 @@ export GRADLE_OPTS="-XX:-UsePerfData -Djava.io.tmpdir=$PWD/app/build/tmp"
 | Layer | Technology |
 |---|---|
 | **State** | MVI (Unidirectional Data Flow) |
-| **DI** | Dagger Hilt |
+| **DI** | Frameworkless Manual DI (AppContainer / DefaultAppContainer) |
 | **Local DB** | Room 2.7+ (SQLCipher whole-database encryption via `ShellGuardDatabase`) |
 | **Sensitive Secrets** | EncryptedSharedPreferences (Jetpack Security, Android Keystore) |
 | **UI Framework** | Jetpack Compose + Material 3 (no custom external widget libraries) |
@@ -73,6 +73,7 @@ UI (Compose) ──(UserIntent)──> ViewModel ──> UseCase ──> Reposit
 - **UseCase**: Single-responsibility domain operations. Pure Kotlin, no Android framework imports.
 - **Repository**: Data abstraction layer. Manages local caching vs. remote bidirectional synchronization.
 - **Data Source**: Concrete I/O (Room DAOs, Ktor HTTP client, KeyStore hardware vault).
+- **Cross-Dispatcher combine Seeding**: Whenever a ViewModel combines an asynchronous disk/network Flow (e.g. SettingsRepository.settingsFlow on Dispatchers.IO) with an in-memory MutableStateFlow, the disk flow MUST be seeded with `.onStart { emit(DefaultSettings()) }` so synchronous UI state transitions never stall waiting for initial disk I/O.
 
 ---
 
