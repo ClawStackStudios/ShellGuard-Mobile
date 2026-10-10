@@ -157,4 +157,6 @@ object DomainMatcher {
             UriMatchMode.NEVER -> false
         }
     }
+
+    // TODO(jules): Implement matchesAnyUri(primaryUrl, urisJson, requestedUrlOrPackage, matchMode) per .jules/tasks/task-1-attachments-and-multi-uri.md
 }

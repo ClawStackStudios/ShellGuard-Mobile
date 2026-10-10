@@ -318,5 +318,7 @@ open class ShellGuardClient(
             response.status == HttpStatusCode.OK || response.status == HttpStatusCode.NoContent
         }
     }
+
+    // TODO(jules): Implement fetchAttachments, downloadAttachmentFile, uploadAttachmentMultipart, and deleteAttachment per .jules/tasks/task-1-attachments-and-multi-uri.md
 }
 

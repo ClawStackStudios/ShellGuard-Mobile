@@ -183,3 +183,5 @@ data class KeyItemResponse(
     val error: String? = null
 )
 
+// TODO(jules): Implement AttachmentDto, AttachmentUploadData, CreateAttachmentResponse, AttachmentsResponse, and plumb attachments into CreateVaultItemRequest & CreateNoteRequest per .jules/tasks/task-1-attachments-and-multi-uri.md
+
