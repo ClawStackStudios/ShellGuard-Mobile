@@ -58,3 +58,22 @@ These meta-rules are synthesized from cross-session failure analyses and error t
 - **Minimal-Code Heuristic**: Read the external counterpart's source code during **Plan**, gate OS view traversal on leaf editability (`isEditableInputNode`) and Rank 4/5 password co-presence (`passwordId != null`), and always close the loop on **Physical Hardware** (`Plan → Implement → Test Code → Test Physical Hardware`) before marking a feature complete.
 - **Evidence**: 3 recorded instances (`2026-10-04` Web backup schema alignment, `2026-10-08` `<form>` container hijacking defense, `2026-10-08` 2-step Google Sign-In on physical Pixel).
 
+---
+
+## 7. meta-rule: storage-lifecycle-parity-invariant
+
+- **Scope**: Universal (Data Layers, Filesystem Storage & Security Lifecycles)
+- **Failure Condition**: When introducing an auxiliary or file-based storage membrane (such as `context.filesDir/vault_attachments/*.enc` or temporary export buffers), failing to immediately register its destruction hook in the emergency purge lifecycle leaves sensitive ciphertext or residual data on physical disk after emergency panic wipe.
+- **Minimal-Code Heuristic**: When introducing any new storage layer, immediately bind its destruction method into `SettingsViewModel.executePanicPurge()`, ensure inclusion in `VaultBackupEngine`, and add clear/reset calls to `@Before` test fixtures before implementing domain features.
+- **Evidence**: 2 recorded instances (`2026-10-04` DataStore test state leak, `2026-10-10` `executePanicPurge` missing `attachmentVaultManager.clearAll()`).
+
+---
+
+## 8. meta-rule: large-file-mutation-and-patch-guard
+
+- **Scope**: Universal (Subagent Delegation, Git Hygiene & Code Mutation)
+- **Failure Condition**: Using shell-based unified diff scripts (`patch -p1`) or expecting background agents to apply patch files to large classes (>500 lines) causes frequent failure due to whitespace and line offset drift near constructors or imports, often prompting destructive uncommitted `git reset` operations.
+- **Minimal-Code Heuristic**: For classes exceeding 500 lines or when guiding subagents/assistants, prefer targeted programmatic in-place section editing or complete file replacement. Always instruct subagents to run `git status` and `git diff --stat` before any reset or commit, never assuming uncommitted changes survive a reset.
+- **Evidence**: 2 recorded instances (`2026-10-10` Jules unified diff rejection near line 86 of 1,123-line `SyncRepository.kt`, `2026-10-10` uncommitted working tree destruction during memory recording).
+
+
