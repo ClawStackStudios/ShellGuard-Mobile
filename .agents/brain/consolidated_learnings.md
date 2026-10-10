@@ -26,9 +26,6 @@
 **Pattern: Claw Re-Prompt Guardrail**
 - For high-privilege credentials (root keys, bank logins), enforce a localized biometric/PIN gate before revealing hidden text or copying, even if the vault itself is currently unlocked.
 
-**Pattern: Base62 Sovereign Identity Key Parity**
-→ Consolidated to `long-term/patterns.md § pattern: base62-sovereign-key-parity` (weight: 3, 2026-09-27)
-
 **Pattern: IME Surface Composition & Double-Inset Hardening**
 - **Rule**: Never enforce `FLAG_SECURE` unconditionally in debug builds. On Adreno 5xx GPUs under Android 14, blending insecure system IME overlays over secure surfaces causes complete screen blackout.
 - **Rule**: Set `Scaffold(contentWindowInsets = WindowInsets(0, 0, 0, 0))` when child screens manage their own `.imePadding()`, preventing double keyboard height subtraction.
