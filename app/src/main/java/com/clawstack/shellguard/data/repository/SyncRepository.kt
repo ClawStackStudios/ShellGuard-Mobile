@@ -765,10 +765,13 @@ class SyncRepository(
         runCatching {
             val shellKey = deviceVault.getInMemoryShellKey() ?: throw IllegalStateException("Vault locked or shellKey missing")
 
-            val sessionToken = deviceVault.getSessionToken() ?: throw IllegalStateException("No active session")
-            downloadAttachment(sessionToken, id).getOrThrow()
+            var bytes = attachmentVaultManager?.readEncryptedBytes(id)
+            if (bytes == null || bytes.isEmpty()) {
+                val sessionToken = deviceVault.getSessionToken() ?: throw IllegalStateException("No active session")
+                downloadAttachment(sessionToken, id).getOrThrow()
+                bytes = attachmentVaultManager?.readEncryptedBytes(id) ?: throw NoSuchElementException("Encrypted attachment file not found: $id")
+            }
 
-            val bytes = attachmentVaultManager?.readEncryptedBytes(id) ?: throw NoSuchElementException("Encrypted attachment file not found: $id")
             cryptoEngine.decryptField(String(bytes, kotlin.text.Charsets.UTF_8), shellKey, ShellCryptionEngine.AadNamespace.secureAttachment(id))
         }
     }
