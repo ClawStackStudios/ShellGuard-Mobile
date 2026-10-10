@@ -19,7 +19,8 @@ enum class PodFilter(val label: String) {
     ALL("All"),
     PASSWORDS("Passwords"),
     NOTES("Notes"),
-    SSH_KEYS("SSH Keys")
+    SSH_KEYS("SSH Keys"),
+    ATTACHMENTS("Attachments")
 }
 
 data class DashboardUiState(
@@ -61,6 +62,7 @@ class VaultDashboardViewModel(
                 PodFilter.PASSWORDS -> item.domain == VaultItemDomain.PASSWORD
                 PodFilter.NOTES -> item.domain == VaultItemDomain.NOTE
                 PodFilter.SSH_KEYS -> item.domain == VaultItemDomain.SSH_KEY
+                PodFilter.ATTACHMENTS -> item.tags.contains("has_attachment") // Future proofing tag filtering
             }
 
             val query = state.searchQuery.trim().lowercase()
@@ -73,12 +75,16 @@ class VaultDashboardViewModel(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val podCounts: StateFlow<Map<PodFilter, Int>> = allItems.combine(_uiState) { items, _ ->
+    private val attachmentCount: StateFlow<Int> = appContainer.database.secureAttachmentDao().observeItemCount(ownerUuid)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val podCounts: StateFlow<Map<PodFilter, Int>> = combine(allItems, attachmentCount) { items, attCount ->
         mapOf(
             PodFilter.ALL to items.size,
             PodFilter.PASSWORDS to items.count { it.domain == VaultItemDomain.PASSWORD },
             PodFilter.NOTES to items.count { it.domain == VaultItemDomain.NOTE },
-            PodFilter.SSH_KEYS to items.count { it.domain == VaultItemDomain.SSH_KEY }
+            PodFilter.SSH_KEYS to items.count { it.domain == VaultItemDomain.SSH_KEY },
+            PodFilter.ATTACHMENTS to attCount
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 

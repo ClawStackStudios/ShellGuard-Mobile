@@ -103,6 +103,14 @@ fun ItemFormScreen(
     var showPasswordGeneratorSheet by remember { mutableStateOf(false) }
     var newTagInput by remember { mutableStateOf("") }
 
+    val attachmentLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.GetContent()
+    ) { uri: android.net.Uri? ->
+        uri?.let {
+            viewModel.stageAttachment(it, context)
+        }
+    }
+
     val fieldColors = OutlinedTextFieldDefaults.colors(
         focusedBorderColor = ReefPink,
         unfocusedBorderColor = BorderSubtle,
@@ -466,6 +474,26 @@ fun ItemFormScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
+                    if (uiState.domain == com.clawstack.shellguard.data.repository.VaultItemDomain.PASSWORD) {
+                        MultiUriEditorSection(
+                            uris = uiState.uris,
+                            onAddUri = { viewModel.addUri() },
+                            onUpdateUri = { index, value -> viewModel.updateUri(index, value) },
+                            onRemoveUri = { index -> viewModel.removeUri(index) },
+                            fieldColors = fieldColors
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
+
+                    if (uiState.domain == com.clawstack.shellguard.data.repository.VaultItemDomain.PASSWORD || uiState.domain == com.clawstack.shellguard.data.repository.VaultItemDomain.NOTE) {
+                        AttachmentPickerSection(
+                            attachments = uiState.attachments,
+                            onLaunchPicker = { attachmentLauncher.launch("*/*") },
+                            onRemoveAttachment = { viewModel.removeAttachment(it) }
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
+
                     // ── Dynamic Custom Fields Editor ──────────────────────────
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -754,6 +782,108 @@ fun ItemFormScreen(
                         viewModel.updateSecret(generatedPassword)
                     }
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun MultiUriEditorSection(
+    uris: List<String>,
+    onAddUri: () -> Unit,
+    onUpdateUri: (Int, String) -> Unit,
+    onRemoveUri: (Int) -> Unit,
+    fieldColors: androidx.compose.material3.TextFieldColors
+) {
+    androidx.compose.material3.Card(
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = SurfaceContainerDark),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Secondary URLs & Domains",
+                color = TextPrimary,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            uris.forEachIndexed { index, uri ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = uri,
+                        onValueChange = { onUpdateUri(index, it) },
+                        placeholder = { Text("https://", color = TextMuted) },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        shape = RoundedCornerShape(8.dp),
+                        colors = fieldColors
+                    )
+                    androidx.compose.material3.IconButton(onClick = { onRemoveUri(index) }) {
+                        Icon(imageVector = Icons.Default.Close, contentDescription = "Remove URL", tint = TextSecondary)
+                    }
+                }
+            }
+
+            androidx.compose.material3.OutlinedButton(
+                onClick = onAddUri,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                border = BorderStroke(1.dp, ReefPink.copy(alpha = 0.5f)),
+                colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = ReefPink)
+            ) {
+                Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Add URL")
+            }
+        }
+    }
+}
+
+@Composable
+fun AttachmentPickerSection(
+    attachments: List<String>,
+    onLaunchPicker: () -> Unit,
+    onRemoveAttachment: (String) -> Unit
+) {
+    androidx.compose.material3.Card(
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = SurfaceContainerDark),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Encrypted Attachments",
+                color = TextPrimary,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            attachments.forEach { attId ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp).background(SurfaceDark, RoundedCornerShape(8.dp)).padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Attachment Staged", color = TextMuted, fontSize = 12.sp)
+                    androidx.compose.material3.IconButton(onClick = { onRemoveAttachment(attId) }) {
+                        Icon(imageVector = Icons.Default.Close, contentDescription = "Remove", tint = TextSecondary)
+                    }
+                }
+            }
+
+            androidx.compose.material3.TextButton(
+                onClick = onLaunchPicker,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(imageVector = Icons.Default.Add, contentDescription = null, tint = ReefPink, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Add File Attachment", color = ReefPink)
             }
         }
     }

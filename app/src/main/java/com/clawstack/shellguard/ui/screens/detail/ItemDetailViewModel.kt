@@ -31,6 +31,8 @@ sealed interface ItemDetailUiState {
         val customFields: List<CustomField> = emptyList(),
         val tags: List<String> = emptyList(),
         val passwordHistory: List<PasswordHistoryEntry> = emptyList(),
+        val uris: List<String> = emptyList(),
+        val attachments: List<AttachmentItemDetail> = emptyList(),
         val reprompt: Boolean = false,
         val isOffline: Boolean = false,
         val isSecretRevealed: Boolean = false
@@ -39,6 +41,13 @@ sealed interface ItemDetailUiState {
     data class Error(val message: String) : ItemDetailUiState
     object Deleted : ItemDetailUiState
 }
+
+data class AttachmentItemDetail(
+    val id: String,
+    val fileName: String,
+    val sizeBytes: Long,
+    val mimeType: String
+)
 
 class ItemDetailViewModel(
     private val appContainer: AppContainer,
@@ -75,6 +84,12 @@ class ItemDetailViewModel(
                     val result = appContainer.syncRepository.getPearlDetail(itemId)
                     result.fold(
                         onSuccess = { pearl ->
+                            val ownerUuid = appContainer.deviceVault.getOwnerUuid().orEmpty()
+                            val loadedAttachments = pearl.attachments.mapNotNull { attId ->
+                                appContainer.syncRepository.getAttachment(ownerUuid, attId).getOrNull()?.let { entity ->
+                                    AttachmentItemDetail(entity.id, entity.fileName, entity.sizeBytes, entity.mimeType)
+                                }
+                            }
                             _rawState.value = ItemDetailUiState.Success(
                                 domain = VaultItemDomain.PASSWORD,
                                 id = pearl.id,
@@ -88,6 +103,8 @@ class ItemDetailViewModel(
                                 customFields = pearl.customFields,
                                 tags = pearl.tags,
                                 passwordHistory = pearl.passwordHistory,
+                                uris = pearl.uris,
+                                attachments = loadedAttachments,
                                 reprompt = pearl.reprompt,
                                 isOffline = syncStatus.value == SyncStatus.OFFLINE_READ_ONLY
                             )
@@ -101,6 +118,12 @@ class ItemDetailViewModel(
                     val result = appContainer.syncRepository.getNoteDetail(itemId)
                     result.fold(
                         onSuccess = { note ->
+                            val ownerUuid = appContainer.deviceVault.getOwnerUuid().orEmpty()
+                            val loadedAttachments = note.attachments.mapNotNull { attId ->
+                                appContainer.syncRepository.getAttachment(ownerUuid, attId).getOrNull()?.let { entity ->
+                                    AttachmentItemDetail(entity.id, entity.fileName, entity.sizeBytes, entity.mimeType)
+                                }
+                            }
                             _rawState.value = ItemDetailUiState.Success(
                                 domain = VaultItemDomain.NOTE,
                                 id = note.id,
@@ -109,6 +132,7 @@ class ItemDetailViewModel(
                                 secret = note.content,
                                 customFields = note.customFields,
                                 tags = note.tags,
+                                attachments = loadedAttachments,
                                 reprompt = note.reprompt,
                                 isOffline = syncStatus.value == SyncStatus.OFFLINE_READ_ONLY
                             )
@@ -148,6 +172,31 @@ class ItemDetailViewModel(
         val current = _rawState.value
         if (current is ItemDetailUiState.Success) {
             _rawState.value = current.copy(isSecretRevealed = !current.isSecretRevealed)
+        }
+    }
+
+    fun openAttachment(context: android.content.Context, attachmentId: String, onReady: (android.net.Uri, String) -> Unit) {
+        viewModelScope.launch {
+            val res = appContainer.syncRepository.decryptAttachment(attachmentId)
+            res.onSuccess { plaintextBase64 ->
+                try {
+                    val bytes = java.util.Base64.getDecoder().decode(plaintextBase64)
+                    val ownerUuid = appContainer.deviceVault.getOwnerUuid().orEmpty()
+                    val entity = appContainer.syncRepository.getAttachment(ownerUuid, attachmentId).getOrNull()
+                    if (entity != null) {
+                        val cacheDir = java.io.File(context.cacheDir, "decrypted_attachments")
+                        if (!cacheDir.exists()) cacheDir.mkdirs()
+                        val targetFile = java.io.File(cacheDir, entity.fileName)
+                        targetFile.writeBytes(bytes)
+                        val uri = androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", targetFile)
+                        onReady(uri, entity.mimeType)
+                    }
+                } catch (e: Exception) {
+                    _rawState.value = ItemDetailUiState.Error("Failed to decode and open attachment: ${e.message}")
+                }
+            }.onFailure {
+                _rawState.value = ItemDetailUiState.Error("Failed to decrypt attachment: ${it.message}")
+            }
         }
     }
 
