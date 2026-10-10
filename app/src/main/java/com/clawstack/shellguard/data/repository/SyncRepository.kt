@@ -54,6 +54,7 @@ data class UnifiedVaultItem(
     val category: String? = null,
     val tags: List<String> = emptyList(),
     val reprompt: Boolean = false,
+    val hasAttachments: Boolean = false,
     val localUpdatedAt: Long = 0L,
     val remoteUpdatedAt: Long = 0L
 )
@@ -119,6 +120,7 @@ class SyncRepository(
                         domain = VaultItemDomain.PASSWORD,
                         category = pearl.category,
                         reprompt = pearl.reprompt,
+                        hasAttachments = pearl.attachments.isNotBlank() && pearl.attachments.trim() != "[]",
                         localUpdatedAt = pearl.localUpdatedAt,
                         remoteUpdatedAt = pearl.remoteUpdatedAt
                     )
@@ -135,6 +137,7 @@ class SyncRepository(
                         domain = VaultItemDomain.NOTE,
                         category = note.category,
                         reprompt = note.reprompt,
+                        hasAttachments = note.attachments.isNotBlank() && note.attachments.trim() != "[]",
                         localUpdatedAt = note.localUpdatedAt,
                         remoteUpdatedAt = note.remoteUpdatedAt
                     )

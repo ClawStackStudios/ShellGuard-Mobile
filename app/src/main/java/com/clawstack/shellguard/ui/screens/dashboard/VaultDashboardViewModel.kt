@@ -62,7 +62,7 @@ class VaultDashboardViewModel(
                 PodFilter.PASSWORDS -> item.domain == VaultItemDomain.PASSWORD
                 PodFilter.NOTES -> item.domain == VaultItemDomain.NOTE
                 PodFilter.SSH_KEYS -> item.domain == VaultItemDomain.SSH_KEY
-                PodFilter.ATTACHMENTS -> item.tags.contains("has_attachment") // Future proofing tag filtering
+                PodFilter.ATTACHMENTS -> item.hasAttachments
             }
 
             val query = state.searchQuery.trim().lowercase()
