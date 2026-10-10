@@ -101,8 +101,8 @@ class ShellGuardAutofillService : AutofillService() {
             if (cancellationSignal.isCanceled) return@launch
 
             val matchedPearls = allPearls.filter { pearl ->
-                val primaryMatch = pearl.url.isNotBlank() && DomainMatcher.isMatch(pearl.url, target)
-                val packageMatch = targetPackage != null && DomainMatcher.isMatch(pearl.url, "androidapp://$targetPackage")
+                val primaryMatch = DomainMatcher.matchesAnyUri(pearl.url, pearl.uris, target)
+                val packageMatch = targetPackage != null && DomainMatcher.matchesAnyUri(pearl.url, pearl.uris, "androidapp://$targetPackage")
                 primaryMatch || packageMatch
             }.take(5) // Limit to top 5 candidates
 
