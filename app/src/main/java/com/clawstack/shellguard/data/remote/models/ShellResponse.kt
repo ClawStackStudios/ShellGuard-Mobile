@@ -83,6 +83,7 @@ data class CreateVaultItemRequest(
     val totp_secret: String? = null,
     val type: String = "password",
     val custom_fields: String? = null,
+    val attachments: String? = null,
     val tags: String? = null,
     val uris: String? = null,
     val reprompt: Boolean = false
@@ -124,6 +125,7 @@ data class CreateNoteRequest(
     val content: String = "",
     val category: String? = null,
     val custom_fields: String? = null,
+    val attachments: String? = null,
     val tags: String? = null,
     val reprompt: Boolean = false
 )
@@ -183,5 +185,44 @@ data class KeyItemResponse(
     val error: String? = null
 )
 
-// TODO(jules): Implement AttachmentDto, AttachmentUploadData, CreateAttachmentResponse, AttachmentsResponse, and plumb attachments into CreateVaultItemRequest & CreateNoteRequest per .jules/tasks/task-1-attachments-and-multi-uri.md
+@Serializable
+data class AttachmentDto(
+    val id: String,
+    val owner_uuid: String = "",
+    val title: String,
+    val size_bytes: Long = 0L,
+    val file_name: String = "",
+    val mime_type: String = "application/octet-stream",
+    val category: String? = null,
+    val created_at: String = ""
+)
+
+@Serializable
+data class AttachmentUploadData(
+    val id: String,
+    val title: String,
+    val category: String? = null,
+    val size_bytes: Long = 0L
+)
+
+@Serializable
+data class CreateAttachmentResponse(
+    val success: Boolean,
+    val data: AttachmentUploadData? = null,
+    val error: String? = null
+)
+
+@Serializable
+data class AttachmentsResponse(
+    val success: Boolean,
+    val data: List<AttachmentDto> = emptyList(),
+    val error: String? = null
+)
+
+@Serializable
+data class AttachmentItemResponse(
+    val success: Boolean,
+    val data: AttachmentDto? = null,
+    val error: String? = null
+)
 
