@@ -130,6 +130,12 @@ class SettingsViewModel(
         _extraState.update { it.copy(infoMessage = null, errorMessage = null) }
     }
 
+    fun updateDefaultUriMatchMode(mode: com.clawstack.shellguard.domain.matcher.UriMatchMode) {
+        viewModelScope.launch {
+            appContainer.settingsRepository.setDefaultUriMatchMode(mode)
+        }
+    }
+
     fun executePanicPurge(onCompleted: () -> Unit): Job = viewModelScope.launch {
         _extraState.update { it.copy(isWiping = true) }
         try {
@@ -137,9 +143,11 @@ class SettingsViewModel(
             appContainer.database.clearAllTables()
             // 2. Zeroize in-memory secrets and clear EncryptedSharedPreferences session
             appContainer.deviceVault.clearSession()
-            // 3. Clear settings repository preferences
+            // 3. Wipe disk-stored encrypted attachment payloads
+            appContainer.attachmentVaultManager.clearAll()
+            // 4. Clear settings repository preferences
             appContainer.settingsRepository.clearAll()
-            // 4. Reset vault lock manager
+            // 5. Reset vault lock manager
             appContainer.vaultLockManager.unlockVault()
         } catch (t: Throwable) {
             // Ensure session is cleared even if database wipe throws

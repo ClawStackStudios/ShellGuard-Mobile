@@ -42,6 +42,7 @@ class SettingsRepositoryTest {
         assertTrue(settings.autofillInlineChips)
         assertTrue(settings.syncOverCellular)
         assertTrue(settings.pullToRefreshEnabled)
+        assertEquals(com.clawstack.shellguard.domain.matcher.UriMatchMode.BASE_DOMAIN, settings.defaultUriMatchMode)
     }
 
     @Test
@@ -97,5 +98,16 @@ class SettingsRepositoryTest {
         assertFalse(updated.autofillInlineChips)
         assertFalse(updated.syncOverCellular)
         assertFalse(updated.pullToRefreshEnabled)
+    }
+
+    @Test
+    fun testSetDefaultUriMatchMode() = runTest {
+        repository.setDefaultUriMatchMode(com.clawstack.shellguard.domain.matcher.UriMatchMode.EXACT)
+        val updated = repository.settingsFlow.first()
+        assertEquals(com.clawstack.shellguard.domain.matcher.UriMatchMode.EXACT, updated.defaultUriMatchMode)
+
+        repository.setDefaultUriMatchMode(com.clawstack.shellguard.domain.matcher.UriMatchMode.NEVER)
+        val neverState = repository.settingsFlow.first()
+        assertEquals(com.clawstack.shellguard.domain.matcher.UriMatchMode.NEVER, neverState.defaultUriMatchMode)
     }
 }

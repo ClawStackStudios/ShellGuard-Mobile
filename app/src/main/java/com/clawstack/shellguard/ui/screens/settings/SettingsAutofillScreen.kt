@@ -3,6 +3,7 @@ package com.clawstack.shellguard.ui.screens.settings
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Keyboard
@@ -276,6 +278,57 @@ fun SettingsAutofillScreen(
                                         uncheckedTrackColor = SurfaceDark
                                     )
                                 )
+                            }
+                        }
+                    }
+                }
+
+                // ── Default URI Match Detection ──────────────────────────
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
+                        border = BorderStroke(1.dp, BorderSubtle),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(18.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Link, contentDescription = null, tint = ReefPink, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Default URI Match Detection", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Text(
+                                text = "Determines how aggressively ShellGuard matches URLs to vault items for autofill when secondary URIs lack specific match modes.",
+                                color = TextMuted,
+                                fontSize = 13.sp,
+                                modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
+                            )
+
+                            com.clawstack.shellguard.domain.matcher.UriMatchMode.values().forEach { mode ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().clickable { viewModel.updateDefaultUriMatchMode(mode) }.padding(vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    androidx.compose.material3.RadioButton(
+                                        selected = settings.defaultUriMatchMode == mode,
+                                        onClick = { viewModel.updateDefaultUriMatchMode(mode) },
+                                        colors = androidx.compose.material3.RadioButtonDefaults.colors(selectedColor = ReefPink)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Column {
+                                        Text(mode.name, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                        Text(
+                                            when (mode) {
+                                                com.clawstack.shellguard.domain.matcher.UriMatchMode.BASE_DOMAIN -> "Matches any subdomain (e.g. login.example.com matches example.com)"
+                                                com.clawstack.shellguard.domain.matcher.UriMatchMode.HOST -> "Strictly matches the host ignoring ports"
+                                                com.clawstack.shellguard.domain.matcher.UriMatchMode.EXACT -> "Requires exact host and port matching (useful for homelabs)"
+                                                com.clawstack.shellguard.domain.matcher.UriMatchMode.STARTS_WITH -> "Matches if URL starts with the vault URI"
+                                                com.clawstack.shellguard.domain.matcher.UriMatchMode.NEVER -> "Disables autofill matching for this URI"
+                                            },
+                                            color = TextMuted, fontSize = 12.sp
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

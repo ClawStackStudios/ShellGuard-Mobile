@@ -259,4 +259,33 @@ class VaultBackupEngineTest {
         )
         assertEquals("Top secret note content", decryptedNote)
     }
+
+    @Test
+    fun testExportAndRestorePreservesAttachments() = runTest {
+        val pearlId = UUID.randomUUID().toString()
+        val encSecret = ShellCryptionEngine.encryptField("SuperPassword123!", testShellKey, ShellCryptionEngine.AadNamespace.pearlSecret(pearlId))
+        val sampleAttachments = """[{"id":"att-1","fileName":"vpn_config.ovpn","sizeBytes":1024}]"""
+        database.vaultPearlDao().upsert(
+            VaultPearlEntity(
+                id = pearlId,
+                ownerUuid = testOwnerUuid,
+                title = "Item With Attachment",
+                secret = encSecret,
+                username = "admin",
+                attachments = sampleAttachments,
+                createdAt = "2026-10-04T12:00:00Z"
+            )
+        )
+
+        val exportResult = backupEngine.exportVault(
+            ownerUuid = testOwnerUuid,
+            protectionMode = BackupProtectionMode.ACTIVE_KEY,
+            activeClawKey = testHuKey
+        ).getOrThrow()
+
+        val decrypted = backupEngine.decryptBackupEnvelope(exportResult.jsonString, testHuKey).getOrThrow()
+        val pearlItems = decrypted.allItems().filter { it.type == "password" }
+        assertEquals(1, pearlItems.size)
+        assertEquals(sampleAttachments, pearlItems[0].attachments)
+    }
 }
