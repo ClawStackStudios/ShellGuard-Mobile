@@ -1279,6 +1279,4 @@ class SyncRepository(
             }
         }
     }
-
-    // TODO(jules): Integrate attachments into syncAll, pushPendingChanges, and implement attachment CRUD per .jules/tasks/task-1-attachments-and-multi-uri.md
 }
