@@ -1,11 +1,5 @@
 # Decision Log
 
-## 2026-09-26 — session key persistence & zero-knowledge active session invariant
-Diagnosed "Error Loading Item: Vault locked or shellKey missing" on physical Pixel when opening vault items across app restarts. Traced to `inMemoryShellKey` living exclusively in volatile RAM while `hasActiveSession()` checked only persisted tokens, allowing the dashboard to open without the decryption key. Persisted the derived `shellKey` in hardware KeyStore-backed `EncryptedSharedPreferences` (see `android-development.md` §3 E), hardened `hasActiveSession()` to strictly require a valid shellKey, and verified seamless decryption and cold-restart persistence on hardware.
-
-## 2026-09-27 — splash theme actionbar suppression & camera totp verification
-Resolved rogue native ActionBar overlapping Compose TopAppBar by invoking `installSplashScreen()` in `MainActivity.onCreate()` and declaring `windowActionBar=false` and `windowNoTitle=true` in `themes.xml`. Verified live on physical Google Pixel hardware across CameraX QR scanner, item creation with TOTP secret, and 30s countdown Canvas ring with Cyan to Amber color interpolation.
-
 ## 2026-09-27 — specialized sub-agent fleet and opsec rebase scrub
 Converted Google Jules templates to native Android specialists (Bolt, Palette, Sentinel, Scribe), codified dynamic orchestration topologies, exempted markdown docs from test runs (mandating builds for VitePress docs), and rebase-scrubbed local TOOLS.md to eliminate physical hardware serial leakage while preserving the file locally.
 
@@ -60,6 +54,12 @@ Diagnosed `AssertionError` in `SettingsViewModelTest.testTriggerManualSyncWithNo
 ## 2026-10-10 — dual feedback medium & jules pr comment orchestration
 Codified dual-medium iteration protocol into global jules-cli skill: Jules natively ingests feedback through either private Web UI chat prompts or public GitHub PR review threads (reacting with 👀 and pushing commits). Standardized an agent triage question ("Do you want a prompt to give to Jules in the Web UI, or should we make a comment on the pull request?"), and established the critical invariant to NEVER tag @jules on GitHub (as that handle pings an unrelated human account, not the bot).
 
+## 2026-10-10 — post-creation attachment persistence & room entity fidelity
+Caught data-drop bug during live physical Pixel testing: adding attachments or secondary URIs when editing an existing vault item failed to persist across reloads. Traced to `SyncRepository.kt` (`savePearlDetail` and `saveNoteDetail`), which serialized `attachmentsJson` and `urisJson` for the network payload but hardcoded `"[]"` for `attachments` and `uris` in Room entities (`VaultPearlEntity` and `SecureNoteEntity`). Drafted architectural fix and dispatched hotfix review guidance comment #6104587759 to Jules on PR #1.
+
 ## 2026-10-10 — orthogonal task partitioning & jules pr kickoff
 Audited codebase seams across UI, Autofill, and Settings/Storage debt for Stage 1 completion. To prevent merge conflicts in Jules sessions, partitioned remaining scope into two strictly orthogonal tasks (Task 1 for UI & Autofill, Task 2 for DI, Storage, Settings debt, and FileProvider) with zero file overlap, updated JULES.md with Compose line limits and bot tagging rules, and triggered Task 1 execution via GitHub PR comment on PR #1.
+
+## 2026-10-11 — systemic transport security vs. security theatre
+Addressed user challenge on cleartext HTTP over Tailscale. Uncovered that static `SHA-256(hu-)` transmission and unencrypted metadata over HTTP permit session hijacking and vault destruction, while `relaxedTrustManager` nullifies TLS integrity. Ratified the Systemic Zero-Knowledge Transport Invariant in `android-development.md` § 5, mandated UI amber transport warning pills, scheduled TOFU certificate pinning, and set roadmap trajectory toward zero-knowledge PAKE/SRP-6a authentication.
 

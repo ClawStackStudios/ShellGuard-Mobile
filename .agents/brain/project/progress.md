@@ -1,7 +1,8 @@
 # Progress: ShellGuard Mobile
 
-## Current Status: Stage 1 Server Parity — Phase 1 & 2 Complete & Verified Green (`114/114` Tests Green)
-All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold through Phase 7 (Context-Aware Autofill Expansion) are verified on Google Pixel hardware. Stage 1 Phase 1 (Data & Network Layer) and Phase 2 (UI, Autofill, and Dashboard Filtering) are implemented and verified green locally (`BUILD SUCCESSFUL in 4m 15s`). Task 2 (Storage Wiring & Settings Debt) is active on PR #1.
+## Current Status: Stage 1 Server Parity — Complete & Hardware-Verified on Google Pixel (`115/115` Tests Green)
+All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold through Phase 7 (Context-Aware Autofill Expansion) are verified on Google Pixel hardware. Stage 1 (Server Parity: Encrypted Attachments, Multi-URI Bridge, Storage DI Wiring, Settings Debt, and Room Persistence Hotfix) is 100% implemented, tested green across 115 unit tests, and verified live on physical Google Pixel hardware (`sailfish`).
+
 
 
 ## What Works (Documented, Designed & Scaffolded)
@@ -181,10 +182,20 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
   - [x] **Unit Test & Physical Pixel Hardware Verification (`AutofillStructureParserTest`)**:
     - Added 12 unit tests covering all 5 confidence tiers, container hijack defense, password/username mutual exclusion, Co-Presence Gate suppression, AutoSpill WebView clearing, and Option B username masking (`114/114` total unit tests passing 100% green).
     - Verified live on physical Google Pixel (`sailfish`) across SimpleLogin (Option B chip + simultaneous 2-field fill) and Google Sign-In (2-step email-first `"Add Item · accounts.google.com"` chip).
-- [x] **Stage 1: Server Parity — Encrypted Attachments & Multi-URI Bridge (Phase 1 & Phase 2 Complete)**:
+- [x] **Stage 1: Server Parity — Encrypted Attachments & Multi-URI Bridge (Complete & Hardware-Verified)**:
   - Phase 1 (Data & Network): Streaming Ktor attachment upload/download, hybrid Room/disk storage, Room DAOs, and bidirectional sync delta reconciliation.
   - Phase 2 (UI & Autofill): Multi-URI dynamic editor, staged attachment list with typed metadata badges (`AttachmentItemDetail`), safe external viewer intent launcher (`try-catch ActivityNotFoundException`), offline-first cached attachment decryption, multi-URI autofill domain matching, and `UnifiedVaultItem.hasAttachments` dashboard filtering (`PodFilter.ATTACHMENTS`).
-  - Verification: 114/114 headless unit tests passing 100% green (`BUILD SUCCESSFUL in 4m 15s`).
+  - Phase 3 (Storage Wiring & Settings Debt): `AppContainer` DI wiring, physical `.enc` ciphertext erasure during `executePanicPurge()`, `UriMatchMode` settings persistence, `FileProvider` manifest declaration, and `BackupVaultItem.attachments` schema parity (`751a569`).
+  - Phase 3.1 (Hotfix): Room entity persistence of `attachments` and `uris` during item edit saves and reads (`SyncRepository.kt`), verified with `testAttachmentAndUriPersistence` in `SyncRepositoryTest.kt` (`b4288e0`).
+  - Phase 4 (Security Hardening, Cache Purge & Ergonomic Parity):
+    - Decrypted cache purge (`clearDecryptedCache()`) across cold boot (`ShellGuardApp`), session lock and logout (`VaultDashboardViewModel`), and emergency wipe (`SettingsViewModel`).
+    - Biometric Claw Re-Prompt gate strictly enforced on attachment views in `ItemDetailScreen`.
+    - Native `androidapp://` package scheme launcher resolution in `DetailUrlRow`.
+    - Path traversal sanitization (`File(name).name`) and dynamic `MimeTypeMap` resolution.
+    - Cleartext HTTP amber transport warning pills across `GatewayScreen` and `SettingsSyncScreen`.
+  - Hardware Verification: Full on-device verification on physical Google Pixel (`sailfish`): file attachments staged, saved, edited post-creation, persisted across room queries, and rendered in detail cards.
+  - Verification: 115/115 headless unit tests passing 100% green (`BUILD SUCCESSFUL in 6m 52s`).
+
 
 ## What's Left to Build (Phase 8+)
 - [ ] Phase 8 (Stage 9): SSH Key Management & Cryptographic Key Generator (Tasks 14 & 15).

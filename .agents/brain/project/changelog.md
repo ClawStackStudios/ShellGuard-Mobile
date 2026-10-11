@@ -264,3 +264,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Zero-Knowledge Inline Subtitle Masking (`AutofillInlineHelper.kt`)**: Eliminated raw plaintext username exposure on Android 11+ IME chips via Option B partial masking (`lu***@gmail.com`).
 - **WebView AutoSpill & Host-Hijack Isolation (`AutofillStructureParser.kt`)**: Cleared outer native host view fields when entering a `webDomain` subtree so native host containers cannot siphon web credentials.
 
+## [Unreleased] — Stage 1: Server Parity (Encrypted Attachments & Multi-URI Bridge)
+
+### Added
+- **Streaming Ktor Attachment Client**: High-throughput multipart upload and chunked streaming download endpoints for encrypted file attachments, bypassing memory buffering.
+- **Hybrid File-System Vault Architecture (`AttachmentVaultManager`)**: Decoupled SQLite metadata storage from multi-megabyte ciphertext blobs, streaming encrypted files to `filesDir/vault_attachments/{id}.enc` to eliminate CWE-400 2MB `CursorWindow` crashes.
+- **Dynamic Multi-URI Editor & Detail Display (`ItemFormScreen`, `ItemDetailScreen`)**: Multi-URI dynamic list editor with URI validation, per-URI copy and browser launch action buttons, and domain matching integration.
+- **`androidapp://` Package Scheme Launcher (`ItemDetailScreen`)**: Native Android package launcher in `DetailUrlRow` resolving `androidapp://` URIs via `packageManager.getLaunchIntentForPackage`.
+- **Encrypted Attachment Staging & Viewer Intent**: Attachment picker (`ActivityResultContracts.GetContent()`), staged file cards with typed metadata badges (`AttachmentItemDetail`), offline-first cached decryption, and safe viewer intent launcher protected against `ActivityNotFoundException`.
+- **Cleartext HTTP Transport Warnings**: Amber transport security warning pills rendered below the URL bar in `GatewayScreen` and within the Connected Endpoint card in `SettingsSyncScreen` when unencrypted HTTP transport is configured.
+- **Configurable Default URI Match Detection**: Persistent `defaultUriMatchMode` setting in `SettingsRepository` (DataStore), interactive preference selector in `SettingsAutofillScreen`, and automatic integration into `DomainMatcher`.
+- **Physical Ciphertext Erasure on Panic Purge**: `SettingsViewModel.executePanicPurge()` invokes `appContainer.attachmentVaultManager.clearAll()`, guaranteeing complete destruction of `.enc` files on disk during emergency wipes.
+- **Android FileProvider Declaration**: Added `res/xml/attachment_file_paths.xml` and registered FileProvider in `AndroidManifest.xml` under `${applicationId}.fileprovider`.
+- **Vault Backup Schema Fidelity**: Added `attachments` JSON string support to `BackupVaultItem` in `VaultBackupEngine`, ensuring attachments survive export and import passes.
+
+### Fixed
+- **Room Entity Persistence Schema Mapping (`SyncRepository.kt`)**: Fixed critical bug where `savePearlDetail()` and `saveNoteDetail()` passed hardcoded `"[]"` for `attachments` and `uris` when constructing `VaultPearlEntity` and `SecureNoteEntity`, causing attachments and secondary URIs added post-creation during item edits to be lost upon saving.
+- **Room Entity Deserialization in Detail Getters (`SyncRepository.kt`)**: Added `deserializeUris` and `deserializeAttachments` in `getPearlDetail()` and `getNoteDetail()` so existing items accurately load attached files and secondary URIs from the local database.
+- **Dashboard Attachment Filter Chip**: Bound `UnifiedVaultItem.hasAttachments` to `PodFilter.ATTACHMENTS` in `VaultDashboardViewModel` and `VaultDashboardScreen`.
+
+### Security
+- **Decrypted Cache Purge Lifecycle (`AttachmentVaultManager.kt`)**: Implemented `clearDecryptedCache()` wiping `context.cacheDir/decrypted_attachments/` on application cold boot (`ShellGuardApp`), session lock and logout (`VaultDashboardViewModel`), and emergency wipe (`SettingsViewModel`).
+- **Biometric Claw Re-Prompt Gate on Attachments (`ItemDetailScreen.kt`)**: Wrapped `onOpenAttachment` with biometric verification when `state.reprompt == true`, preventing unauthorized decryption of sensitive files on unlocked devices.
+- **Path Traversal Defense & MIME Type Fallback (`ItemDetailViewModel.kt`)**: Wrapped attachment filenames in `File(fileName).name` and dynamically resolved missing MIME types via Android `MimeTypeMap`.
+- **Systemic Transport Invariants Codified**: Codified anti-theatre transport invariants into `.agents/rules/android-development.md` §5 and `systemPatterns.md`, warning against unprotected `SHA-256(hu-)` transmission and naked metadata leakage on cleartext HTTP.
+
+

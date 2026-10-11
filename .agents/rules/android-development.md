@@ -157,10 +157,11 @@ Master identity keys, session tokens, derived symmetric keys (`shellKey`), and P
 
 ---
 
-## 5. Network & Cleartext HTTP Specification
+## 5. Network, Cleartext HTTP & Systemic Transport Invariants
 
-Cleartext HTTP is **intentional** for this project to support local Unraid/TrueNAS and home lab servers where TLS is not available.
-- Do NOT flag, "fix", or remove cleartext HTTP.
+### A. Intentional Homelab Cleartext Support vs. Anti-Theatre Boundary
+Cleartext HTTP is **intentionally permitted** to support local home lab environments (Unraid, TrueNAS, Raspberry Pi, LAN IPs, and Tailscale mesh) where valid public CA certificates cannot be provisioned.
+- **Do NOT remove cleartext HTTP support** from `network_security_config.xml` or OkHttp `ConnectionSpec.CLEARTEXT`.
 - Configured via `res/xml/network_security_config.xml`:
   ```xml
   <?xml version="1.0" encoding="utf-8"?>
@@ -174,7 +175,18 @@ Cleartext HTTP is **intentional** for this project to support local Unraid/TrueN
   </network-security-config>
   ```
 - Referenced in `AndroidManifest.xml` via `android:networkSecurityConfig="@xml/network_security_config"` and `android:usesCleartextTraffic="true"`.
-- **Ktor OkHttp Engine**: Configured with `ConnectionSpec.CLEARTEXT`, `COMPATIBLE_TLS`, and `MODERN_TLS`, routing seamlessly through active Android `VpnService` routes for transparent Tailscale and WireGuard mesh traversal.
+- **Systemic Security vs. Security Theatre Invariant**: Zero-knowledge payload encryption (`ShellCryption`) does NOT make cleartext HTTP systemically secure. Agents must uphold and design around the real threat model:
+  1. **Authentication Token Exposure**: Over cleartext HTTP, `SHA-256(hu-key)` and bearer JWTs travel naked. An eavesdropper cannot derive the master key or decrypt passwords, but CAN hijack the session, wipe the database (`DELETE /api/vault`), or poison ciphertext.
+  2. **Metadata Exposure**: URLs, secondary URIs, usernames, titles, and attachment file names travel unencrypted on the wire.
+  3. **The VPN Assumption Fallacy**: The app must never assume traffic is encrypted by an external VPN (Tailscale/WireGuard) unless verified in code. Connections to RFC 1918 LAN IPs (`192.168.x.x`) traverse local Wi-Fi in the clear.
+
+### B. Transport Hardening Guardrails
+1. **Explicit UI Transport Warning**: Whenever the active server URL uses unencrypted `http://`, the UI (Gateway and Settings) must render an amber transport warning pill informing the user that session tokens and metadata are unencrypted.
+2. **Trust-On-First-Use (TOFU) Over Blind Trust**:
+   - `relaxedTrustManager` (blindly trusting any certificate) and `hostnameVerifier { true }` in `KtorClientProvider.kt` are temporary developmental scaffolding.
+   - For production homelab self-signed certificates, the client must implement **Trust-On-First-Use (TOFU)**: display the SHA-256 certificate fingerprint to the user on first connection, persist it to `EncryptedSharedPreferences`, and reject certificate changes to defeat active Man-in-the-Middle (MitM) attacks.
+3. **Zero-Knowledge Auth Roadmap (PAKE / SRP-6a)**:
+   - In subsequent architectural phases, authentication must transition from transmitting static `SHA-256(hu-)` to a zero-knowledge challenge-response (SRP-6a or OPAQUE). This guarantees that even total packet interception over cleartext HTTP yields zero usable credentials.
 
 ---
 
