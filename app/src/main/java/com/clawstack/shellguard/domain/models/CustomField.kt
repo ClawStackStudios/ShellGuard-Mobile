@@ -72,4 +72,22 @@ object CustomFieldSerializer {
             emptyList()
         }
     }
+
+    fun serializeUris(uris: List<String>): String {
+        return json.encodeToString(uris)
+    }
+
+    fun deserializeUris(jsonString: String?): List<String> {
+        if (jsonString.isNullOrBlank() || jsonString == "[]") return emptyList()
+        return try { json.decodeFromString<List<String>>(jsonString) } catch (_: Exception) { emptyList() }
+    }
+
+    fun serializeAttachments(attachments: List<String>): String {
+        return json.encodeToString(attachments)
+    }
+
+    fun deserializeAttachments(jsonString: String?): List<String> {
+        if (jsonString.isNullOrBlank() || jsonString == "[]") return emptyList()
+        return try { json.decodeFromString<List<String>>(jsonString) } catch (_: Exception) { emptyList() }
+    }
 }

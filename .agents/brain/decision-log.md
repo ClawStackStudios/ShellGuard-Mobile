@@ -1,8 +1,5 @@
 # Decision Log
 
-## 2026-09-26 — polymorphic item editor & encrypted custom fields
-Architected universal `ItemFormScreen` and polymorphic `ItemDetailScreen` supporting Passwords, Notes, and SSH Keys. Wrapped custom fields (`TEXT`, `HIDDEN`, `BOOLEAN`, `LINKED`) and password history into domain-specific HKDF AAD encryption (`vault_*_custom`, `vault_pearls_history`) with sensitive clipboard auto-scrubbing and offline mutation guards.
-
 ## 2026-09-26 — session key persistence & zero-knowledge active session invariant
 Diagnosed "Error Loading Item: Vault locked or shellKey missing" on physical Pixel when opening vault items across app restarts. Traced to `inMemoryShellKey` living exclusively in volatile RAM while `hasActiveSession()` checked only persisted tokens, allowing the dashboard to open without the decryption key. Persisted the derived `shellKey` in hardware KeyStore-backed `EncryptedSharedPreferences` (see `android-development.md` §3 E), hardened `hasActiveSession()` to strictly require a valid shellKey, and verified seamless decryption and cold-restart persistence on hardware.
 
@@ -60,3 +57,8 @@ Diagnosed missing username inline chips and single-field password autofill on de
 ## 2026-10-09 — datastore combine initial emission & ci test determinism
 Diagnosed `AssertionError` in `SettingsViewModelTest.testTriggerManualSyncWithNoActiveSession` during GitHub Actions CI run `37897075874` (`v0.0.0.11`). Traced to `combine(settingsRepo.settingsFlow, _extraState)` in `SettingsViewModel` blocking `_extraState` emissions until AndroidX `DataStore` finished its asynchronous initial disk read on `Dispatchers.IO`. Seeded `settingsRepo.settingsFlow.onStart { emit(AppSettings()) }` and replaced nested `runTest` in `@Before setUp()` with `runBlocking`, verifying `114/114` unit tests 100% green.
 
+## 2026-10-10 — dual feedback medium & jules pr comment orchestration
+Codified dual-medium iteration protocol into global jules-cli skill: Jules natively ingests feedback through either private Web UI chat prompts or public GitHub PR review threads (reacting with 👀 and pushing commits). Standardized an agent triage question ("Do you want a prompt to give to Jules in the Web UI, or should we make a comment on the pull request?"), and established the critical invariant to NEVER tag @jules on GitHub (as that handle pings an unrelated human account, not the bot).
+
+## 2026-10-10 — orthogonal task partitioning & jules pr kickoff
+Audited codebase seams across UI, Autofill, and Settings/Storage debt for Stage 1 completion. To prevent merge conflicts in Jules sessions, partitioned remaining scope into two strictly orthogonal tasks (Task 1 for UI & Autofill, Task 2 for DI, Storage, Settings debt, and FileProvider) with zero file overlap, updated JULES.md with Compose line limits and bot tagging rules, and triggered Task 1 execution via GitHub PR comment on PR #1.

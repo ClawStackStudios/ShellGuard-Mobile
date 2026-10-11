@@ -583,3 +583,18 @@ The cross-session failure analysis (/deep-learn) detected an **over-confidence b
 **Confidence**: high — verified across `114/114` local unit tests (`--rerun-tasks`) and confirmed 100% green on GitHub Actions cloud run `37938055022`.
 **Outcome**: `v0.0.0.11` passed the pre-flight test gate on GitHub Actions and published signed `shellguard-mobile-v0.0.0.11.aab` and `.apk` release assets.
 **Pattern reference**: `long-term/patterns.md § pattern: deterministic-datastore-viewmodel-synchronization` and `testOracle.md § Redline 11`.
+
+## dual-teaching-modalities-and-jules-stewardship — 2026-10-10 10:45
+
+**Context**: When delegating work to Google Jules, deciding how knowledge and guidance should be communicated between Antigravity (Senior Tech Lead) and Jules (Executor).
+**Options considered**:
+- Treat all interactions as purely mechanical code injections ("straight lines") — Quickest in the short term, but Jules treats code as external patches without internalizing the architectural rationale, repeating identical mistakes on subsequent turns.
+- Codify two distinct pedagogical modalities: Direct Directives ("Straight Lines") for fast-strike/emergency unblocking, and Iterative Stewardship ("Tutoring") for long-lived feature branches — Matches the communication style to the task lifecycle, allowing pair programming to build compounding mental models and durable memory for deep domain features.
+**Chosen**: Codify the dual teaching modalities in `knowledge-integration.md` and `operating-modes.md`.
+**Why**: A junior developer thrives under mentorship, not just orders. When working across days on a feature branch, explaining *why* an error occurred and commanding Jules to encode the lesson into its memory bank creates compounding leverage that pays dividends on every subsequent commit.
+**Confidence**: high — ratified through active collaboration with Lucas on PR #1.
+**Outcome**: Enriched `/config/.gemini/config/skills/jules-cli/` with Section 5 of `knowledge-integration.md` and updated `SKILL.md` reference index.
+**Pattern reference**: Link to `references/knowledge-integration.md § 5. The Two Teaching Modalities`.
+
+## Calibration Note — 2026-10-10 13:20
+Calibration is sharp with 0 over-confidence penalties across 8 ratified decisions since Phase 7. The Lazy Senior Developer stance ("predict the concrete operating failure before cutting") has successfully anchored confidence in empirical verification.

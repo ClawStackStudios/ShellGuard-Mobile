@@ -23,6 +23,10 @@ import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.client.request.forms.formData
+import io.ktor.client.request.forms.submitFormWithBinaryData
+import io.ktor.client.statement.bodyAsChannel
+import io.ktor.utils.io.jvm.javaio.copyTo
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -30,6 +34,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.clawstack.shellguard.data.remote.models.AttachmentDto
+import com.clawstack.shellguard.data.remote.models.AttachmentUploadData
+import com.clawstack.shellguard.data.remote.models.AttachmentsResponse
+import com.clawstack.shellguard.data.remote.models.CreateAttachmentResponse
+import io.ktor.http.Headers
 
 open class ShellGuardClient(
     val baseUrl: String,
@@ -319,6 +328,107 @@ open class ShellGuardClient(
         }
     }
 
-    // TODO(jules): Implement fetchAttachments, downloadAttachmentFile, uploadAttachmentMultipart, and deleteAttachment per .jules/tasks/task-1-attachments-and-multi-uri.md
+    /**
+     * 15. Fetch Attachment Metadata List (GET /api/attachments)
+     */
+    open suspend fun fetchAttachments(sessionToken: String): Result<List<AttachmentDto>> = withContext(Dispatchers.IO) {
+        runCatching {
+            val response: HttpResponse = client.get("api/attachments") {
+                header(HttpHeaders.Authorization, "Bearer $sessionToken")
+            }
+            handleNetworkDiagnostics(response)
+            if (response.status == HttpStatusCode.OK) {
+                val res = response.body<AttachmentsResponse>()
+                if (res.success) {
+                    res.data
+                } else {
+                    throw Exception(res.error ?: "Fetch attachments failed")
+                }
+            } else {
+                throw Exception("Fetch attachments failed with status: ${response.status.value}")
+            }
+        }
+    }
+
+    /**
+     * 16. Stream Download Encrypted Attachment (GET /api/attachments/:id/file)
+     * Streams directly to destinationFile on disk to prevent OOM.
+     */
+    open suspend fun downloadAttachmentFile(
+        sessionToken: String,
+        id: String,
+        destinationFile: java.io.File
+    ): Result<java.io.File> = withContext(Dispatchers.IO) {
+        runCatching {
+            val response: HttpResponse = client.get("api/attachments/$id/file") {
+                header(HttpHeaders.Authorization, "Bearer $sessionToken")
+            }
+            handleNetworkDiagnostics(response)
+            if (response.status == HttpStatusCode.OK) {
+                destinationFile.parentFile?.let { if (!it.exists()) it.mkdirs() }
+                destinationFile.outputStream().use { output ->
+                    response.bodyAsChannel().copyTo(output)
+                }
+                destinationFile
+            } else {
+                throw Exception("Download attachment failed with status: ${response.status.value}")
+            }
+        }
+    }
+
+    /**
+     * 17. Multipart Upload Encrypted Attachment (POST /api/attachments)
+     */
+    open suspend fun uploadAttachmentMultipart(
+        sessionToken: String,
+        id: String,
+        title: String,
+        fileName: String,
+        mimeType: String,
+        category: String,
+        ciphertextBytes: ByteArray
+    ): Result<AttachmentUploadData> = withContext(Dispatchers.IO) {
+        runCatching {
+            val response: HttpResponse = client.submitFormWithBinaryData(
+                url = "api/attachments",
+                formData = formData {
+                    append("id", id)
+                    append("title", title)
+                    append("file_name", fileName)
+                    append("mime_type", mimeType)
+                    append("category", category)
+                    append("file_data", ciphertextBytes, Headers.build {
+                        append(HttpHeaders.ContentType, "application/octet-stream")
+                        append(HttpHeaders.ContentDisposition, "filename=\"$fileName\"")
+                    })
+                }
+            ) {
+                header(HttpHeaders.Authorization, "Bearer $sessionToken")
+            }
+            handleNetworkDiagnostics(response)
+            if (response.status == HttpStatusCode.OK || response.status == HttpStatusCode.Created) {
+                val res = response.body<CreateAttachmentResponse>()
+                if (res.success && res.data != null) {
+                    res.data
+                } else {
+                    throw Exception(res.error ?: "Upload attachment failed")
+                }
+            } else {
+                throw Exception("Upload attachment failed with status: ${response.status.value}")
+            }
+        }
+    }
+
+    /**
+     * 18. Delete Attachment (DELETE /api/attachments/:id)
+     */
+    open suspend fun deleteAttachment(sessionToken: String, id: String): Result<Boolean> = withContext(Dispatchers.IO) {
+        runCatching {
+            val response: HttpResponse = client.delete("api/attachments/$id") {
+                header(HttpHeaders.Authorization, "Bearer $sessionToken")
+            }
+            response.status == HttpStatusCode.OK || response.status == HttpStatusCode.NoContent
+        }
+    }
 }
 

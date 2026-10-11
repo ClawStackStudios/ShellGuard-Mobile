@@ -4,6 +4,7 @@ import android.util.Log
 import com.clawstack.shellguard.crypto.EncryptedDeviceVault
 import com.clawstack.shellguard.crypto.ShellCryptionEngine
 import com.clawstack.shellguard.data.local.ShellGuardDatabase
+import com.clawstack.shellguard.data.local.AttachmentVaultManager
 import com.clawstack.shellguard.data.local.entities.SecureNoteEntity
 import com.clawstack.shellguard.data.local.entities.SshKeyEntity
 import com.clawstack.shellguard.data.local.entities.SyncMetadataEntity
@@ -53,6 +54,7 @@ data class UnifiedVaultItem(
     val category: String? = null,
     val tags: List<String> = emptyList(),
     val reprompt: Boolean = false,
+    val hasAttachments: Boolean = false,
     val localUpdatedAt: Long = 0L,
     val remoteUpdatedAt: Long = 0L
 )
@@ -63,6 +65,7 @@ class SyncRepository(
     private val deviceVault: EncryptedDeviceVault,
     private val connectivityMonitor: ConnectivityMonitor,
     private val cryptoEngine: ShellCryptionEngine = ShellCryptionEngine,
+    val attachmentVaultManager: AttachmentVaultManager? = null,
     private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 ) {
     private val syncMutex = Mutex()
@@ -117,6 +120,7 @@ class SyncRepository(
                         domain = VaultItemDomain.PASSWORD,
                         category = pearl.category,
                         reprompt = pearl.reprompt,
+                        hasAttachments = pearl.attachments.isNotBlank() && pearl.attachments.trim() != "[]",
                         localUpdatedAt = pearl.localUpdatedAt,
                         remoteUpdatedAt = pearl.remoteUpdatedAt
                     )
@@ -133,6 +137,7 @@ class SyncRepository(
                         domain = VaultItemDomain.NOTE,
                         category = note.category,
                         reprompt = note.reprompt,
+                        hasAttachments = note.attachments.isNotBlank() && note.attachments.trim() != "[]",
                         localUpdatedAt = note.localUpdatedAt,
                         remoteUpdatedAt = note.remoteUpdatedAt
                     )
@@ -329,6 +334,39 @@ class SyncRepository(
                 database.sshKeyDao().deleteBatch(ownerUuid, batch)
             }
 
+            // 4. Downstream Pull for Attachments (Metadata only per CWE-400)
+            val remoteAttachmentsRes = client.fetchAttachments(sessionToken)
+            if (remoteAttachmentsRes.isSuccess) {
+                val remoteAttachments = remoteAttachmentsRes.getOrNull() ?: emptyList()
+                val remoteAttIds = remoteAttachments.map { it.id }.toSet()
+                for (dto in remoteAttachments) {
+                    val existing = database.secureAttachmentDao().getById(ownerUuid, dto.id)
+                    if (existing == null) {
+                        database.secureAttachmentDao().upsert(
+                            com.clawstack.shellguard.data.local.entities.SecureAttachmentEntity(
+                                id = dto.id,
+                                ownerUuid = ownerUuid,
+                                title = dto.title,
+                                fileName = dto.file_name,
+                                sizeBytes = dto.size_bytes,
+                                mimeType = dto.mime_type,
+                                category = dto.category ?: "",
+                                syncState = "SYNCED",
+                                createdAt = System.currentTimeMillis().toString()
+                            )
+                        )
+                    }
+                }
+                // Prune deleted remote attachments from Room and disk
+                val localItems = database.secureAttachmentDao().getAll(ownerUuid)
+                for (local in localItems) {
+                    if (local.syncState == "SYNCED" && !remoteAttIds.contains(local.id)) {
+                        database.secureAttachmentDao().deleteById(ownerUuid, local.id)
+                        attachmentVaultManager?.deleteEncryptedFile(local.id)
+                    }
+                }
+            }
+
             // Update SyncMetadata only after all operations succeed
             database.syncMetadataDao().upsert(
                 SyncMetadataEntity(
@@ -406,6 +444,22 @@ class SyncRepository(
             }
         }
 
+        // Drain pending attachment deletes
+        val pendingDeleteAttachments = database.secureAttachmentDao().getAll(ownerUuid).filter { it.syncState == "PENDING_DELETE" }
+        for (item in pendingDeleteAttachments) {
+            var remoteDeleted = true
+            try {
+                val res = client.deleteAttachment(sessionToken, item.id)
+                remoteDeleted = res.isSuccess && (res.getOrNull() == true)
+            } catch (e: Exception) {
+                remoteDeleted = false
+            }
+            if (remoteDeleted) {
+                database.secureAttachmentDao().deleteById(ownerUuid, item.id)
+                attachmentVaultManager?.deleteEncryptedFile(item.id)
+            }
+        }
+
         // 2. Drain pending syncs (Creates / Updates) for Pearls
         val pendingSyncPearls = database.vaultPearlDao().getPendingSyncItems(ownerUuid)
         for (item in pendingSyncPearls) {
@@ -421,7 +475,9 @@ class SyncRepository(
                     totp_secret = item.totpSecret.ifBlank { null },
                     type = item.type,
                     custom_fields = item.customFields.ifBlank { null },
+                    attachments = item.attachments?.ifBlank { null },
                     tags = item.tags,
+                    uris = item.uris?.ifBlank { null },
                     reprompt = item.reprompt
                 )
 
@@ -501,6 +557,7 @@ class SyncRepository(
                     content = item.content,
                     category = item.category.ifBlank { null },
                     custom_fields = item.customFields.ifBlank { null },
+                    attachments = item.attachments?.ifBlank { null },
                     tags = item.tags,
                     reprompt = item.reprompt
                 )
@@ -623,11 +680,104 @@ class SyncRepository(
                 Log.w("SyncRepository", "Failed to push pending ssh key ${item.id}", e)
             }
         }
+
+        // Drain pending attachment uploads
+        val pendingSyncAttachments = database.secureAttachmentDao().getPendingSyncItems(ownerUuid)
+        for (item in pendingSyncAttachments) {
+            try {
+                val bytes = attachmentVaultManager?.readEncryptedBytes(item.id)
+                if (bytes != null && bytes.isNotEmpty()) {
+                    val uploadResult = client.uploadAttachmentMultipart(
+                        sessionToken = sessionToken,
+                        id = item.id,
+                        title = item.title,
+                        fileName = item.fileName,
+                        mimeType = item.mimeType,
+                        category = item.category ?: "",
+                        ciphertextBytes = bytes
+                    )
+                    if (uploadResult.isSuccess) {
+                        database.secureAttachmentDao().upsert(item.copy(syncState = "SYNCED"))
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w("SyncRepository", "Failed to push attachment ${item.id}", e)
+            }
+        }
     }
 
     // ══════════════════════════════════════════════════════════════════════════
     // Multi-Domain Decrypted CRUD Operations (Task 05)
     // ══════════════════════════════════════════════════════════════════════════
+
+    suspend fun getAttachment(ownerUuid: String, id: String): Result<com.clawstack.shellguard.data.local.entities.SecureAttachmentEntity> = withContext(Dispatchers.IO) {
+        runCatching {
+            database.secureAttachmentDao().getById(ownerUuid, id)
+                ?: throw NoSuchElementException("Attachment not found: $id")
+        }
+    }
+
+    suspend fun downloadAttachment(sessionToken: String, id: String): Result<java.io.File> = withContext(Dispatchers.IO) {
+        runCatching {
+            val manager = attachmentVaultManager ?: throw IllegalStateException("AttachmentVaultManager not available")
+            val targetFile = manager.getAttachmentFile(id)
+            if (targetFile.exists() && targetFile.length() > 0) {
+                return@runCatching targetFile
+            }
+            val client = clientProvider(deviceVault.getServerUrl() ?: "")
+            client.downloadAttachmentFile(sessionToken, id, targetFile).getOrThrow()
+        }
+    }
+
+    suspend fun stageAttachment(
+        ownerUuid: String,
+        title: String,
+        fileName: String,
+        mimeType: String,
+        category: String?,
+        rawPlaintextBytes: ByteArray
+    ): Result<com.clawstack.shellguard.data.local.entities.SecureAttachmentEntity> = withContext(Dispatchers.IO) {
+        runCatching {
+            val shellKey = deviceVault.getInMemoryShellKey() ?: throw IllegalStateException("Vault locked or shellKey missing")
+            val id = java.util.UUID.randomUUID().toString()
+            val manager = attachmentVaultManager ?: throw IllegalStateException("AttachmentVaultManager not available")
+
+            val envelopeJson = cryptoEngine.encryptField(
+                plainText = java.util.Base64.getEncoder().encodeToString(rawPlaintextBytes),
+                shellKey = shellKey,
+                aad = ShellCryptionEngine.AadNamespace.secureAttachment(id)
+            )
+            manager.writeEncryptedBytes(id, envelopeJson.toByteArray(kotlin.text.Charsets.UTF_8))
+            val entity = com.clawstack.shellguard.data.local.entities.SecureAttachmentEntity(
+                id = id,
+                ownerUuid = ownerUuid,
+                title = title,
+                fileName = fileName,
+                sizeBytes = rawPlaintextBytes.size.toLong(),
+                mimeType = mimeType,
+                category = category ?: "",
+                syncState = "PENDING_SYNC",
+                createdAt = System.currentTimeMillis().toString()
+            )
+            database.secureAttachmentDao().upsert(entity)
+            entity
+        }
+    }
+
+    suspend fun decryptAttachment(id: String): Result<String> = withContext(Dispatchers.IO) {
+        runCatching {
+            val shellKey = deviceVault.getInMemoryShellKey() ?: throw IllegalStateException("Vault locked or shellKey missing")
+
+            var bytes = attachmentVaultManager?.readEncryptedBytes(id)
+            if (bytes == null || bytes.isEmpty()) {
+                val sessionToken = deviceVault.getSessionToken() ?: throw IllegalStateException("No active session")
+                downloadAttachment(sessionToken, id).getOrThrow()
+                bytes = attachmentVaultManager?.readEncryptedBytes(id) ?: throw NoSuchElementException("Encrypted attachment file not found: $id")
+            }
+
+            cryptoEngine.decryptField(String(bytes, kotlin.text.Charsets.UTF_8), shellKey, ShellCryptionEngine.AadNamespace.secureAttachment(id))
+        }
+    }
 
     suspend fun getPearlDetail(id: String): Result<PearlDetail> = withContext(Dispatchers.IO) {
         runCatching {
@@ -721,6 +871,8 @@ class SyncRepository(
             } else ""
 
             val tagsJson = CustomFieldSerializer.serializeTags(pearl.tags)
+            val urisJson = CustomFieldSerializer.serializeUris(pearl.uris)
+            val attachmentsJson = CustomFieldSerializer.serializeAttachments(pearl.attachments)
 
             var syncState = "PENDING_SYNC"
             var remoteUpdatedAt = pearl.remoteUpdatedAt
@@ -745,7 +897,9 @@ class SyncRepository(
                     totp_secret = encryptedTotp.ifBlank { null },
                     type = pearl.type,
                     custom_fields = encryptedCustomFields.ifBlank { null },
+                    attachments = attachmentsJson.ifBlank { null },
                     tags = tagsJson,
+                    uris = urisJson.ifBlank { null },
                     reprompt = pearl.reprompt
                 )
 
@@ -866,6 +1020,7 @@ class SyncRepository(
             } else ""
 
             val tagsJson = CustomFieldSerializer.serializeTags(note.tags)
+            val attachmentsJson = CustomFieldSerializer.serializeAttachments(note.attachments)
 
             var syncState = "PENDING_SYNC"
             var remoteUpdatedAt = note.remoteUpdatedAt
@@ -883,6 +1038,7 @@ class SyncRepository(
                     content = encryptedContent,
                     category = note.category.ifBlank { null },
                     custom_fields = encryptedCustomFields.ifBlank { null },
+                    attachments = attachmentsJson.ifBlank { null },
                     tags = tagsJson,
                     reprompt = note.reprompt
                 )
