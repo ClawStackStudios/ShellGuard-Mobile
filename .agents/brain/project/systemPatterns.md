@@ -14,6 +14,8 @@ UI (Compose) ──(UserIntent)──> ViewModel ──> UseCase ──> Reposit
 ## Storage Patterns: Hybrid File-System Vault
 - **CursorWindow Invariant (CWE-400)**: Android enforces a hard 2MB `CursorWindow` limit on SQLite query rows. 
 - **Decoupled Architecture**: Multi-megabyte file attachments are strictly prohibited from inline BLOB columns in Room. Room stores only metadata (`sizeBytes`, `mimeType`, `sha256Checksum`, `localFilePath`). Encrypted payload bytes stream directly to `context.filesDir/vault_attachments/{id}.enc` via `CipherInputStream` and `CipherOutputStream`, bounding memory allocations to <= 64KB buffers.
+- **Cache-First Invariant for Encrypted Blobs**: When decrypting vault attachments (`decryptAttachment`), the repository checks `attachmentVaultManager.readEncryptedBytes(id)` *before* issuing network requests. If the ciphertext already exists on local disk (from previous sync or local draft staging prior to sync), network calls are bypassed entirely. Remote download is triggered only as a cache miss fallback.
+- **Unified Item Attachment Presence**: `UnifiedVaultItem` carries an explicit `hasAttachments: Boolean = false` property populated during Room entity transformation whenever `attachments.isNotBlank() && attachments != "[]"`, ensuring instant dashboard pod filtering without parsing JSON arrays on the UI thread.
 
 ## Offline Patterns: Bitwarden-Model Read-Only Access & Seamless Reconnection
 - **Server as Single Source of Truth**: The central Express 5 server owns vault mutations.
