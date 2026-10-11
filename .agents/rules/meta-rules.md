@@ -75,5 +75,3 @@ These meta-rules are synthesized from cross-session failure analyses and error t
 - **Failure Condition**: Using shell-based unified diff scripts (`patch -p1`) or expecting background agents to apply patch files to large classes (>500 lines) causes frequent failure due to whitespace and line offset drift near constructors or imports, often prompting destructive uncommitted `git reset` operations.
 - **Minimal-Code Heuristic**: For classes exceeding 500 lines or when guiding subagents/assistants, prefer targeted programmatic in-place section editing or complete file replacement. Always instruct subagents to run `git status` and `git diff --stat` before any reset or commit, never assuming uncommitted changes survive a reset.
 - **Evidence**: 2 recorded instances (`2026-10-10` Jules unified diff rejection near line 86 of 1,123-line `SyncRepository.kt`, `2026-10-10` uncommitted working tree destruction during memory recording).
-
-

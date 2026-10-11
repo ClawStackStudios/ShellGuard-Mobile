@@ -22,6 +22,6 @@ Run this checklist before finalizing any task, commit, or pull request:
 ---
 
 ### Diff from v2
-**Added**: 3 items (Items 13–15: Storage Lifecycle & Panic Purge Parity, Large-File Mutation & Patch Guard, Bot Handle & Forge Entity Verification).  
+**Added**: 3 items (Items 13–15: Storage Lifecycle & Panic Purge Parity, Large-File Mutation & Patch Guard, Bot Handle & Forge Entity Verification).
 **Removed**: 0 items.  
 **Unchanged**: 12 items (Items 1–12).
