@@ -812,6 +812,8 @@ class SyncRepository(
             } else emptyList()
 
             val tags = CustomFieldSerializer.deserializeTags(entity.tags)
+            val uris = CustomFieldSerializer.deserializeUris(entity.uris)
+            val attachments = CustomFieldSerializer.deserializeAttachments(entity.attachments)
 
             PearlDetail(
                 id = entity.id,
@@ -826,6 +828,8 @@ class SyncRepository(
                 totpSecret = totpPlain,
                 customFields = customFields,
                 tags = tags,
+                uris = uris,
+                attachments = attachments,
                 passwordHistory = history,
                 reprompt = entity.reprompt,
                 syncState = entity.syncState,
@@ -951,10 +955,10 @@ class SyncRepository(
                 category = pearl.category,
                 notes = pearl.notes,
                 totpSecret = finalTotp,
-                attachments = "[]",
+                attachments = attachmentsJson,
                 customFields = finalCustomFields,
                 tags = tagsJson,
-                uris = "[]",
+                uris = urisJson,
                 passwordHistory = finalHistory,
                 reprompt = pearl.reprompt,
                 syncState = syncState,
@@ -987,6 +991,7 @@ class SyncRepository(
             } else emptyList()
 
             val tags = CustomFieldSerializer.deserializeTags(entity.tags)
+            val attachments = CustomFieldSerializer.deserializeAttachments(entity.attachments)
 
             SecureNoteDetail(
                 id = entity.id,
@@ -996,6 +1001,7 @@ class SyncRepository(
                 category = entity.category,
                 customFields = customFields,
                 tags = tags,
+                attachments = attachments,
                 reprompt = entity.reprompt,
                 syncState = entity.syncState,
                 createdAt = entity.createdAt,
@@ -1079,7 +1085,7 @@ class SyncRepository(
                 title = note.title,
                 content = finalContent,
                 category = note.category,
-                attachments = "[]",
+                attachments = attachmentsJson,
                 customFields = finalCustomFields,
                 tags = tagsJson,
                 reprompt = note.reprompt,
