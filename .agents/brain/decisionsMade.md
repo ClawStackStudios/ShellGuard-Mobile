@@ -598,5 +598,3 @@ The cross-session failure analysis (/deep-learn) detected an **over-confidence b
 
 ## Calibration Note — 2026-10-10 13:20
 Calibration is sharp with 0 over-confidence penalties across 8 ratified decisions since Phase 7. The Lazy Senior Developer stance ("predict the concrete operating failure before cutting") has successfully anchored confidence in empirical verification.
-
-

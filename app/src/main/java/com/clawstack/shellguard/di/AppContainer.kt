@@ -24,6 +24,7 @@ interface AppContainer {
     val deviceVault: EncryptedDeviceVault
     val connectivityMonitor: ConnectivityMonitor
     val syncRepository: SyncRepository
+    val attachmentVaultManager: com.clawstack.shellguard.data.local.AttachmentVaultManager
     val vaultLockManager: com.clawstack.shellguard.crypto.VaultLockManager
     val settingsRepository: SettingsRepository
     val backupEngine: com.clawstack.shellguard.data.backup.VaultBackupEngine
@@ -72,12 +73,17 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
         com.clawstack.shellguard.data.backup.VaultBackupEngine(database, deviceVault)
     }
 
+    override val attachmentVaultManager: com.clawstack.shellguard.data.local.AttachmentVaultManager by lazy {
+        com.clawstack.shellguard.data.local.AttachmentVaultManager(context)
+    }
+
     override val syncRepository: SyncRepository by lazy {
         SyncRepository(
             database = database,
             clientProvider = { baseUrl -> getClient(baseUrl) },
             deviceVault = deviceVault,
-            connectivityMonitor = connectivityMonitor
+            connectivityMonitor = connectivityMonitor,
+            attachmentVaultManager = attachmentVaultManager
         )
     }
 

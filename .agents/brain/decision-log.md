@@ -62,4 +62,3 @@ Codified dual-medium iteration protocol into global jules-cli skill: Jules nativ
 
 ## 2026-10-10 — orthogonal task partitioning & jules pr kickoff
 Audited codebase seams across UI, Autofill, and Settings/Storage debt for Stage 1 completion. To prevent merge conflicts in Jules sessions, partitioned remaining scope into two strictly orthogonal tasks (Task 1 for UI & Autofill, Task 2 for DI, Storage, Settings debt, and FileProvider) with zero file overlap, updated JULES.md with Compose line limits and bot tagging rules, and triggered Task 1 execution via GitHub PR comment on PR #1.
-

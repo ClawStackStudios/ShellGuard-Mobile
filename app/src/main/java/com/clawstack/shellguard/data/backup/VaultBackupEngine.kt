@@ -56,6 +56,7 @@ data class BackupVaultItem(
     val uris: String = "[]",
     val category: String = "",
     val notes: String = "",
+    val attachments: String = "[]",
     // Serialized with web naming convention (snake_case), with camelCase fallback
     val totp_secret: String? = null,
     val totpSecret: String? = null,
@@ -334,6 +335,7 @@ class VaultBackupEngine(
                 custom_fields = decryptedCustom,
                 tags = pearl.tags,
                 uris = pearl.uris,
+                attachments = pearl.attachments,
                 reprompt = pearl.reprompt,
                 created_at = pearl.createdAt
             ))
@@ -373,6 +375,7 @@ class VaultBackupEngine(
                 category = note.category,
                 custom_fields = decryptedCustom,
                 tags = note.tags,
+                attachments = note.attachments,
                 reprompt = note.reprompt,
                 created_at = note.createdAt
             ))
@@ -592,6 +595,7 @@ class VaultBackupEngine(
                         content = encContent,
                         category = item.category,
                         customFields = encCustom,
+                        attachments = item.attachments,
                         tags = item.tags,
                         reprompt = item.reprompt,
                         syncState = "PENDING_SYNC",
@@ -663,6 +667,7 @@ class VaultBackupEngine(
                         category = item.category,
                         notes = item.notes,
                         totpSecret = encTotp,
+                        attachments = item.attachments,
                         customFields = encCustom,
                         tags = item.tags,
                         uris = item.uris,
