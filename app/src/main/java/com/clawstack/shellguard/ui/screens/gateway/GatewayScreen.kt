@@ -406,6 +406,32 @@ fun GatewayScreen(
                             modifier = Modifier.padding(start = 16.dp, top = 4.dp)
                         )
                     }
+
+                    if (uiState.protocol == "http") {
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFFD97706).copy(alpha = 0.15f))
+                                .border(1.dp, Color(0xFFD97706).copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                                .padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "⚠️",
+                                fontSize = 12.sp
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Unencrypted HTTP — Session tokens and item metadata are exposed on local network.",
+                                color = Color(0xFFFBBF24),
+                                fontSize = 11.sp,
+                                lineHeight = 15.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
                 }
 
                 // Floating Protocol Dropdown Card

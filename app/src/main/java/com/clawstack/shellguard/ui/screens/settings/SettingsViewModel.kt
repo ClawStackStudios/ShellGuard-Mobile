@@ -152,6 +152,9 @@ class SettingsViewModel(
         } catch (t: Throwable) {
             // Ensure session is cleared even if database wipe throws
             appContainer.deviceVault.clearSession()
+            try {
+                appContainer.attachmentVaultManager.clearDecryptedCache()
+            } catch (_: Throwable) {}
         } finally {
             _extraState.update { it.copy(isWiping = false) }
             onCompleted()

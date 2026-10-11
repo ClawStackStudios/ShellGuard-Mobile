@@ -186,10 +186,21 @@ class ItemDetailViewModel(
                     if (entity != null) {
                         val cacheDir = java.io.File(context.cacheDir, "decrypted_attachments")
                         if (!cacheDir.exists()) cacheDir.mkdirs()
-                        val targetFile = java.io.File(cacheDir, entity.fileName)
+                        val safeFileName = java.io.File(entity.fileName).name
+                        val targetFile = java.io.File(cacheDir, safeFileName)
                         targetFile.writeBytes(bytes)
                         val uri = androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", targetFile)
-                        onReady(uri, entity.mimeType)
+
+                        val extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(safeFileName)
+                        val resolvedMime = if (!extension.isNullOrBlank()) {
+                            android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.lowercase()) ?: entity.mimeType
+                        } else {
+                            entity.mimeType
+                        }
+
+                        val finalMime = if (resolvedMime.isBlank()) "application/octet-stream" else resolvedMime
+
+                        onReady(uri, finalMime)
                     }
                 } catch (e: Exception) {
                     _rawState.value = ItemDetailUiState.Error("Failed to decode and open attachment: ${e.message}")

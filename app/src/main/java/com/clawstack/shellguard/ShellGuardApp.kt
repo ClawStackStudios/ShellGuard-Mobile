@@ -21,6 +21,9 @@ class ShellGuardApp : Application() {
     override fun onCreate() {
         super.onCreate()
         initializeSecurityFoundation()
+        try {
+            container.attachmentVaultManager.clearDecryptedCache()
+        } catch (_: Throwable) {}
     }
 
     private fun initializeSecurityFoundation() {

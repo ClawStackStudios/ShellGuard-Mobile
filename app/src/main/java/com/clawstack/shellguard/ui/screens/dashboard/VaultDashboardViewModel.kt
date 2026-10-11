@@ -117,12 +117,18 @@ class VaultDashboardViewModel(
     fun lockVault(onLocked: () -> Unit) {
         appContainer.deviceVault.zeroizeMemory()
         appContainer.vaultLockManager.lockVaultNow()
+        try {
+            appContainer.attachmentVaultManager.clearDecryptedCache()
+        } catch (_: Throwable) {}
         onLocked()
     }
 
     fun logout(onLoggedOut: () -> Unit) {
         viewModelScope.launch {
             appContainer.deviceVault.clearSession()
+            try {
+                appContainer.attachmentVaultManager.clearDecryptedCache()
+            } catch (_: Throwable) {}
             onLoggedOut()
         }
     }

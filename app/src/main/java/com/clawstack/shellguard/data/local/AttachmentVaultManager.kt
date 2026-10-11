@@ -48,9 +48,17 @@ class AttachmentVaultManager(private val context: Context) {
         } else false
     }
 
+    fun clearDecryptedCache() {
+        val cacheDir = File(context.cacheDir, "decrypted_attachments")
+        if (cacheDir.exists() && cacheDir.isDirectory) {
+            cacheDir.listFiles()?.forEach { it.delete() }
+        }
+    }
+
     fun clearAll() {
         if (attachmentDir.exists() && attachmentDir.isDirectory) {
             attachmentDir.listFiles()?.forEach { it.delete() }
         }
+        clearDecryptedCache()
     }
 }

@@ -406,13 +406,23 @@ fun ItemDetailScreen(
                                                     url = state.url,
                                                     onOpenUrl = {
                                                         try {
-                                                            val uri = if (!state.url.startsWith("http://") && !state.url.startsWith("https://")) {
-                                                                Uri.parse("https://${state.url}")
+                                                            if (state.url.startsWith("androidapp://")) {
+                                                                val packageName = state.url.removePrefix("androidapp://")
+                                                                val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName)
+                                                                if (launchIntent != null) {
+                                                                    context.startActivity(launchIntent)
+                                                                } else {
+                                                                    Toast.makeText(context, "App not installed: $packageName", Toast.LENGTH_SHORT).show()
+                                                                }
                                                             } else {
-                                                                Uri.parse(state.url)
+                                                                val uri = if (!state.url.startsWith("http://") && !state.url.startsWith("https://")) {
+                                                                    Uri.parse("https://${state.url}")
+                                                                } else {
+                                                                    Uri.parse(state.url)
+                                                                }
+                                                                val intent = Intent(Intent.ACTION_VIEW, uri)
+                                                                context.startActivity(intent)
                                                             }
-                                                            val intent = Intent(Intent.ACTION_VIEW, uri)
-                                                            context.startActivity(intent)
                                                         } catch (e: Exception) {
                                                             Toast.makeText(context, "Could not open URL", Toast.LENGTH_SHORT).show()
                                                         }
@@ -437,10 +447,22 @@ fun ItemDetailScreen(
                                                                 url = uri,
                                                                 onOpenUrl = {
                                                                     try {
-                                                                        val formattedUrl = if (!uri.startsWith("http://") && !uri.startsWith("https://")) "https://$uri" else uri
-                                                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(formattedUrl))
-                                                                        context.startActivity(intent)
-                                                                    } catch (_: Exception) {}
+                                                                        if (uri.startsWith("androidapp://")) {
+                                                                            val packageName = uri.removePrefix("androidapp://")
+                                                                            val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName)
+                                                                            if (launchIntent != null) {
+                                                                                context.startActivity(launchIntent)
+                                                                            } else {
+                                                                                Toast.makeText(context, "App not installed: $packageName", Toast.LENGTH_SHORT).show()
+                                                                            }
+                                                                        } else {
+                                                                            val formattedUrl = if (!uri.startsWith("http://") && !uri.startsWith("https://")) "https://$uri" else uri
+                                                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(formattedUrl))
+                                                                            context.startActivity(intent)
+                                                                        }
+                                                                    } catch (_: Exception) {
+                                                                        Toast.makeText(context, "Could not open URL", Toast.LENGTH_SHORT).show()
+                                                                    }
                                                                 },
                                                                 onCopy = { copyToClipboard("URL", uri, isSensitive = false) }
                                                             )
@@ -787,13 +809,23 @@ fun ItemDetailScreen(
                                 Spacer(modifier = Modifier.height(16.dp))
                                 AttachmentListSection(
                                     attachments = state.attachments,
-                                    onOpenAttachment = { attId -> viewModel.openAttachment(context, attId) { uri, mime ->
-                                        try {
-                                            context.startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri, mime).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))
-                                        } catch (e: android.content.ActivityNotFoundException) {
-                                            Toast.makeText(context, "No app found to open this file type", Toast.LENGTH_SHORT).show()
+                                    onOpenAttachment = { attId ->
+                                        val openAction = {
+                                            viewModel.openAttachment(context, attId) { uri, mime ->
+                                                try {
+                                                    context.startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri, mime).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))
+                                                } catch (e: android.content.ActivityNotFoundException) {
+                                                    Toast.makeText(context, "No app found to open this file type", Toast.LENGTH_SHORT).show()
+                                                }
+                                            }
                                         }
-                                    }}
+                                        if (state.reprompt && !isRepromptPassed) {
+                                            pendingSensitiveAction = openAction
+                                            showRepromptDialog = true
+                                        } else {
+                                            openAction()
+                                        }
+                                    }
                                 )
                             }
 
