@@ -264,7 +264,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Zero-Knowledge Inline Subtitle Masking (`AutofillInlineHelper.kt`)**: Eliminated raw plaintext username exposure on Android 11+ IME chips via Option B partial masking (`lu***@gmail.com`).
 - **WebView AutoSpill & Host-Hijack Isolation (`AutofillStructureParser.kt`)**: Cleared outer native host view fields when entering a `webDomain` subtree so native host containers cannot siphon web credentials.
 
-## [Unreleased] — Stage 1: Server Parity (Encrypted Attachments & Multi-URI Bridge)
+## [0.0.0.12] - 2026-10-11 (Build 12) — Stage 1: Server Parity (Encrypted Attachments & Multi-URI Bridge)
 
 ### Added
 - **Streaming Ktor Attachment Client**: High-throughput multipart upload and chunked streaming download endpoints for encrypted file attachments, bypassing memory buffering.

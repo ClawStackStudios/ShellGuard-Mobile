@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.0.12] - 2026-10-11 (Build 12) — Stage 1: Full Server Parity (Encrypted Attachments & Multi-URI Bridge)
+### Added
+- **Hybrid File-System Vault (`AttachmentVaultManager.kt`)**: Streaming ciphertext file storage offloading payloads into private app storage (`context.filesDir/vault_attachments/{id}.enc`), eliminating SQLite 2MB `CursorWindowAllocationException` risks while maintaining Room metadata indexing in `SecureAttachmentDao`.
+- **Encrypted Multipart Streaming Network Engine (`ShellGuardClient.kt`)**: Implemented `POST /api/attachments` multipart chunked streaming upload with byte progress callbacks, `GET /api/attachments` metadata retrieval, `GET /api/attachments/:id/file` 1MB buffered streaming download, and `DELETE /api/attachments/:id`.
+- **Dynamic Multi-URI Dynamic Editor (`ItemFormScreen.kt`)**: Dynamic list builder supporting multiple login URLs per password entry (`vault_pearls.uris`), matching Bitwarden and ShellGuard Web specification.
+- **Biometric-Gated Attachment Viewer & Share Engine (`ItemDetailScreen.kt`, `ItemDetailViewModel.kt`)**: File detail card rendering filename, byte size, extension icon badge, and tap-to-view/share actions backed by `FileProvider` (`res/xml/attachment_file_paths.xml`) and gated behind biometric Claw Re-Prompt challenges.
+- **Native Android App Launcher Scheme (`androidapp://`)**: Seamless package launcher resolving `androidapp://<package_name>` URIs to launch native installed Android applications via `PackageManager.getLaunchIntentForPackage`.
+- **Systemic Cleartext HTTP Transport Warnings (`GatewayScreen.kt`, `SettingsSyncScreen.kt`)**: Prominent amber warning banners informing users of plaintext transport risks when connecting to local home lab servers without TLS armor.
+
+### Changed
+- **Test Oracle & Hardware Verification**: Expanded unit test suite to 115 tests passing 100% green (`BUILD SUCCESSFUL in 6m 52s`), verified live on physical Google Pixel (`sailfish`) hardware across attachment encryption, Room edit persistence, and cache destruction.
+- **DefaultAppContainer DI Integration**: Wired `AttachmentVaultManager` as an application-scoped singleton in `AppContainer` and `DefaultAppContainer`.
+
+### Fixed
+- **Room Persistence of Attachments & Secondary URIs (`SyncRepository.kt`)**: Corrected data-drop defect where saving edited Pearls and Notes hardcoded `"[]"` for `attachments` and `uris`, restoring full bidirectional serialization and deserialization across database and network boundaries.
+- **Plaintext Decrypted Cache Leak (`AttachmentVaultManager.clearDecryptedCache`)**: Enforced deterministic deletion of temporary plaintext files in `context.cacheDir/decrypted_attachments/` across cold start (`ShellGuardApp.onCreate`), user logout (`VaultDashboardViewModel.logout`), and emergency wipe (`SettingsViewModel.executePanicPurge`).
+- **Filenames Path Traversal Sanitization**: Stripped directory traversal sequences (`..`, `/`, `\`) from attachment filenames before creating files on the Android filesystem.
+
+### Security
+- **Biometric Claw Re-Prompt Gate on Attachments**: Barricaded attachment opening behind `performSensitiveAction()` so items requiring sensitive biometric re-prompt cannot leak decrypted files to external viewing intents without biometric re-authentication.
+- **Panic Purge Disk Scrubbing**: Integrated `AttachmentVaultManager.clearAll()` into `SettingsViewModel.executePanicPurge()` to permanently delete all encrypted attachments and temporary decrypted cache during an emergency wipe.
+
 ## [0.0.0.11] - 2026-10-08 (Build 11) — Phase 7: Context-Aware Autofill Expansion & Blast-Radius Containment
 ### Added
 - **5-Tier Confidence-Ranked Autofill Parser (`AutofillStructureParser.kt`)**: Extracted `AutofillNode` abstraction and `parseNodes` traversal entry point with 5-tier confidence ranking (`RANK_EXPLICIT_HINT = 1` through `RANK_PROXIMITY = 5`), HTML `<input type="email">` / `autocomplete` inspection, Android `InputType` email/web-email variation matching, preceding-editable-input proximity fallback, and negative exclusion filtering (`search`, `url_bar`, `omnibox`, `autocompletetextview`, `otp`, `totp`, `captcha`).
@@ -177,7 +199,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   <sub>Engineered with precision for the ClawStack / ShellGuard ecosystem.</sub>
 </div>
 
-[Unreleased]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.11...HEAD
+[Unreleased]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.12...HEAD
+[0.0.0.12]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.11...v0.0.0.12
 [0.0.0.11]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.10...v0.0.0.11
 [0.0.0.10]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.9...v0.0.0.10
 [0.0.0.9]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.8...v0.0.0.9

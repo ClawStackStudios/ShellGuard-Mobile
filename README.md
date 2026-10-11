@@ -6,7 +6,7 @@
 
 ### Sovereign, privacy-first secrets vault native Android client with hardware-encrypted storage.
 
-[![Version](https://img.shields.io/badge/version-v0.0.0.11%20(Build%2011)-E4048A?style=for-the-badge&logo=android&logoColor=white)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v0.0.0.12%20(Build%2012)-E4048A?style=for-the-badge&logo=android&logoColor=white)](CHANGELOG.md)
 [![Android](https://img.shields.io/badge/Android-API%2024%E2%80%9336-3DDC84?style=for-the-badge&logo=android&logoColor=white)](app/build.gradle.kts)
 [![Security Policy](https://img.shields.io/badge/Security-Policy-00BCD4?style=for-the-badge&logo=shield&logoColor=white)](SECURITY.md)
 [![16KB Ready](https://img.shields.io/badge/Kernel-16%20KB%20Page--Size-7952B3?style=for-the-badge)](project/16kb-page-size-alignment-guide.md)
@@ -78,7 +78,7 @@ Captured natively from physical Google Pixel hardware running Android 14 (Lineag
 
 ### ⚡ Ergonomics & Touch Usability
 - **Debounced Instant Search**: Sub-16ms filtering across account titles, usernames, URLs, and notes.
-- **Horizontal Pod Filter Chips**: Rapidly filter items by domain (`All`, `Passwords`, `Notes`, `SSH Keys`) with live item counts.
+- **Horizontal Pod Filter Chips**: Rapidly filter items by domain (`All`, `Passwords`, `Notes`, `SSH Keys`, `Attachments`) with live item counts.
 - **Adaptive Master-Detail Ergonomics**: Fluid single-column navigation on compact phones; seamless 3-pane layout on foldables and tablets (`SidebarFolderTree` 240dp, `ItemListPane` 340dp, `ItemDetailPane` weight 1f) achieving **100% layout parity with the desktop web client**.
 - **Touch Form Hardening**: Pinned headers/footers with `.imePadding().verticalScroll(rememberScrollState())` and upward-expanding dropup menus to prevent soft keyboard truncation.
 - **CWE-359 Sensitive Keyboard Isolation**: All secret fields apply `PasswordVisualTransformation()` and `KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false)` to block predictive dictionary learning and keyboard telemetry scraping.
@@ -187,7 +187,7 @@ export GRADLE_OPTS="-XX:-UsePerfData -Djava.io.tmpdir=$PWD/app/build/tmp"
 
 ### Verification & Testing
 ```bash
-# Run the complete unit test suite (114/114 tests passing green)
+# Run the complete unit test suite (115/115 tests passing green)
 ./gradlew testDebugUnitTest
 
 # Assemble debug APK
@@ -214,6 +214,8 @@ adb shell am start -n com.clawstack.shellguard/.MainActivity
 | [**`ROADMAP.md`**](ROADMAP.md) | Multi-phase development roadmap tracking completed features and upcoming milestones. |
 | [**`CHANGELOG.md`**](CHANGELOG.md) | Chronological version release history adhering to Keep a Changelog standards. |
 | [**`RELEASE-PLAY.md`**](RELEASE-PLAY.md) | Google Play Store release notes single source of truth across all published versions. |
+| [**`RELEASE-v0.0.0.12.md`**](RELEASE-v0.0.0.12.md) | Dedicated release manifest and architecture notes for v0.0.0.12 (Build 12). |
+| [**`RELEASE-v0.0.0.11.md`**](RELEASE-v0.0.0.11.md) | Dedicated release manifest and architecture notes for v0.0.0.11 (Build 11). |
 | [**`RELEASE-v0.0.0.10.md`**](RELEASE-v0.0.0.10.md) | Dedicated release manifest and architecture notes for v0.0.0.10 (Build 10). |
 | [**`project/architecture.md`**](project/architecture.md) | Deep architectural specification and system role boundaries. |
 | [**`project/routes-and-contracts.md`**](project/routes-and-contracts.md) | REST API endpoints, DTO models, and delta sync reconciliation contracts. |

@@ -148,6 +148,8 @@ Faithfully ported from ClawChives-Mobile to provide a unified entry point into t
 **Features:**
 - Protocol (HTTP/HTTPS), Host, and Port segment bar.
 - Dual-mode server key input: Paste from clipboard or Upload file.
+- **Amber Transport Warning**: When protocol is toggled to `HTTP`, render an amber status card:
+  `⚠️ Unencrypted HTTP — Session tokens and item metadata are exposed on local network`.
 - Warning card detailing connection safety and biometric prerequisites.
 - "Connect to ShellGuard Server" primary action button.
 
@@ -211,10 +213,11 @@ The core navigation hub for managing vault items.
 
 Read-only detailed views tailored to the data type.
 
-- **VaultPearlDetailView:** Features masked password with quick-copy (applying `EXTRA_IS_SENSITIVE`), username, URL with launch intent button, integrated TOTP countdown ring (if applicable), custom fields, tags, attachments, notes, and password history log.
+- **VaultPearlDetailView:** Features masked password with quick-copy (applying `EXTRA_IS_SENSITIVE`), username, multi-URI rows with smart intent routing, integrated TOTP countdown ring (if applicable), custom fields, tags, attachments, notes, and password history log.
+  - **Smart URI Routing (`androidapp://` vs Web)**: Secondary URI rows detect package URIs (`androidapp://<package_name>`). Tapping launches the target native application via `packageManager.getLaunchIntentForPackage()`, displaying a helpful Toast if the app is not installed. Web URIs launch the system browser via `Intent.ACTION_VIEW`.
 - **Claw Re-Prompt Gate:** If `reprompt == true` on an item:
-  - Tapping the visibility eye icon to reveal the password or tapping the copy action intercepts the flow and triggers `BiometricPrompt` (or PIN).
-  - Only after successful authentication is the secret revealed or placed in the clipboard.
+  - Tapping the visibility eye icon to reveal the password, tapping the copy action, or **tapping to open an attachment** intercepts the flow and triggers `BiometricPrompt` (or PIN).
+  - Only after successful authentication is the secret revealed, placed in clipboard, or decrypted for viewing.
 - **SecureNoteDetailView:** Full content display tailored for rich text or markdown, attachments, custom fields, and tags. Gated by Claw Re-Prompt if enabled.
 - **SshKeyDetailView:** Masked key value (private key), public key, username, custom fields, and tags. Gated by Claw Re-Prompt if enabled.
 - **Offline Mutation Guards**: In `OfflineReadOnly` mode, the `Edit` and `Delete` header actions are rendered in a disabled state (alpha 0.4f), preventing local state forks while keeping copy, TOTP, and autofill 100% active.
@@ -225,7 +228,7 @@ Unified `ItemFormScreen` handles the creation and editing of all item types.
 
 - **Type Selector:** Segmented control for Password | Note | SSH Key.
 - **URI & Match Mode Configuration:**
-  - Dynamic URI entry list allowing multiple URLs per item.
+  - Dynamic URI entry list allowing multiple URLs per item, supporting both web addresses (`https://`) and Android application packages (`androidapp://<package_name>`).
   - Per-URI Match Detection dropdown: `[ Base Domain (Default) | Host | Exact | Starts With | Never ]` enabling precise home lab port matching (`http://192.168.1.50:8080` vs `http://192.168.1.50:9000`).
 - **Security Guardrail Toggle:**
   - `Require Master Password / Biometric Re-prompt`: Toggle switch to mark high-security items for re-authentication.
@@ -323,6 +326,7 @@ Configures visual styling and theming:
 Controls server synchronization and offline connectivity:
 - **Connection Status Banner:**
   - Displays live server endpoint, connection state (`OnlineSynced`, `Connecting`, `OfflineReadOnly`), and timestamp of last successful sync.
+  - **Amber Cleartext Indicator**: If the connected server endpoint uses `http://`, an amber warning pill appears below the host address warning of unencrypted local network transmission (`⚠️ Unencrypted HTTP — Session tokens and item metadata are exposed on local network`).
 - **Sync Now:**
   - Primary button to trigger an immediate bidirectional reconciliation (push pending, pull server changes).
 - **Auto-Sync on App Open:**

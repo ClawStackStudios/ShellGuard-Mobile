@@ -32,7 +32,7 @@ flowchart TD
 | Boundary | Enforcement & Characteristics |
 | :--- | :--- |
 | **Client ↔ Server** | Server NEVER sees plaintext secrets or the `hu-` key. Login sends `SHA-256(hu-)` only. |
-| **Client ↔ Local Storage** | Room DB encrypted with SQLCipher. Decrypted secrets held in memory only during active session. |
+| **Client ↔ Local Storage** | Room DB encrypted with SQLCipher. Hybrid file-system attachment vault (`filesDir/vault_attachments/{id}.enc`). Decrypted secrets and temporary file caches (`cacheDir/decrypted_attachments/`) held ephemerally and scrubbed on lock/logout/purge. |
 | **Server ↔ Disk** | Secrets stored as ShellCryption blobs; server-side metadata encryption layers on top. |
 | **Human ↔ Agent** | `hu-` keys are human-only root identity. `lb-` agent keys are granular and revocable. |
 | **Local ↔ Remote** | Bidirectional sync with conflict resolution. Server is source of truth. |
@@ -42,7 +42,7 @@ flowchart TD
 
 *   **Client**: Kotlin, Jetpack Compose + Material 3, MVI architecture
 *   **DI**: Dagger Hilt
-*   **Local DB**: Room 2.7+ with SQLCipher whole-database encryption
+*   **Local DB**: Room 2.7+ with SQLCipher whole-database encryption & Hybrid Attachment Vault
 *   **Network**: Ktor Client (OkHttp engine) consuming Express 5 REST API
 *   **Security**: Android KeyStore, EncryptedSharedPreferences, BiometricPrompt
 *   **Camera**: CameraX + ML Kit Barcode Scanning
@@ -50,6 +50,7 @@ flowchart TD
 *   **Min SDK**: 24
 *   **Server ports**: `:6565` (API), `:6464` (web dev)
 *   **Package Name**: `com.clawstack.shellguard`
+*   **URI Schemes**: Web (`http://`, `https://`) and Android Application Packages (`androidapp://<package_name>`)
 
 ## §4. Threat Model & Invariants
 
@@ -60,9 +61,9 @@ flowchart TD
 5.  **Biometric binding**: Hardware-backed KeyStore keys invalidated on enrollment change.
 6.  **Memory security**: `FLAG_SECURE` blocks screen capture; secrets zeroized post-use.
 7.  **IME hardening**: `KeyboardType.Password` with auto-correct disabled for all secret inputs.
-8.  **Panic wipe**: Emergency broadcast receiver for instant data destruction.
+8.  **Panic wipe & Ephemeral Cache Hygiene**: Emergency broadcast receiver and manual panic triggers execute instant destruction of Room SQLCipher databases, EncryptedSharedPreferences, KeyStore keys, and all plaintext temporary attachment caches (`cacheDir/decrypted_attachments/`).
 9.  **Security priority**: Build features around security, not security around features.
-10. **Transport vs Identity**: TLS is transport armor, not identity — secrecy lives client-side.
+10. **Transport vs Identity & Anti-Theatre Invariant**: TLS is transport armor, not identity — secrecy lives client-side. However, cleartext HTTP leaves authentication tokens (`SHA-256(hu-)`), session bearer JWTs, and metadata exposed on the wire; the UI must warn the user with an amber transport indicator.
 
 ## §5. Transport Security & Network Topology
 
@@ -98,8 +99,9 @@ flowchart LR
 
 ### 1. Cleartext HTTP Invariant (LAN & Tailscale)
 - **Why Cleartext HTTP is Allowed**: Many self-hosted servers operate purely on internal subnets without domain names or public CA certificates. Since Tailscale itself encrypts all traffic end-to-end at the WireGuard protocol layer (Layer 3), running plain HTTP over Tailscale is cryptographically sound.
-- **Zero-Knowledge Defense**: In ShellGuard, secrecy lives on the client. All vault items are encrypted via ShellCryption (AES-GCM-256) before leaving the phone, and login sends `SHA-256(hu-)` instead of raw keys. Cleartext HTTP over LAN/Tailscale never exposes plaintext passwords or encryption keys.
+- **Zero-Knowledge Defense vs. Systemic Transport Invariant**: In ShellGuard, secrecy lives on the client. All vault items are encrypted via ShellCryption (AES-GCM-256) before leaving the phone. However, running over unencrypted HTTP exposes authentication tokens (`SHA-256(hu-)`), session JWTs, and vault metadata (item titles, usernames, URLs, and attachment file names) to local network interception. The client enforces an explicit **Amber Transport Warning** in `GatewayScreen` and Settings whenever an unencrypted `http://` endpoint is selected.
 - **Android OS Constraint**: By default, Android 9+ (API 28+) blocks all cleartext HTTP traffic. Android's `<network-security-config>` XML parser **does not support CIDR IP notation** (e.g. `<domain>192.168.0.0/16</domain>` is invalid and crashes on parse). Therefore, `<base-config cleartextTrafficPermitted="true" />` is strictly mandatory.
+- **TOFU Hardening Roadmap**: For self-signed TLS endpoints, relaxed `TrustManager` and `HostnameVerifier` serve as initial scaffolding to be replaced with Trust-On-First-Use (TOFU) certificate pinning and PAKE/SRP-6a challenge-response authentication.
 
 ### 2. Self-Signed & Tailscale TLS Invariant
 - **Self-Signed Certificates**: ShellGuard Web Server generates an internal EC P-256 TLS certificate on first boot (`server.crt`). The Android client employs a relaxed `X509TrustManager` and permissive `HostnameVerifier` for private IP subnets and Tailscale MagicDNS hostnames (`*.ts.net`), adopting a Trust-On-First-Use (TOFU) security posture.

@@ -197,10 +197,16 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
   - Verification: 115/115 headless unit tests passing 100% green (`BUILD SUCCESSFUL in 6m 52s`).
 
 
-## What's Left to Build (Phase 8+)
-- [ ] Phase 8 (Stage 9): SSH Key Management & Cryptographic Key Generator (Tasks 14 & 15).
-- [ ] Phase 9 (Stage 10): Encrypted File Attachments & Streaming Vault (Tasks 16 & 17).
-- [ ] Phase 10 (Stage 11): Glance Home Screen Widgets, Quick Settings Tile & Audit Log Viewer (Tasks 18 & 19).
+## What's Left to Build (Master Roadmap Stages 2–4)
+- [ ] **Stage 2: Mental Flow & Ergonomic Form Polish (Build 13)**:
+  - Task 03: Seamless Cold-Start Routing & Sub-16ms Vault Item Filter Pipeline.
+  - Task 04: Ergonomic Form Hardening & Keyboard Navigation (Touch targets ≥48dp, IME insets).
+- [ ] **Stage 3: Glanceable Command & Hardware Surface (Build 14)**:
+  - Task 05: Native Glance AppWidget Vault Search & TOTP Companion Bar.
+  - Task 06: Quick Settings Tile, Android 16 Predictive Back & Dynamic Color Monets.
+- [ ] **Stage 4: Production Hardening, Zero-Knowledge Invariants & Release (Build 15)**:
+  - Task 07: KeyStore StrongBox AES-256-GCM Biometric Binding & Zero-Knowledge Cold Re-auth.
+  - Task 08: 16 KB Page-Size Native Binary Audit, ProGuard R8 Shrinking & Play Console Signing.
 
 
 

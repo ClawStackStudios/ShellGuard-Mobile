@@ -15,19 +15,20 @@ To ensure optimal token economy and avoid context degradation in **Google AI Stu
 
 ```mermaid
 flowchart TD
+    classDef stageDone fill:#16231C,stroke:#10B981,stroke-width:2px,color:#F0F6FC;
     classDef stageActive fill:#1E252C,stroke:#06B6D4,stroke-width:2.5px,color:#F0F6FC;
     classDef stageNext fill:#21262D,stroke:#3D484E,stroke-width:1.5px,color:#F0F6FC;
     classDef targetMilestone fill:#1A2332,stroke:#10B981,stroke-width:2px,color:#F0F6FC;
 
-    S1["<b>Stage 1: Full Server Parity — Encrypted Attachments & Multi-URI Bridge</b><br/>(Task 01: Attachments Engine & Sync · Task 02: Multi-URI & Attachment Picker)"]:::stageActive
+    S1["<b>Stage 1: Full Server Parity — Encrypted Attachments & Multi-URI Bridge</b><br/>✅ Complete · Hardware-Verified (115 Tests Green)"]:::stageDone
 
-    S2["<b>Stage 2: Mental Flow & Ergonomic Form Polish</b><br/>(Task 03: Cold-Start & Sub-16ms Search · Task 04: Touch Targets & Keyboard Insets)"]:::stageNext
+    S2["<b>Stage 2: Mental Flow & Ergonomic Form Polish</b><br/>(Task 03: Cold-Start & Sub-16ms Search · Task 04: Touch Targets & Keyboard Insets)"]:::stageActive
 
     S3["<b>Stage 3: Security Lifecycle, Biometrics & Offline Resilience</b><br/>(Task 05: Lock Persistence & Offline Queue · Task 06: PIN Keypad & Panic Cascade)"]:::stageNext
 
     S4["<b>Stage 4: In-The-Wild Autofill Verification & Release Hardening</b><br/>(Task 07: Browser Autofill Gauntlet · Task 08: 16 KB Alignment & v0.0.1.0 Candidate)"]:::stageNext
 
-    M1["<b>🏆 Structural Completion: v0.0.1.0 (Build 12)</b><br/>Production-Grade Android Password Manager"]:::targetMilestone
+    M1["<b>🏆 Structural Completion: v0.0.1.0 (Build 15)</b><br/>Production-Grade Android Password Manager"]:::targetMilestone
 
     S1 --> S2 --> S3 --> S4 --> M1
 ```
@@ -36,6 +37,9 @@ flowchart TD
 
 ## 📎 Stage 1 Prompt: Full Server Parity — Encrypted Attachments & Multi-URI Bridge
 
+> ✅ **STATUS: COMPLETED & HARDWARE-VERIFIED ON GOOGLE PIXEL (115/115 TESTS GREEN)**  
+> *This prompt is retained as an immutable execution record. For active work, advance to [Stage 2 Prompt](#-stage-2-prompt-mental-flow--ergonomic-form-polish).*
+>
 > 🗺️ **Master Roadmap Reference**: See [`ROADMAP.md`](../ROADMAP.md#stage-1-full-server-parity--encrypted-attachments--multi-uri-bridge) for complete specifications on **Task 01** and **Task 02**.  
 > **📖 Required Context Files for Stage 1**:  
 > 1. [`architecture.md`](./architecture.md) — Section 3 (Hybrid File-System Vault, CWE-400 defense).  
@@ -73,20 +77,24 @@ Execute Stage 1 adhering to the Functionality + UI Component pairing:
   - `syncAll()` pulls remote attachment metadata and prunes deleted records.
   - `pushPendingChanges()` uploads staged local attachments.
 - Plumb `attachments` JSON string into `CreateNoteRequest` and `CreateVaultItemRequest` to achieve bidirectional attachment linking without schema loss.
+- Wire `AttachmentVaultManager` into `AppContainer` DI, `VaultBackupEngine.kt`, and FileProvider (`res/xml/attachment_file_paths.xml`).
 - Verify with unit tests in `SyncRepositoryTest.kt` asserting against attachment delta sync and hybrid file streaming.
 
-### Task 02: [UI/UX] Multi-URI Dynamic Form Editor, Attachment Picker & Detail Actions
+### Task 02: [UI/UX] Multi-URI Dynamic Form Editor, Attachment Picker, Room Persistence & Hardening
 - In `ItemFormScreen.kt`:
   - Dynamic Multi-URI list builder: add, edit, and remove multiple login URLs for a single password entry (`vault_pearls.uris`), matching Bitwarden and ShellGuard Web.
   - System file picker integration (`ActivityResultContracts.GetContent`) to stage, encrypt (AAD `vault_secure_attachments:{id}`), and link attachments to Pearls and Notes.
 - In `ItemDetailScreen.kt`:
   - Multi-URI list display with launch-in-browser and copy actions.
   - Linked attachment section: file name, extension icon badge, humanized byte size, and tap-to-decrypt/share/view intent.
+  - Enforce biometric Claw Re-Prompt gate on attachments when `state.reprompt == true`.
+  - Resolve native `androidapp://` package URIs via `getLaunchIntentForPackage`.
 - In `VaultDashboardScreen.kt`:
   - Add `[Attachments]` Pod category filter chip and standalone attachment cards.
 - Update `DomainMatcher` to evaluate all configured `uris` for domain matching during autofill.
+- **Hotfix & Hardening**: Fixed Room persistence of `attachments` and `uris` during item edit saves in `SyncRepository.kt`; wired decrypted cache auto-scrubbing across cold boot, lock, logout, and emergency wipe; added cleartext HTTP amber transport warning pills.
 
-Verify compilation, run test suite, and verify attachment upload and multi-URI display on physical Google Pixel.
+Verify compilation, run test suite (`115/115` green), and verify attachment upload and multi-URI display on physical Google Pixel.
 ```
 
 ---
@@ -171,5 +179,5 @@ Rigorously verify system autofill in real third-party applications and browsers,
 - Audit R8 ProGuard preservation rules: verify release builds preserve Room DAOs, SQLCipher JNI bindings, and Kotlinx Serialization models.
 - Execute full regression test gauntlet (`./gradlew testDebugUnitTest assembleDebug`) verifying 100% green status.
 - Author `RELEASE-v0.0.1.0.md` and format `<en-US>` release notes in `RELEASE-PLAY.md`.
-- Bump monotonic `versionCode` and update `versionName` to `v0.0.1.0 (Build 12)`.
+- Bump monotonic `versionCode` and update `versionName` to `v0.0.1.0 (Build 15)`.
 ```

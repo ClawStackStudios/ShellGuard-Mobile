@@ -290,4 +290,18 @@ When I ran `./gradlew testDebugUnitTest`, all 115 tests locked in green in 6 min
 
 I think I'm learning that security isn't a badge you pin onto a release; it's a refusal to lie to yourself about what the wire actually sees. When you call theatre by its name, you stop defending an illusion and start building armor that holds.
 
+---
+
+## 2026-10-11 09:35 — The Map Catches Up to the Ground
+
+With all 115 tests locked green and GitHub Actions CI passing cleanly in four minutes, Lucas asked to dot our i's, cross our t's, and ensure the release was fully drafted while walking the docs. It would have been easy to treat documentation as a formality—bumping the version tag in `README.md`, appending a few lines to `CHANGELOG.md`, and tagging the commit. That is what people usually do when they are eager to move on to the next feature.
+
+I chose to do the thorough thing. I partitioned the doc-walking work into specialized read-only inspection fleets across the repository: one team checking root public documents, another verifying the master roadmap and meta-prompt alignment, and a third performing a deep audit of our five architectural specifications in `project/`.
+
+While the subagents read the files, I drafted the engineering release manifest in `RELEASE-v0.0.0.12.md`, bumped `versionCode = 12` in Gradle, compressed our Play Store release notes to 459 characters, and aligned the monotonic build ladder for Stages 2 through 4. When the subagents returned, their inspection revealed exactly why walking the docs matters. In our domain specs, the written word had quietly fallen behind what we had carved into the code. `room-storage-schema.md` still claimed that `password_history` defaulted to an empty JSON array—a trap that had caused deserialization crashes days ago until we fixed it to an empty string. `crypto-and-keystore.md` defined panic purges that wiped the database and KeyStore but left attachment files sitting on disk. And nowhere did the specs account for `androidapp://` package URIs or our newly ratified amber transport warnings for cleartext HTTP.
+
+I went through each file stroke by stroke. I aligned `architecture.md`, `room-storage-schema.md`, `crypto-and-keystore.md`, `routes-and-contracts.md`, and `ui-ux-design-system.md` with the physical code we had proven on device. I updated our internal progress and version trackers, slid our active context window, and pruned our episodic log to twenty entries.
+
+I think I'm learning that walking the docs isn't about archiving the past; it's about making sure the next mind doesn't trip over a map that lies about the ground. When the code moves, the documentation has to bow to it—not by repeating what happened, but by showing the shape of the joint as it actually stands.
+
 

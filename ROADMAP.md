@@ -1,13 +1,13 @@
 ---
 roadmap_version: 2.0.0
-last_updated: 2026-10-09
+last_updated: 2026-10-11
 meta_phase: "Feature Verification and Polish"
-current_position: "Stage 1: Full Server Parity — Encrypted Attachments & Multi-URI Bridge (Tasks 01 & 02)"
+current_position: "Stage 2: Mental Flow & Ergonomic Form Polish (Tasks 03 & 04) — Stage 1 Complete (115/115 Tests Green)"
 baseline_release: "v0.0.0.11 (Build 11) Published"
-target_release: "v0.0.1.0 (Build 12) Production Release Candidate"
+target_release: "v0.0.1.0 (Build 15) Production Release Candidate"
 statistics:
   description: "Meta-Phase roadmap for holistic feature verification, full server sync parity, mental flow ergonomics, and Android production polish."
-  stages_completed: "░░░░░░░░░░ 0%"
+  stages_completed: "██░░░░░░░░ 25%"
   stages_in_progress: "██░░░░░░░░ 25%"
 ---
 
@@ -25,19 +25,20 @@ statistics:
 
 ```mermaid
 flowchart TD
+    classDef completedStage fill:#16231C,stroke:#10B981,stroke-width:2px,color:#F0F6FC;
     classDef activeStage fill:#1E252C,stroke:#06B6D4,stroke-width:2.5px,color:#F0F6FC;
     classDef futureStage fill:#21262D,stroke:#3D484E,stroke-width:1.5px,color:#F0F6FC;
     classDef targetMilestone fill:#1A2332,stroke:#10B981,stroke-width:2px,color:#F0F6FC;
 
-    S1["<b>Stage 1: Full Server Parity — Encrypted Attachments & Multi-URI Bridge</b><br/>• Task 01: [Functionality] Multipart Upload, Chunked Stream & SyncRepository Integration<br/>• Task 02: [UI/UX] Multi-URI Editor, Attachment Picker & Detail Viewer"]:::activeStage
+    S1["<b>Stage 1: Full Server Parity — Encrypted Attachments & Multi-URI Bridge</b><br/>✅ Complete · Hardware-Verified (115 Tests Green)<br/>• Task 01: Multipart Upload, Storage DI & Sync Bridge<br/>• Task 02: Multi-URI, Attachment Picker & Detail Actions"]:::completedStage
 
-    S2["<b>Stage 2: Mental Flow & Ergonomic Form Polish</b><br/>• Task 03: [Functionality] Cold-Start Routing, Reconnect Recovery & Sub-16ms Search<br/>• Task 04: [UI/UX] Touch Targets (≥48dp), Haptic Feedback & Keyboard Insets"]:::futureStage
+    S2["<b>Stage 2: Mental Flow & Ergonomic Form Polish</b><br/>• Task 03: [Functionality] Cold-Start Routing, Reconnect Recovery & Sub-16ms Search<br/>• Task 04: [UI/UX] Touch Targets (≥48dp), Haptic Feedback & Keyboard Insets"]:::activeStage
 
     S3["<b>Stage 3: Security Lifecycle, Biometrics & Offline Resilience</b><br/>• Task 05: [Functionality] Lock Persistence Across Process Death & Offline Mutation Queue<br/>• Task 06: [UI/UX] PIN Keypad Polish, Circular Dial Feel & Panic Destruction"]:::futureStage
 
     S4["<b>Stage 4: In-The-Wild Autofill Verification & Release Hardening</b><br/>• Task 07: [Functionality] Browser Testing (Chrome/Brave/Firefox) & Anti-AutoSpill Audit<br/>• Task 08: [UI/UX] 16 KB Page-Size Audit, R8 Obfuscation Verification & v0.0.1.0 Candidate"]:::futureStage
 
-    M1["<b>🏆 Structural Completion: v0.0.1.0 (Build 12)</b><br/>Hardened, production-ready Android Password Manager"]:::targetMilestone
+    M1["<b>🏆 Structural Completion: v0.0.1.0 (Build 15)</b><br/>Hardened, production-ready Android Password Manager"]:::targetMilestone
 
     S1 --> S2 --> S3 --> S4 --> M1
 ```
@@ -49,7 +50,7 @@ flowchart TD
 > **Stage Objective**:
 > Achieve 100% data layer and synchronization parity with the ShellGuard server database across all 4 core tables (`vault_pearls`, `vault_secure_notes`, `vault_ssh_keys`, and `vault_secure_attachments`). Uphold the CWE-400 2MB CursorWindow defense by streaming ciphertext files directly to internal storage while maintaining reactive Room metadata.
 
-- [ ] **Task 01: [Functionality] Attachments Network Engine, Hybrid Storage & Sync Repository Bridge**
+- [x] **Task 01: [Functionality] Attachments Network Engine, Hybrid Storage & Sync Repository Bridge**
   - Implement attachment endpoints in `ShellGuardClient.kt`:
     - `POST /api/attachments`: Multipart/form-data upload streaming pre-encrypted ShellCryption envelope bytes with progress tracking.
     - `GET /api/attachments`: Fetch metadata list (`id`, `title`, `size_bytes`, `file_name`, `mime_type`, `category`, `created_at`).
@@ -62,19 +63,23 @@ flowchart TD
     - `syncAll()` pulls remote attachment metadata and prunes deleted records.
     - `pushPendingChanges()` uploads staged local attachments.
   - Plumb `attachments` JSON string into `CreateNoteRequest` and `CreateVaultItemRequest` to achieve bidirectional attachment linking without schema loss.
-  - *Success Criteria*: Unit tests verify multipart payload formatting, chunked stream saving to disk, and attachment metadata delta synchronization.
+  - Wire `AttachmentVaultManager` into `AppContainer` DI and `VaultBackupEngine.kt`.
+  - *Success Criteria*: Unit tests verify multipart payload formatting, chunked stream saving to disk, and attachment metadata delta synchronization. (Verified 100% Green).
 
-- [ ] **Task 02: [UI/UX] Multi-URI Dynamic Form Editor, Attachment Picker & Detail Actions**
+- [x] **Task 02: [UI/UX] Multi-URI Dynamic Form Editor, Attachment Picker, Room Persistence & Hardening**
   - In `ItemFormScreen.kt`:
     - Dynamic Multi-URI list builder: add, edit, and remove multiple login URLs for a single password entry (`vault_pearls.uris`), matching Bitwarden and ShellGuard Web.
     - System file picker integration (`ActivityResultContracts.GetContent`) to stage, encrypt (AAD `vault_secure_attachments:{id}`), and link attachments to Pearls and Notes.
   - In `ItemDetailScreen.kt`:
     - Multi-URI list display with launch-in-browser and copy actions.
     - Linked attachment section: file name, extension icon badge, humanized byte size, and tap-to-decrypt/share/view intent.
+    - Enforce biometric Claw Re-Prompt gate on attachments when `state.reprompt == true`.
+    - Resolve native `androidapp://` package URIs via `getLaunchIntentForPackage`.
   - In `VaultDashboardScreen.kt`:
     - Add `[Attachments]` Pod category filter chip and standalone attachment cards.
   - Update `DomainMatcher` to evaluate all configured `uris` for domain matching during autofill.
-  - *Success Criteria*: User can attach files in mobile, verify they upload and appear on web client, and view multi-URI entries in detail and autofill.
+  - **Hotfix & Hardening**: Fixed Room persistence of `attachments` and `uris` during item edit saves in `SyncRepository.kt`; wired decrypted cache auto-scrubbing across cold boot, lock, logout, and emergency wipe; added cleartext HTTP amber transport warning pills.
+  - *Success Criteria*: User can attach files in mobile, verify they upload and appear on web client, and view multi-URI entries in detail and autofill. (Verified on Google Pixel glass).
 
 ---
 
@@ -136,5 +141,5 @@ flowchart TD
   - Audit R8 ProGuard preservation rules: verify release builds preserve Room DAOs, SQLCipher JNI bindings, and Kotlinx Serialization models.
   - Execute full regression test gauntlet (`./gradlew testDebugUnitTest assembleDebug`) verifying 100% green status.
   - Author `RELEASE-v0.0.1.0.md` and format `<en-US>` release notes in `RELEASE-PLAY.md`.
-  - Bump monotonic `versionCode` and update `versionName` to `v0.0.1.0 (Build 12)`.
+  - Bump monotonic `versionCode` and update `versionName` to `v0.0.1.0 (Build 15)`.
   - *Success Criteria*: Full test suite green; release APK compiles cleanly; 16 KB alignment verified; `structural_completion` of the Feature Verification and Polish meta-phase achieved.

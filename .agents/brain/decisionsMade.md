@@ -635,3 +635,15 @@ Calibration is sharp with 0 over-confidence penalties across 8 ratified decision
 **Confidence**: high — verified against cryptographic wire contracts in `ShellGuardClient.kt` and `KtorClientProvider.kt`.
 **Outcome**: Section 5 of `android-development.md` and `systemPatterns.md` updated; Jules Stage 1 hardening plan updated with unencrypted HTTP warning indicator.
 **Pattern reference**: `systemPatterns.md § Transport Security: Systemic Zero-Knowledge vs. Homelab Flexibility`.
+
+## stage-1-doc-walk-and-spec-synchronization — 2026-10-11 09:35
+
+**Context**: Concluding Stage 1 release `v0.0.0.12 (Build 12)` after physical Pixel verification and green GitHub Actions CI, auditing repository documentation across root docs and 5 domain specs in `project/`.
+**Options considered**:
+- Draft only the engineering release manifest and tag the version, leaving domain specs in `project/` for later — Minimizes release friction, but allows architectural documentation to drift from physical code reality (missing hybrid attachment lifecycle, cache cleansing, and `androidapp://` routing).
+- Execute full `/walk-the-docs` and `/draft-release`, reconciling root documentation (`README.md`, `CHANGELOG.md`, `RELEASE-PLAY.md`, `ROADMAP.md`), drafting `RELEASE-v0.0.0.12.md`, and synchronizing all 5 domain specs in `project/` — Upholds the "Docs Bow To Code" invariant and ensures future sessions and agents build on true architectural reality.
+**Chosen**: Full `/walk-the-docs` and synchronization across root docs and `project/` domain specs.
+**Why**: When a stage finishes, leaving documentation in an aspirational or outdated state creates invisible friction for every session that follows. Walking the specs and forcing them to match physical code solidifies the territory before we advance to Stage 2.
+**Confidence**: high — verified against 115 passing tests and physical Pixel code.
+**Outcome**: All root docs and 5 `project/` specs synchronized; engineering release manifest authored; monotonic build sequence locked for Stages 2–4.
+**Pattern reference**: Link to `project/testOracle.md § Documentation Synchronization`.

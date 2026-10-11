@@ -3,6 +3,21 @@
 > **Single Source of Truth for Google Play Store What's New Notes**  
 > *Google Play enforces a strict 500-character limit per localized language block.*
 
+## `v0.0.0.12` — Stage 1: Server Parity (Encrypted Attachments & Multi-URI Bridge) (Build 12)
+
+```xml
+<en-US>
+• Encrypted Attachments: Secure file storage streaming off SQLite.
+• Multipart Sync Engine: Chunked upload & download server parity.
+• Multi-URI Bridge: Dynamic secondary URL rows & autofill support.
+• Biometric Attachment Gate: Claw Re-Prompt guards file view/share.
+• Plaintext Cache Purge: Zero temporary file leakage on logout/wipe.
+• App Launcher Scheme: Native androidapp:// URI app launch support.
+• Amber Transport Warning: Cleartext HTTP alerts in Gateway & Sync.
+• 115 Tests 100% Green on Pixel hardware.
+</en-US>
+```
+
 ---
 
 ## `v0.0.0.11` — Phase 7: Context-Aware Autofill Expansion, 2-Step Login & Option B Masking (Build 11)

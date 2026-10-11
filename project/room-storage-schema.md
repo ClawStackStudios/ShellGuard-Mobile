@@ -61,11 +61,11 @@ data class VaultPearlEntity(
     
     @ColumnInfo(name = "tags") val tags: String = "[]",
     
-    // JSON array of URI objects: [{"uri": "https://...", "match": "HOST"}]
+    // JSON array of URI objects: [{"uri": "https://...", "match": "HOST"}, {"uri": "androidapp://com.example.app", "match": "EXACT"}]
     @ColumnInfo(name = "uris") val uris: String = "[]",
     
-    // Opaque ShellCryption Envelope String
-    @ColumnInfo(name = "password_history") val passwordHistory: String = "[]",
+    // Opaque ShellCryption Envelope String (defaults to "" to prevent unencrypted array deserialization exceptions)
+    @ColumnInfo(name = "password_history") val passwordHistory: String = "",
     
     // Master Key Re-Prompt (Claw Re-Prompt): Requires biometric/PIN confirmation before reveal/copy
     @ColumnInfo(name = "reprompt") val reprompt: Boolean = false,
@@ -185,6 +185,29 @@ data class SecureAttachmentEntity(
     @ColumnInfo(name = "created_at") val createdAt: String,
     @ColumnInfo(name = "local_updated_at") val localUpdatedAt: Long = System.currentTimeMillis()
 )
+```
+
+### D.1 `AttachmentVaultManager` & Ephemeral Decryption Cache Lifecycle
+
+Attachments utilize a dual-path storage architecture managed by `AttachmentVaultManager`:
+1. **Encrypted Vault Storage**: `context.filesDir/vault_attachments/{id}.enc` persists encrypted AES-GCM payloads streamed directly from the network or camera/file picker.
+2. **Ephemeral Decryption Cache**: `context.cacheDir/decrypted_attachments/{safeFileName}` holds temporary plaintext files passed to external viewers via Android `FileProvider`.
+3. **Cache Purge Invariant (`clearDecryptedCache`)**: Plaintext files in the cache directory must be scrubbed on:
+   - Cold application start (`ShellGuardApp.onCreate()`)
+   - User logout (`VaultDashboardViewModel.logout()`)
+   - Vault background timeout / lock (`VaultLockManager.lock()`)
+   - Emergency panic purge (`SecurityPreferenceController.purgeAll()` / `SettingsViewModel.executePanicPurge()`)
+4. **Path Traversal & MIME Hardening**: Filenames received from remote envelopes must be sanitized via `File(fileName).name` to prevent directory traversal (CWE-22), and MIME types must be resolved with fallback to `MimeTypeMap.getFileExtensionFromUrl()`.
+
+```kotlin
+class AttachmentVaultManager(private val context: Context) {
+    fun getAttachmentFile(id: String): File
+    fun writeEncryptedBytes(id: String, bytes: ByteArray): File
+    fun readEncryptedBytes(id: String): ByteArray?
+    fun deleteEncryptedFile(id: String): Boolean
+    fun clearDecryptedCache() // Purges context.cacheDir/decrypted_attachments/
+    fun clearAll()            // Purges both vault_attachments/ and decrypted_attachments/
+}
 ```
 
 ### E. `SyncMetadataEntity`

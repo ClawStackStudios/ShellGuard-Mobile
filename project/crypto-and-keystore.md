@@ -277,6 +277,9 @@ object SecurityPreferenceController {
         
         context.deleteDatabase("shellguard.db")
         
+        // Purge all encrypted attachments and plaintext decrypted cache
+        AttachmentVaultManager(context).clearAll()
+        
         val keyStore = java.security.KeyStore.getInstance("AndroidKeyStore")
         keyStore.load(null)
         if (keyStore.containsAlias("ShellGuardBiometricKey")) {
@@ -353,6 +356,13 @@ object BiometricRecoveryHandler {
     }
 }
 ```
+
+### 8.1 Attachment Re-Prompt Verification Gate
+When a vault item has `reprompt == true`, biometric/PIN re-authentication applies strictly to:
+1. Password unmasking / copying
+2. Secure note content unmasking / copying
+3. SSH private key unmasking / copying
+4. **Attachment Access**: Viewing, streaming, or opening an attachment (`onOpenAttachment`) via `AttachmentVaultManager` must verify `isRepromptPassed` before decrypting to the cache directory and launching `ACTION_VIEW`.
 
 ---
 
