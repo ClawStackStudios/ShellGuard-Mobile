@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.0.0.12] - 2026-10-11 (Build 12) — Stage 1: Full Server Parity (Encrypted Attachments & Multi-URI Bridge)
+## [0.0.0.12] - 2026-10-11 (Build 12) — Stage 1: Full Server Parity (Encrypted Attachments & Multi-URI Bridge) & Stage 1.5 (In-Place Re-Auth & PIN Unlock)
 ### Added
+- **PBKDF2-SHA256 Vault PIN Authentication (`PinAuthManager.kt`, `PinPadView.kt`)**: 100,000-iteration PBKDF2-SHA256 PIN hashing with 16-byte cryptographically secure random salt, constant-time `MessageDigest.isEqual` comparison to prevent timing attacks, rate-limiting lockout counter (5 failed attempts trigger 30-second backoff), and masked dot visualizer with tactile haptic feedback.
+- **In-Place Vault Re-Authentication (`LockScreen.kt`, `LockViewModel.kt`)**: Replaced blocking full-logout lock screen with responsive in-place unlocking supporting Biometrics, PIN entry, and fallback Master Sovereign Key (`hu-`) modal without terminating active session tokens, losing form state, or resetting navigation.
+- **Decoupled Session Persistence Pattern (`EncryptedDeviceVault.kt`)**: Separated ephemeral in-memory shell key destruction (`zeroizeMemory()`) from sealed hardware KeyStore storage, enabling instant vault rehydration upon PIN or biometric verification while preserving session network authorization.
+- **Security Settings Unlock Mode Selector (`SettingsSecurityScreen.kt`, `SettingsViewModel.kt`)**: Added interactive Unlock Method selection (Biometrics, PIN, Master Key), PIN setup/change dialog with 4-to-8 digit validation, and lockout attempt resets.
+- **PinAuthManager Robolectric Unit Test Suite (`PinAuthManagerTest.kt`)**: 6 unit tests validating PIN setup, verification, incorrect attempt tracking, lockout enforcement, attempt resets, and PIN clearing.
 - **Hybrid File-System Vault (`AttachmentVaultManager.kt`)**: Streaming ciphertext file storage offloading payloads into private app storage (`context.filesDir/vault_attachments/{id}.enc`), eliminating SQLite 2MB `CursorWindowAllocationException` risks while maintaining Room metadata indexing in `SecureAttachmentDao`.
 - **Encrypted Multipart Streaming Network Engine (`ShellGuardClient.kt`)**: Implemented `POST /api/attachments` multipart chunked streaming upload with byte progress callbacks, `GET /api/attachments` metadata retrieval, `GET /api/attachments/:id/file` 1MB buffered streaming download, and `DELETE /api/attachments/:id`.
 - **Dynamic Multi-URI Dynamic Editor (`ItemFormScreen.kt`)**: Dynamic list builder supporting multiple login URLs per password entry (`vault_pearls.uris`), matching Bitwarden and ShellGuard Web specification.
@@ -17,7 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Systemic Cleartext HTTP Transport Warnings (`GatewayScreen.kt`, `SettingsSyncScreen.kt`)**: Prominent amber warning banners informing users of plaintext transport risks when connecting to local home lab servers without TLS armor.
 
 ### Changed
-- **Test Oracle & Hardware Verification**: Expanded unit test suite to 115 tests passing 100% green (`BUILD SUCCESSFUL in 6m 52s`), verified live on physical Google Pixel (`sailfish`) hardware across attachment encryption, Room edit persistence, and cache destruction.
+- **Test Oracle & Hardware Verification**: Expanded unit test suite from 115 to **121 unit and Robolectric tests passing 100% green** (`BUILD SUCCESSFUL in 7m 41s`), verified live on physical Google Pixel (`sailfish`) hardware across PIN setup, attempt lockout warnings, instant in-place PIN unlock, and Master Key modal unlock.
+- **Ergonomic Layout for Compact Viewports (`LockScreen.kt`)**: Relocated Logout action inside unified scrollable column and calibrated `PinPadView` button sizes to 62dp, preventing button overlap on 16:9 / 18:9 mobile form factors.
 - **DefaultAppContainer DI Integration**: Wired `AttachmentVaultManager` as an application-scoped singleton in `AppContainer` and `DefaultAppContainer`.
 
 ### Fixed

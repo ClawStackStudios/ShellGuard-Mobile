@@ -352,10 +352,37 @@ Transparency and system information:
 - **Open Source License & Attribution:**
   - Canonical `GNU AGPL v3.0` project license attribution alongside third-party open source library credits (Jetpack Compose, SQLCipher, Ktor, OkHttp).
 
-## 11. Security Screens
+## 11. Security Screens & Re-Authentication Gateways
 
-Critical gateways that protect the vault access layer.
+Critical gateways that protect the vault access layer:
 
-- **LockScreen:** Integrated biometric prompt, PIN fallback, and ClawKey hardware token support.
-- **HatchVaultScreen:** An onboarding wizard guiding the user through master password configuration and recovery key generation.
-- **PanicTriggerReceiver:** Background broadcast receiver hooked into device intents to initiate an emergency lockdown and memory wipe.
+### A. LockScreen & In-Place Re-Authentication (`Screen.Lock`, `LockScreen.kt`)
+The LockScreen functions as a top-level overlay in `MainActivity`, preserving the underlying backstack and active form state. It adaptively presents one of three re-authentication pathways based on `AppSettings.unlockMethod`:
+- **Mode 1: PIN Unlock (`PinPadView.kt`)**:
+  - Reef Modernist numeric keypad (0–9 digits, backspace, and clear).
+  - Scaled 62dp circular buttons with distinct press feedback and tactile haptics (`HapticFeedbackType.TextHandleMove`).
+  - Masked animated dot visualizer: hollow circles at rest, glowing `ReefPink` filled dots upon digit entry.
+  - Rate-limiting warning display (`"Incorrect PIN. X attempts remaining."`) and 30-second lockout timer countdown.
+  - "Use Master Key Instead" text button triggering the fallback modal.
+- **Mode 2: Biometric Challenge (`BiometricPrompt`)**:
+  - System fingerprint/face challenge with automatic fallback to PIN or Master Key.
+- **Mode 3: Master Sovereign Key Modal**:
+  - In-line modal for pasting `hu-` sovereign keys or uploading `clawkey.json` files without logging out or dropping server connection.
+- **Unified Scrollable Container**:
+  - Both keypad and bottom "Log Out & Switch Server" button reside inside a unified vertical scroll container, preventing viewport overlap on compact 16:9 / 18:9 mobile screens.
+
+### B. Security Settings Unlock Taxonomy (`SettingsSecurityScreen.kt`)
+Located at the top of the Security & Privacy settings:
+- **Unlock Method Selector**:
+  - Radio options: `Biometrics`, `PIN Code`, `Master Key / ClawKey`.
+- **PIN Management**:
+  - "Configure PIN" / "Change PIN" dialog featuring 2-phase entry ("Enter 4-8 Digit PIN" ➔ "Confirm PIN") with mismatch validation.
+- **Lockout Attempt Ceiling**:
+  - Option card for maximum failed attempts (3, 5, 10 attempts) before locking out PIN entry.
+
+### C. HatchVaultScreen
+An onboarding wizard guiding the user through master password configuration and recovery key generation.
+
+### D. PanicTriggerReceiver
+Background broadcast receiver hooked into device intents (`ACTION_PANIC_WIPE`) to initiate an emergency lockdown and memory wipe.
+

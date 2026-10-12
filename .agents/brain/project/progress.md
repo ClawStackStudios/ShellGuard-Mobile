@@ -1,7 +1,7 @@
 # Progress: ShellGuard Mobile
 
-## Current Status: Stage 1 Server Parity — Complete & Hardware-Verified on Google Pixel (`115/115` Tests Green)
-All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold through Phase 7 (Context-Aware Autofill Expansion) are verified on Google Pixel hardware. Stage 1 (Server Parity: Encrypted Attachments, Multi-URI Bridge, Storage DI Wiring, Settings Debt, and Room Persistence Hotfix) is 100% implemented, tested green across 115 unit tests, and verified live on physical Google Pixel hardware (`sailfish`).
+## Current Status: Stage 1 & 1.5 Server Parity & In-Place Re-Auth — Complete & Hardware-Verified on Google Pixel (`121/121` Tests Green)
+All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold through Phase 7 (Context-Aware Autofill Expansion) are verified on Google Pixel hardware. Stage 1 (Server Parity: Encrypted Attachments, Multi-URI Bridge, Storage DI Wiring, Settings Debt, and Room Persistence Hotfix) and Stage 1.5 (In-Place Vault Re-Authentication & PBKDF2-SHA256 PIN Unlock) are 100% implemented, tested green across 121 unit tests, and verified live on physical Google Pixel hardware (`sailfish`).
 
 
 
@@ -201,7 +201,7 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
     - Inline Master Sovereign Key modal allowing typing or JSON upload of 67-character `hu-` key for in-place re-authentication.
     - Tested end-to-end and verified on physical Google Pixel (`sailfish`) connecting to live Unraid test prod server (`192.168.1.70:6565`).
   - Hardware Verification: Full on-device verification on physical Google Pixel (`sailfish`): file attachments staged, saved, edited post-creation, persisted across room queries, and rendered in detail cards; lock screen with PIN and Master Key verified live.
-  - Verification: 116+ unit tests passing 100% green.
+  - Verification: 121 unit and Robolectric tests passing 100% green across 19 suites (`PinAuthManagerTest.kt` added).
 
 
 ## What's Left to Build (Master Roadmap Stages 2–5)

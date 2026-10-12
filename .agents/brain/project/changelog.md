@@ -288,5 +288,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Biometric Claw Re-Prompt Gate on Attachments (`ItemDetailScreen.kt`)**: Wrapped `onOpenAttachment` with biometric verification when `state.reprompt == true`, preventing unauthorized decryption of sensitive files on unlocked devices.
 - **Path Traversal Defense & MIME Type Fallback (`ItemDetailViewModel.kt`)**: Wrapped attachment filenames in `File(fileName).name` and dynamically resolved missing MIME types via Android `MimeTypeMap`.
 - **Systemic Transport Invariants Codified**: Codified anti-theatre transport invariants into `.agents/rules/android-development.md` §5 and `systemPatterns.md`, warning against unprotected `SHA-256(hu-)` transmission and naked metadata leakage on cleartext HTTP.
+- **Stage 1.5 In-Place Vault Re-Authentication & PBKDF2-SHA256 PIN Unlock**:
+  - `PinAuthManager`: 100k-iteration PBKDF2-SHA256 derivation with 16-byte random salt, constant-time `MessageDigest.isEqual` verification, and 5-attempt rate-limiting lockout counter (30s backoff).
+  - `EncryptedDeviceVault`: Decoupled session persistence zeroizing volatile RAM keys on lock while preserving hardware KeyStore wrapped secrets for instant in-place rehydration without dropping active sessions.
+  - `LockScreen` & `PinPadView`: Tactile 62dp keypad, masked animated dots, attempt lockout warning, Master Key modal, and unified scrollable layout.
+  - `SettingsSecurityScreen`: Unlock method selector (`BIOMETRIC`, `PIN`, `MASTER_KEY`) and PIN configuration dialog.
+  - `PinAuthManagerTest`: 6 Robolectric unit tests expanding test suite to 121 tests 100% green.
+
 
 

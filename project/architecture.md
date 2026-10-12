@@ -64,6 +64,7 @@ flowchart TD
 8.  **Panic wipe & Ephemeral Cache Hygiene**: Emergency broadcast receiver and manual panic triggers execute instant destruction of Room SQLCipher databases, EncryptedSharedPreferences, KeyStore keys, and all plaintext temporary attachment caches (`cacheDir/decrypted_attachments/`).
 9.  **Security priority**: Build features around security, not security around features.
 10. **Transport vs Identity & Anti-Theatre Invariant**: TLS is transport armor, not identity — secrecy lives client-side. However, cleartext HTTP leaves authentication tokens (`SHA-256(hu-)`), session bearer JWTs, and metadata exposed on the wire; the UI must warn the user with an amber transport indicator.
+11. **In-Place Re-Authentication & Decoupled Session Persistence Invariant**: Vault locking (`vaultLockManager.lockVault()`) purges volatile in-memory keys (`inMemoryShellKey = null`), but preserves the sealed master key in `EncryptedDeviceVault` (hardware-backed AES-256 wrapping) alongside active network bearer tokens. Unlocking in-place via Biometrics, PBKDF2-SHA256 PIN, or fallback Master Key re-hydrates volatile memory without terminating server connectivity, losing draft form state, or resetting navigation.
 
 ## §5. Transport Security & Network Topology
 

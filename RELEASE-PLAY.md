@@ -3,18 +3,18 @@
 > **Single Source of Truth for Google Play Store What's New Notes**  
 > *Google Play enforces a strict 500-character limit per localized language block.*
 
-## `v0.0.0.12` — Stage 1: Server Parity (Encrypted Attachments & Multi-URI Bridge) (Build 12)
+## `v0.0.0.12` — Stage 1 & 1.5: Server Parity & In-Place PIN Re-Auth (Build 12)
 
 ```xml
 <en-US>
-• Encrypted Attachments: Secure file storage streaming off SQLite.
-• Multipart Sync Engine: Chunked upload & download server parity.
-• Multi-URI Bridge: Dynamic secondary URL rows & autofill support.
-• Biometric Attachment Gate: Claw Re-Prompt guards file view/share.
-• Plaintext Cache Purge: Zero temporary file leakage on logout/wipe.
-• App Launcher Scheme: Native androidapp:// URI app launch support.
-• Amber Transport Warning: Cleartext HTTP alerts in Gateway & Sync.
-• 115 Tests 100% Green on Pixel hardware.
+• In-Place Unlock: PBKDF2 PIN, Biometrics & Master Key modal.
+• Encrypted Attachments: Private streaming storage off SQLite.
+• Multipart Sync: Chunked upload & download server parity.
+• Multi-URI Bridge: Dynamic secondary URLs & autofill match.
+• Claw Re-Prompt: Biometrics guard file viewing & sensitive copy.
+• Zero Cache Leak: Plaintext scrubbed on logout & emergency wipe.
+• Amber Alerts: Cleartext HTTP warnings in Gateway & Sync.
+• 121 Tests 100% Green on Pixel hardware.
 </en-US>
 ```
 

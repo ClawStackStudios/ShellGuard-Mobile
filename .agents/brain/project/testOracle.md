@@ -46,8 +46,12 @@ These are hard, non-negotiable invariants discovered through architectural audit
 12. **Mobile-First Transport & Certificate Rotation Invariant**:
     - Ephemeral transport certificates (EC P-256) must NEVER be assumed permanent. When a server certificate rotates (fingerprint mismatch), the client must verify the rotation proof against the pinned Instance Identity Key (`instance.key`) via `/api/public/tls-manifest` with a strict ±10 minute timestamp tolerance before updating pinned credentials.
     - Captive portal HTTP 200/302 responses on public Wi-Fi networks must NEVER be treated as valid vault connections without verifying the explicit custom header `X-ShellGuard-API: true` or a valid health JSON status `{ "status": "scuttling" }`.
+13. **In-Place Re-Authentication & Session Key Decoupling Invariant**:
+    - When the vault is locked (`vaultLockManager.lockVault()`), volatile in-memory shell key buffers are zeroized (`inMemoryShellKey = null`), but hardware-sealed KeyStore secrets and server session tokens are NOT cleared.
+    - Unlocking the vault in-place via Biometrics, PIN (`PinAuthManager`), or Master Key (`verifyMasterKey`) re-hydrates `EncryptedDeviceVault.inMemoryShellKey` without dropping the active session, disconnecting from the server, or resetting the Navigation backstack.
+    - Wrong PIN attempts must increment failed attempt counters and enforce exponential/fixed backoff lockout (5 failed attempts trigger 30s lockout), falling back safely to Master Key entry.
 
-## 3. Active Test Suite Inventory (115 Tests Total — 100% Green)
+## 3. Active Test Suite Inventory (121 Tests Total — 100% Green)
 - **`ClawCryptoTest`**: ClawKey Base62 format validation (67 chars), SHA-256 hashing.
 - **`ShellCryptionEngineTest`**: HKDF-SHA-256 derivation, AES-GCM-256 with 10 AAD namespaces, JSON envelope serialization.
 - **`CustomFieldTest`**: Bitwarden polymorphic custom field JSON serialization (`TEXT`, `HIDDEN`, `BOOLEAN`, `LINKED`).
@@ -63,4 +67,5 @@ These are hard, non-negotiable invariants discovered through architectural audit
 - **`SettingsRepositoryTest`**: DataStore preference persistence, default key hydration, and clearAll isolation.
 - **`SettingsViewModelTest`**: MVI state binding, job synchronization, theme/security preference mutations.
 - **`VaultBackupEngineTest`**: Polymorphic schema serialization, dual-mode HKDF/PBKDF2 export/decrypt cycles, format sniffing, and Bitwarden JSON ingestion.
+- **`PinAuthManagerTest`**: 100k-iteration PBKDF2-SHA256 derivation, constant-time verification, remaining attempts calculation, attempt threshold lockout enforcement, PIN clearing, and counter reset.
 

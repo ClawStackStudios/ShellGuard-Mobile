@@ -65,7 +65,7 @@ Captured natively from physical Google Pixel hardware running Android 14 (Lineag
 - **SQLCipher Whole-Database Encryption**: All Room tables, indexes, and queries are encrypted at rest with 256-bit AES cipher blocks.
 - **FLAG_SECURE Privacy Shield**: Window obfuscation in the Android Recents app switcher and screenshot capture prevention (scoped to release builds to preserve development inspection).
 - **Hybrid File-System Vault (CWE-400 CursorWindow Defense)**: Attachments bypass SQLite's 2MB row limit; metadata is stored in Room while ciphertext streams directly to `context.filesDir/vault_attachments/{id}.enc` using zero-heap 64KB buffers.
-- **Biometric & PIN Cold Lock**: Biometric unlock (`BiometricPrompt`) with an automated recovery state machine catching `KeyPermanentlyInvalidatedException` if device biometrics are altered in system settings.
+- **Biometric, PIN & Master Key In-Place Unlock**: In-place session re-authentication via biometric prompt (`BiometricPrompt`), 100,000-iteration PBKDF2-SHA256 PIN (`PinPadView` with tactile haptic feedback and attempt lockout backoff), or in-line Master Sovereign Key (`hu-`) modal without terminating network sessions or losing navigation state.
 - **Claw Re-Prompt Gate**: Localized biometric/PIN challenge (`reprompt == true`) required before revealing or copying high-privilege credentials.
 - **Emergency Panic Purge**: Irreversible broadcast receiver (`ACTION_PANIC_WIPE`) to destroy encryption keys, databases, and cached sessions.
 
@@ -187,7 +187,7 @@ export GRADLE_OPTS="-XX:-UsePerfData -Djava.io.tmpdir=$PWD/app/build/tmp"
 
 ### Verification & Testing
 ```bash
-# Run the complete unit test suite (115/115 tests passing green)
+# Run the complete unit test suite (121/121 tests passing green)
 ./gradlew testDebugUnitTest
 
 # Assemble debug APK

@@ -22,9 +22,9 @@ flowchart TD
 
     S1["<b>Stage 1: Full Server Parity — Encrypted Attachments & Multi-URI Bridge</b><br/>✅ Complete · Hardware-Verified (115 Tests Green)"]:::stageDone
 
-    S1_SUB["<b>Stage 1 Sub-Phase: Vault Lock & Multi-Method Authentication</b><br/>⚡ <b>Active Focus</b> · Hardware Unblocker<br/>• Task 02.A: PinAuthManager (PBKDF2) & Settings UnlockMethod<br/>• Task 02.B: Security Settings UI, Reef PinPad & LockScreen Overhaul"]:::stageActive
+    S1_SUB["<b>Stage 1 Sub-Phase: Vault Lock & Multi-Method Authentication</b><br/>✅ Complete · Hardware-Verified (121 Tests Green)<br/>• Task 02.A: PinAuthManager (PBKDF2) & Settings UnlockMethod<br/>• Task 02.B: Security Settings UI, Reef PinPad & LockScreen Overhaul"]:::stageDone
 
-    S2["<b>Stage 2: Mental Flow & Ergonomic Form Polish</b><br/>(Task 03: Cold-Start & Sub-16ms Search · Task 04: Touch Targets & Keyboard Insets)"]:::stageNext
+    S2["<b>Stage 2: Mental Flow & Ergonomic Form Polish</b><br/>⚡ <b>Active Focus</b><br/>(Task 03: Cold-Start & Sub-16ms Search · Task 04: Touch Targets & Keyboard Insets)"]:::stageActive
 
     S3["<b>Stage 3: Security Lifecycle, Biometrics & Offline Resilience</b><br/>(Task 05: Lock Persistence & Offline Queue · Task 06: PIN Keypad & Panic Cascade)"]:::stageNext
 
@@ -105,6 +105,9 @@ Verify compilation, run test suite (`115/115` green), and verify attachment uplo
 
 ## 🔐 Stage 1 Sub-Phase Prompt: Vault Lock Responsiveness, PIN Security & In-Place Re-Authentication
 
+> ✅ **STATUS: COMPLETED & HARDWARE-VERIFIED ON GOOGLE PIXEL (121/121 TESTS GREEN)**  
+> *This prompt is retained as an immutable execution record. For active work, advance to [Stage 2 Prompt](#-stage-2-prompt-mental-flow--ergonomic-form-polish).*
+>
 > 🗺️ **Master Roadmap Reference**: See [`ROADMAP.md`](../ROADMAP.md#stage-1-sub-phase-vault-lock-responsiveness-pin-security--in-place-re-authentication)  
 > **📖 Required Context Files**:  
 > 1. [`vault_lock_and_pin_architecture_analysis_2026_10_11_2035.md`](file:///config/.gemini/antigravity/brain/f04e5f46-10f7-4362-92a2-5a51324c9456/vault_lock_and_pin_architecture_analysis_2026_10_11_2035.md) — Architectural diagnosis & root cause.  

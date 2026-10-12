@@ -10,9 +10,9 @@ We actively maintain and provide security patches for the latest release and the
 
 | Version | Supported | Status |
 | :--- | :--- | :--- |
-| `0.0.0.11` (Build 11) | ✅ Yes | Current Production / Milestone Release |
-| `0.0.0.10` (Build 10) | ⚠️ Maintenance | Security critical patches only |
-| `< 0.0.0.10` | ❌ No | End of Life — upgrade to latest release |
+| `0.0.0.12` (Build 12) | ✅ Yes | Current Production / Milestone Release |
+| `0.0.0.11` (Build 11) | ⚠️ Maintenance | Security critical patches only |
+| `< 0.0.0.11` | ❌ No | End of Life — upgrade to latest release |
 
 ---
 
@@ -37,6 +37,8 @@ All contributions, audits, and security evaluations must be grounded in ShellGua
 - **Hardware-Backed Cryptography**: Derived session keys are sealed at rest in Android KeyStore-backed `EncryptedSharedPreferences` using AES-256-GCM.
 - **Biometric Invalidation Recovery**: Keys configured with `setInvalidatedByBiometricEnrollment(true)` automatically fail closed if system fingerprints/faces are altered, routing the user to re-authenticate with their root sovereign key without data destruction.
 - **Session Atomicity**: `hasActiveSession()` strictly enforces that the active symmetric key is present in memory, eliminating unauthenticated split-brain states.
+- **Vault PIN Authentication & Rate-Limiting**: 100,000-iteration PBKDF2-SHA256 derivation with 16-byte random salt and constant-time verification (`MessageDigest.isEqual`). 5 failed consecutive attempts enforce an automatic 30-second lockout and offer fallback to the Master Sovereign Key (`hu-`).
+- **Decoupled KeyStore Session Persistence**: On vault lock, ephemeral in-memory keys are zeroized, while sealed keys remain preserved in KeyStore hardware AES-256 storage, permitting in-place re-authentication without session token destruction or split-brain network disconnects.
 
 ### 4. Storage & Kernel Page-Size Invariants
 - **Whole-Database Encryption**: All SQLite databases (`shellguard.db`) are encrypted at rest with **SQLCipher for Android 4.6.1** (AES-256-CBC with PBKDF2 HMAC-SHA512 key derivation).

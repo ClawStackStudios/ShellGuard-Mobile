@@ -2,13 +2,13 @@
 roadmap_version: 2.0.0
 last_updated: 2026-10-11
 meta_phase: "Feature Verification and Polish"
-current_position: "Stage 1 Sub-Phase: Vault Lock & Multi-Method Authentication (Tasks 02.A & 02.B) — Hardware Unblocker"
+current_position: "Stage 2: Mental Flow & Ergonomic Form Polish (Task 03) — Active Focus"
 baseline_release: "v0.0.0.11 (Build 11) Published"
 target_release: "v0.0.1.0 (Build 16) Production Release Candidate"
 statistics:
   description: "Meta-Phase roadmap for holistic feature verification, full server sync parity, mental flow ergonomics, and Android production polish."
-  stages_completed: "██░░░░░░░░ 20%"
-  stages_in_progress: "██░░░░░░░░ 20%"
+  stages_completed: "███░░░░░░░ 30%"
+  stages_in_progress: "█░░░░░░░░░ 10%"
 ---
 
 # Master Project Roadmap — Meta-Phase: Feature Verification and Polish
@@ -32,9 +32,9 @@ flowchart TD
 
     S1["<b>Stage 1: Full Server Parity — Encrypted Attachments & Multi-URI Bridge</b><br/>✅ Complete · Hardware-Verified (115 Tests Green)<br/>• Task 01: Multipart Upload, Storage DI & Sync Bridge<br/>• Task 02: Multi-URI, Attachment Picker & Detail Actions"]:::completedStage
 
-    S1_SUB["<b>Stage 1 Sub-Phase: Vault Lock & Multi-Method Authentication</b><br/>⚡ <b>Active Focus</b> · Hardware Unblocker<br/>• Task 02.A: PinAuthManager (PBKDF2) & Settings UnlockMethod<br/>• Task 02.B: Security Settings UI, Reef PinPad & LockScreen Overhaul"]:::activeStage
+    S1_SUB["<b>Stage 1 Sub-Phase: Vault Lock & Multi-Method Authentication</b><br/>✅ Complete · Hardware-Verified (121 Tests Green)<br/>• Task 02.A: PinAuthManager (PBKDF2) & Settings UnlockMethod<br/>• Task 02.B: Security Settings UI, Reef PinPad & LockScreen Overhaul"]:::completedStage
 
-    S2["<b>Stage 2: Mental Flow & Ergonomic Form Polish</b><br/>• Task 03: [Functionality] Cold-Start Routing, Reconnect Recovery & Sub-16ms Search<br/>• Task 04: [UI/UX] Touch Targets (≥48dp), Haptic Feedback & Keyboard Insets"]:::futureStage
+    S2["<b>Stage 2: Mental Flow & Ergonomic Form Polish</b><br/>⚡ <b>Active Focus</b><br/>• Task 03: [Functionality] Cold-Start Routing, Reconnect Recovery & Sub-16ms Search<br/>• Task 04: [UI/UX] Touch Targets (≥48dp), Haptic Feedback & Keyboard Insets"]:::activeStage
 
     S3["<b>Stage 3: Security Lifecycle, Biometrics & Offline Resilience</b><br/>• Task 05: [Functionality] Lock Persistence Across Process Death & Offline Mutation Queue<br/>• Task 06: [UI/UX] PIN Keypad Polish, Circular Dial Feel & Panic Destruction"]:::futureStage
 
@@ -92,7 +92,7 @@ flowchart TD
 > **Sub-Phase Objective**:
 > Resolve the physical device Lock Screen freeze caused by the `MainActivity` overlay trap. Introduce a full multi-method authentication system allowing users to unlock an active session via **Biometrics**, **PIN Code (4–8 digits)**, or **Sovereign Master Key / ClawKey File re-entry** without destroying active session state, losing form edits, or dropping deep links.
 
-- [ ] **Task 02.A: [Crypto & Storage] PinAuthManager, SettingsRepository UnlockMethod & Master Key Validation**
+- [x] **Task 02.A: [Crypto & Storage] PinAuthManager, SettingsRepository UnlockMethod & Master Key Validation**
   - In `data/local/SettingsRepository.kt`:
     - Declare `enum class UnlockMethod { BIOMETRIC, PIN, MASTER_KEY }`.
     - Add preference keys: `pref_unlock_method`, `pref_has_pin_configured`, and `pref_max_pin_attempts`.
@@ -107,9 +107,9 @@ flowchart TD
     - Store `pin_salt`, `pin_hash`, and failed attempt counter in hardware-backed storage.
     - Add `verifyMasterKey(huKey: String): Boolean` checking `ClawCrypto.hashHumanKey(huKey) == getHashedKey()`.
     - Add `verifyClawKeyJson(json: String): Boolean` extracting key and checking against `getHashedKey()`.
-  - *Success Criteria*: Unit tests verify PBKDF2 salt derivation, constant-time verification, invalid PIN rejection, attempt threshold lockout, and sovereign key hash matching.
+  - *Success Criteria*: Unit tests verify PBKDF2 salt derivation, constant-time verification, invalid PIN rejection, attempt threshold lockout, and sovereign key hash matching. (Verified 100% Green in `PinAuthManagerTest.kt`).
 
-- [ ] **Task 02.B: [UI/UX] Security Settings Taxonomy, Reef PinPadView, LockScreen Hub & Overlay Seam**
+- [x] **Task 02.B: [UI/UX] Security Settings Taxonomy, Reef PinPadView, LockScreen Hub & Overlay Seam**
   - In `ui/components/PinPadView.kt`:
     - Reusable Reef Modernist numeric keypad (0–9 digits, backspace, clear) with minimum 48dp touch targets.
     - Animated masked dot indicators (hollow circle at rest, glowing `ReefPink` or `BrandClawCyan` circle when filled).
@@ -128,7 +128,7 @@ flowchart TD
   - In `MainActivity.kt`:
     - Resolve the overlay trap: Master Key re-authentication executes in-place within `LockScreen`.
     - Upon successful PIN or Master Key validation, `vaultLockManager.unlockVault()` emits `false`, immediately dismissing the overlay and revealing the underlying active destination intact.
-  - *Success Criteria*: Lock screen is fully responsive on physical Google Pixel glass; PIN unlocks vault immediately; Master Key re-entry unlocks vault without logging out; and "Log Out & Switch Server" still navigates cleanly to Gateway.
+  - *Success Criteria*: Lock screen is fully responsive on physical Google Pixel glass; PIN unlocks vault immediately; Master Key re-entry unlocks vault without logging out; and "Log Out & Switch Server" still navigates cleanly to Gateway. (Verified live on physical Google Pixel hardware).
 
 ---
 
