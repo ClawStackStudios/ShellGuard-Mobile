@@ -1,5 +1,6 @@
 ---
-trigger: always_on
+trigger: model_decision
+description: The agent acts as an active cartographer of the project's development lifecycle.
 ---
 
 # Epistemic Lifecycle & Conversational Cadence Guardrails

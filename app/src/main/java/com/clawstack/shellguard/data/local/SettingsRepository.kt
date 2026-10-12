@@ -34,7 +34,8 @@ data class AppSettings(
     val panicWipeCountdownSeconds: Int = 15,
     val autofillInlineChips: Boolean = true,
     val syncOverCellular: Boolean = true,
-    val pullToRefreshEnabled: Boolean = true
+    val pullToRefreshEnabled: Boolean = true,
+    val defaultUriMatchMode: com.clawstack.shellguard.domain.matcher.UriMatchMode = com.clawstack.shellguard.domain.matcher.UriMatchMode.BASE_DOMAIN
 )
 
 interface SettingsRepository {
@@ -50,6 +51,7 @@ interface SettingsRepository {
     suspend fun setAutofillInlineChips(enabled: Boolean)
     suspend fun setSyncOverCellular(enabled: Boolean)
     suspend fun setPullToRefreshEnabled(enabled: Boolean)
+    suspend fun setDefaultUriMatchMode(mode: com.clawstack.shellguard.domain.matcher.UriMatchMode)
     suspend fun clearAll()
 }
 
@@ -70,6 +72,7 @@ class SettingsRepositoryImpl(
         val AUTOFILL_INLINE_CHIPS = booleanPreferencesKey("pref_autofill_inline_chips")
         val SYNC_OVER_CELLULAR = booleanPreferencesKey("pref_sync_over_cellular")
         val PULL_TO_REFRESH_ENABLED = booleanPreferencesKey("pref_pull_to_refresh_enabled")
+        val DEFAULT_URI_MATCH_MODE = stringPreferencesKey("pref_default_uri_match_mode")
     }
 
     override val settingsFlow: Flow<AppSettings> = dataStore.data
@@ -91,6 +94,13 @@ class SettingsRepositoryImpl(
             val lockTimeoutStr = preferences[PreferencesKeys.LOCK_TIMEOUT]
             val lockTimeout = LockTimeout.fromName(lockTimeoutStr)
 
+            val uriModeStr = preferences[PreferencesKeys.DEFAULT_URI_MATCH_MODE]
+            val uriMode = try {
+                if (uriModeStr != null) com.clawstack.shellguard.domain.matcher.UriMatchMode.valueOf(uriModeStr) else com.clawstack.shellguard.domain.matcher.UriMatchMode.BASE_DOMAIN
+            } catch (e: IllegalArgumentException) {
+                com.clawstack.shellguard.domain.matcher.UriMatchMode.BASE_DOMAIN
+            }
+
             AppSettings(
                 themeMode = themeMode,
                 dynamicColors = preferences[PreferencesKeys.DYNAMIC_COLORS] ?: false,
@@ -102,7 +112,8 @@ class SettingsRepositoryImpl(
                 panicWipeCountdownSeconds = preferences[PreferencesKeys.PANIC_WIPE_COUNTDOWN_SECONDS] ?: 15,
                 autofillInlineChips = preferences[PreferencesKeys.AUTOFILL_INLINE_CHIPS] ?: true,
                 syncOverCellular = preferences[PreferencesKeys.SYNC_OVER_CELLULAR] ?: true,
-                pullToRefreshEnabled = preferences[PreferencesKeys.PULL_TO_REFRESH_ENABLED] ?: true
+                pullToRefreshEnabled = preferences[PreferencesKeys.PULL_TO_REFRESH_ENABLED] ?: true,
+                defaultUriMatchMode = uriMode
             )
         }
 
@@ -149,6 +160,10 @@ class SettingsRepositoryImpl(
 
     override suspend fun setPullToRefreshEnabled(enabled: Boolean) {
         dataStore.edit { it[PreferencesKeys.PULL_TO_REFRESH_ENABLED] = enabled }
+    }
+
+    override suspend fun setDefaultUriMatchMode(mode: com.clawstack.shellguard.domain.matcher.UriMatchMode) {
+        dataStore.edit { it[PreferencesKeys.DEFAULT_URI_MATCH_MODE] = mode.name }
     }
 
     override suspend fun clearAll() {

@@ -64,6 +64,8 @@ These are the traits that make ShellGuard recognizable in a screenshot with no l
 - **Empty States**: Warm and instructive. *"No passwords yet. Tap + to add your first."*
 - **Security Prompts**: Firm but not alarming. *"Verify your identity to continue."*
 - **Offline Banners**: Informative, not panicky. *"Offline — viewing cached vault. Editing disabled until reconnected."*
+- **Lead Communications & PR Sign-Off**: Formally signed and addressed as `🎓 ClawStack Studios Project Lead & Lead Build Agent`.
+
 
 ## Iconography & Motion
 - **Icon Style**: Material Symbols Outlined, weight 400, optical size 24.

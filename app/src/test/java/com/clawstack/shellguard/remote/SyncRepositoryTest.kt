@@ -353,5 +353,45 @@ class SyncRepositoryTest {
         assertTrue("customFields should be empty list", detail.customFields.isEmpty())
         assertTrue("passwordHistory should be empty list", detail.passwordHistory.isEmpty())
     }
+
+    @Test
+    fun testAttachmentAndUriPersistence() = runBlocking {
+        val pearlId = "test-pearl-uris-att"
+        val pearlDetail = PearlDetail(
+            id = pearlId,
+            ownerUuid = testOwnerUuid,
+            title = "Attachment Pearl",
+            secret = "secret",
+            uris = listOf("https://secondary.com", "androidapp://com.example.app"),
+            attachments = listOf("att-uuid-1", "att-uuid-2")
+        )
+
+        val saveResult = syncRepository.savePearlDetail(pearlDetail)
+        assertTrue("Save pearl should succeed", saveResult.isSuccess)
+
+        val retrievedPearlResult = syncRepository.getPearlDetail(pearlId)
+        assertTrue("Get pearl should succeed", retrievedPearlResult.isSuccess)
+        val retrievedPearl = retrievedPearlResult.getOrNull()!!
+
+        assertEquals("Secondary URIs should match", listOf("https://secondary.com", "androidapp://com.example.app"), retrievedPearl.uris)
+        assertEquals("Attachments should match", listOf("att-uuid-1", "att-uuid-2"), retrievedPearl.attachments)
+
+        val noteId = "test-note-att"
+        val noteDetail = SecureNoteDetail(
+            id = noteId,
+            ownerUuid = testOwnerUuid,
+            title = "Attachment Note",
+            content = "note content",
+            attachments = listOf("att-uuid-3")
+        )
+
+        val noteSaveResult = syncRepository.saveNoteDetail(noteDetail)
+        assertTrue("Save note should succeed", noteSaveResult.isSuccess)
+
+        val retrievedNoteResult = syncRepository.getNoteDetail(noteId)
+        assertTrue("Get note should succeed", retrievedNoteResult.isSuccess)
+        val retrievedNote = retrievedNoteResult.getOrNull()!!
+        assertEquals("Note attachments should match", listOf("att-uuid-3"), retrievedNote.attachments)
+    }
 }
 

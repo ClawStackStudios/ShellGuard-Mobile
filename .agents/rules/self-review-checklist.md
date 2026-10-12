@@ -1,5 +1,5 @@
-# Self-Review Checklist (v2)
-*Last updated: 2026-10-09. Prior version: v1 (2026-09-27).*
+# Self-Review Checklist (v3)
+*Last updated: 2026-10-10. Prior version: v2 (2026-10-09).*
 
 Run this checklist before finalizing any task, commit, or pull request:
 
@@ -15,11 +15,13 @@ Run this checklist before finalizing any task, commit, or pull request:
 - [ ] **10. Seeded Cross-Dispatcher Combine & Job Returns**: Does every ViewModel `combine(...)` joining a `DataStore` or `Dispatchers.IO` flow with in-memory UI state include `.onStart { emit(Default) }`, do mutation methods return `Job`, and do `@Before setUp()` fixtures use `runBlocking`? → *maps to: Cross-Dispatcher CI Race*
 - [ ] **11. Dynamic BuildConfig, License & Release Root Hygiene**: Are all user-facing version strings bound to `BuildConfig.VERSION_NAME` / `BuildConfig.VERSION_CODE`, license strings aligned with `GNU AGPL v3.0`, and superseded `RELEASE-v*.md` files pruned from root on release bump? → *maps to: Static Literal & Release Drift*
 - [ ] **12. Autofill Editable-Leaf, Co-Presence & Physical Glass Loop**: Are `AssistStructure` heuristics gated by `isEditableInputNode()` (excluding `AutoCompleteTextView`), password/username mutual exclusion, and Rank 4/5 Co-Presence stripping, and has the flow been exercised on physical hardware? → *maps to: Tight Hardware Loop*
+- [ ] **13. Storage Lifecycle & Panic Purge Parity**: Does `executePanicPurge()` wipe all physical filesystem directories (`vault_attachments/`, download caches) alongside Room and DataStore, and does backup/restore account for them? → *maps to: Cascading Storage Destruction Blind Spots*
+- [ ] **14. Large-File Mutation & Patch Guard**: For files >500 lines or delegated tasks, are changes applied via direct section replacements rather than fragile shell unified diff scripts? → *maps to: Diff Patch Drift & Large-File Fragility*
+- [ ] **15. Bot Handle & Forge Entity Verification**: In GitHub comments and automated tooling, are mentions validated against actual bot entities (never pinging `@jules`)? → *maps to: Platform Contract & Handle Mirroring Drift*
 
 ---
 
-### Diff from v1
-**Added**: 4 items (Items 9–12: Minimal-Code Operating Failure Check, Seeded Cross-Dispatcher Combine, Dynamic BuildConfig/License/Release Hygiene, Autofill Editable-Leaf & Physical Glass Loop).  
+### Diff from v2
+**Added**: 3 items (Items 13–15: Storage Lifecycle & Panic Purge Parity, Large-File Mutation & Patch Guard, Bot Handle & Forge Entity Verification).
 **Removed**: 0 items.  
-**Unchanged**: 8 items (Items 1–8).
-
+**Unchanged**: 12 items (Items 1–12).

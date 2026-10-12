@@ -36,6 +36,8 @@ data class ItemFormUiState(
     val tags: List<String> = emptyList(),
     val customFields: List<CustomField> = emptyList(),
     val passwordHistory: List<PasswordHistoryEntry> = emptyList(),
+    val uris: List<String> = emptyList(),
+    val attachments: List<com.clawstack.shellguard.ui.screens.detail.AttachmentItemDetail> = emptyList(),
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
     val isSecretVisible: Boolean = false,
@@ -80,6 +82,12 @@ class ItemFormViewModel(
                     val result = appContainer.syncRepository.getPearlDetail(id)
                     result.fold(
                         onSuccess = { pearl ->
+                            val ownerUuid = appContainer.deviceVault.getOwnerUuid().orEmpty()
+                            val loadedAttachments = pearl.attachments.mapNotNull { attId ->
+                                appContainer.syncRepository.getAttachment(ownerUuid, attId).getOrNull()?.let { entity ->
+                                    com.clawstack.shellguard.ui.screens.detail.AttachmentItemDetail(entity.id, entity.fileName, entity.sizeBytes, entity.mimeType)
+                                }
+                            }
                             _uiState.update {
                                 it.copy(
                                     isLoading = false,
@@ -93,7 +101,9 @@ class ItemFormViewModel(
                                     reprompt = pearl.reprompt,
                                     tags = pearl.tags,
                                     customFields = pearl.customFields,
-                                    passwordHistory = pearl.passwordHistory
+                                    passwordHistory = pearl.passwordHistory,
+                                    uris = pearl.uris,
+                                    attachments = loadedAttachments
                                 )
                             }
                         },
@@ -106,6 +116,12 @@ class ItemFormViewModel(
                     val result = appContainer.syncRepository.getNoteDetail(id)
                     result.fold(
                         onSuccess = { note ->
+                            val ownerUuid = appContainer.deviceVault.getOwnerUuid().orEmpty()
+                            val loadedAttachments = note.attachments.mapNotNull { attId ->
+                                appContainer.syncRepository.getAttachment(ownerUuid, attId).getOrNull()?.let { entity ->
+                                    com.clawstack.shellguard.ui.screens.detail.AttachmentItemDetail(entity.id, entity.fileName, entity.sizeBytes, entity.mimeType)
+                                }
+                            }
                             _uiState.update {
                                 it.copy(
                                     isLoading = false,
@@ -114,7 +130,8 @@ class ItemFormViewModel(
                                     secret = note.content,
                                     reprompt = note.reprompt,
                                     tags = note.tags,
-                                    customFields = note.customFields
+                                    customFields = note.customFields,
+                                    attachments = loadedAttachments
                                 )
                             }
                         },
@@ -202,6 +219,78 @@ class ItemFormViewModel(
         }
     }
 
+    fun addUri(uri: String = "") {
+        _uiState.update { it.copy(uris = it.uris + uri) }
+    }
+
+    fun updateUri(index: Int, uri: String) {
+        _uiState.update { state ->
+            val mutable = state.uris.toMutableList()
+            if (index in mutable.indices) {
+                mutable[index] = uri
+                state.copy(uris = mutable)
+            } else state
+        }
+    }
+
+    fun removeUri(index: Int) {
+        _uiState.update { state ->
+            val mutable = state.uris.toMutableList()
+            if (index in mutable.indices) {
+                mutable.removeAt(index)
+                state.copy(uris = mutable)
+            } else state
+        }
+    }
+
+    fun stageAttachment(contentUri: android.net.Uri, context: android.content.Context) {
+        viewModelScope.launch {
+            try {
+                val cursor = context.contentResolver.query(contentUri, null, null, null, null)
+                var fileName = "attachment"
+                var sizeBytes = 0L
+                cursor?.use {
+                    if (it.moveToFirst()) {
+                        val nameIndex = it.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                        if (nameIndex != -1) fileName = it.getString(nameIndex)
+                        val sizeIndex = it.getColumnIndex(android.provider.OpenableColumns.SIZE)
+                        if (sizeIndex != -1) sizeBytes = it.getLong(sizeIndex)
+                    }
+                }
+
+                val mimeType = context.contentResolver.getType(contentUri) ?: "application/octet-stream"
+                val rawBytes = context.contentResolver.openInputStream(contentUri)?.use { it.readBytes() }
+
+                if (rawBytes != null && rawBytes.isNotEmpty()) {
+                    val ownerUuid = appContainer.deviceVault.getOwnerUuid().orEmpty()
+                    val result = appContainer.syncRepository.stageAttachment(
+                        ownerUuid = ownerUuid,
+                        title = fileName,
+                        fileName = fileName,
+                        mimeType = mimeType,
+                        category = "",
+                        rawPlaintextBytes = rawBytes
+                    )
+
+                    result.onSuccess { entity ->
+                        val draft = com.clawstack.shellguard.ui.screens.detail.AttachmentItemDetail(entity.id, entity.fileName, entity.sizeBytes, entity.mimeType)
+                        _uiState.update { it.copy(attachments = it.attachments + draft) }
+                    }.onFailure { e ->
+                        _uiState.update { it.copy(errorMessage = "Failed to stage attachment: ${e.message}") }
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = "Error staging attachment: ${e.message}") }
+            }
+        }
+    }
+
+    fun removeAttachment(attachmentId: String) {
+        _uiState.update { state ->
+            state.copy(attachments = state.attachments.filter { it.id != attachmentId })
+        }
+    }
+
     fun save(onSuccess: (domain: String, id: String) -> Unit) {
         val state = _uiState.value
         if (state.title.isBlank()) {
@@ -227,6 +316,8 @@ class ItemFormViewModel(
                         totpSecret = state.totpSecret.trim(),
                         customFields = state.customFields,
                         tags = state.tags,
+                        uris = state.uris.filter { it.isNotBlank() },
+                        attachments = state.attachments.map { it.id },
                         passwordHistory = state.passwordHistory,
                         reprompt = state.reprompt
                     )
@@ -241,6 +332,7 @@ class ItemFormViewModel(
                         category = state.category.trim(),
                         customFields = state.customFields,
                         tags = state.tags,
+                        attachments = state.attachments.map { it.id },
                         reprompt = state.reprompt
                     )
                     appContainer.syncRepository.saveNoteDetail(note)

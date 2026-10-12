@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Key
@@ -405,19 +406,74 @@ fun ItemDetailScreen(
                                                     url = state.url,
                                                     onOpenUrl = {
                                                         try {
-                                                            val uri = if (!state.url.startsWith("http://") && !state.url.startsWith("https://")) {
-                                                                Uri.parse("https://${state.url}")
+                                                            if (state.url.startsWith("androidapp://")) {
+                                                                val packageName = state.url.removePrefix("androidapp://")
+                                                                val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName)
+                                                                if (launchIntent != null) {
+                                                                    context.startActivity(launchIntent)
+                                                                } else {
+                                                                    Toast.makeText(context, "App not installed: $packageName", Toast.LENGTH_SHORT).show()
+                                                                }
                                                             } else {
-                                                                Uri.parse(state.url)
+                                                                val uri = if (!state.url.startsWith("http://") && !state.url.startsWith("https://")) {
+                                                                    Uri.parse("https://${state.url}")
+                                                                } else {
+                                                                    Uri.parse(state.url)
+                                                                }
+                                                                val intent = Intent(Intent.ACTION_VIEW, uri)
+                                                                context.startActivity(intent)
                                                             }
-                                                            val intent = Intent(Intent.ACTION_VIEW, uri)
-                                                            context.startActivity(intent)
                                                         } catch (e: Exception) {
                                                             Toast.makeText(context, "Could not open URL", Toast.LENGTH_SHORT).show()
                                                         }
                                                     },
                                                     onCopy = { copyToClipboard("URL", state.url, isSensitive = false) }
                                                 )
+                                            }
+
+                                            if (state.uris.isNotEmpty()) {
+                                                Spacer(modifier = Modifier.height(16.dp))
+                                                Card(
+                                                    colors = CardDefaults.cardColors(containerColor = SurfaceContainerDark),
+                                                    shape = RoundedCornerShape(12.dp),
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    Column(modifier = Modifier.padding(16.dp)) {
+                                                        Text("SECONDARY URLS", color = TextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                                        Spacer(modifier = Modifier.height(12.dp))
+                                                        state.uris.forEachIndexed { index, uri ->
+                                                            DetailUrlRow(
+                                                                label = "URL ${index + 2}",
+                                                                url = uri,
+                                                                onOpenUrl = {
+                                                                    try {
+                                                                        if (uri.startsWith("androidapp://")) {
+                                                                            val packageName = uri.removePrefix("androidapp://")
+                                                                            val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName)
+                                                                            if (launchIntent != null) {
+                                                                                context.startActivity(launchIntent)
+                                                                            } else {
+                                                                                Toast.makeText(context, "App not installed: $packageName", Toast.LENGTH_SHORT).show()
+                                                                            }
+                                                                        } else {
+                                                                            val formattedUrl = if (!uri.startsWith("http://") && !uri.startsWith("https://")) "https://$uri" else uri
+                                                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(formattedUrl))
+                                                                            context.startActivity(intent)
+                                                                        }
+                                                                    } catch (_: Exception) {
+                                                                        Toast.makeText(context, "Could not open URL", Toast.LENGTH_SHORT).show()
+                                                                    }
+                                                                },
+                                                                onCopy = { copyToClipboard("URL", uri, isSensitive = false) }
+                                                            )
+                                                            if (index < state.uris.size - 1) {
+                                                                Spacer(modifier = Modifier.height(12.dp))
+                                                                androidx.compose.material3.HorizontalDivider(color = BorderSubtle, thickness = 1.dp)
+                                                                Spacer(modifier = Modifier.height(12.dp))
+                                                            }
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
 
@@ -749,6 +805,30 @@ fun ItemDetailScreen(
                                 }
                             }
 
+                            if (state.attachments.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                AttachmentListSection(
+                                    attachments = state.attachments,
+                                    onOpenAttachment = { attId ->
+                                        val openAction = {
+                                            viewModel.openAttachment(context, attId) { uri, mime ->
+                                                try {
+                                                    context.startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri, mime).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))
+                                                } catch (e: android.content.ActivityNotFoundException) {
+                                                    Toast.makeText(context, "No app found to open this file type", Toast.LENGTH_SHORT).show()
+                                                }
+                                            }
+                                        }
+                                        if (state.reprompt && !isRepromptPassed) {
+                                            pendingSensitiveAction = openAction
+                                            showRepromptDialog = true
+                                        } else {
+                                            openAction()
+                                        }
+                                    }
+                                )
+                            }
+
                             Spacer(modifier = Modifier.height(100.dp))
                         }
                     }
@@ -844,6 +924,45 @@ fun ItemDetailScreen(
                     containerColor = SurfaceDark,
                     shape = RoundedCornerShape(14.dp)
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun AttachmentListSection(
+    attachments: List<AttachmentItemDetail>,
+    onOpenAttachment: (String) -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = SurfaceContainerDark),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("ENCRYPTED ATTACHMENTS", color = TextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(12.dp))
+            attachments.forEachIndexed { index, att ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.AttachFile, contentDescription = null, tint = TextMuted, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(att.fileName, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text("${att.sizeBytes / 1024} KB • ${att.mimeType}", color = TextMuted, fontSize = 12.sp)
+                        }
+                    }
+                    androidx.compose.material3.TextButton(onClick = { onOpenAttachment(att.id) }) {
+                        Text("View", color = BrandClawCyan, fontSize = 14.sp)
+                    }
+                }
+                if (index < attachments.size - 1) {
+                    androidx.compose.material3.HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = BorderSubtle)
+                }
             }
         }
     }

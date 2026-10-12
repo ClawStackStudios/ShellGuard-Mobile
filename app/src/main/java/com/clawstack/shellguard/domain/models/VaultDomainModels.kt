@@ -12,6 +12,8 @@ data class PearlDetail(
     val notes: String = "",
     val totpSecret: String = "", // Plaintext TOTP secret
     val customFields: List<CustomField> = emptyList(),
+    val uris: List<String> = emptyList(),
+    val attachments: List<String> = emptyList(),
     val tags: List<String> = emptyList(),
     val passwordHistory: List<PasswordHistoryEntry> = emptyList(),
     val reprompt: Boolean = false,
@@ -28,6 +30,7 @@ data class SecureNoteDetail(
     val content: String, // Plaintext note content
     val category: String = "",
     val customFields: List<CustomField> = emptyList(),
+    val attachments: List<String> = emptyList(),
     val tags: List<String> = emptyList(),
     val reprompt: Boolean = false,
     val syncState: String = "SYNCED",

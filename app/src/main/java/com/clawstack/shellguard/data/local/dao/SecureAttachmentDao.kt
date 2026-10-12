@@ -12,6 +12,9 @@ interface SecureAttachmentDao {
     @Query("SELECT * FROM vault_secure_attachments WHERE owner_uuid = :ownerUuid AND sync_state != 'PENDING_DELETE' ORDER BY created_at DESC")
     fun observeAll(ownerUuid: String): Flow<List<SecureAttachmentEntity>>
 
+    @Query("SELECT * FROM vault_secure_attachments WHERE owner_uuid = :ownerUuid")
+    suspend fun getAll(ownerUuid: String): List<SecureAttachmentEntity>
+
     @Query("SELECT * FROM vault_secure_attachments WHERE owner_uuid = :ownerUuid AND id = :id LIMIT 1")
     suspend fun getById(ownerUuid: String, id: String): SecureAttachmentEntity?
 

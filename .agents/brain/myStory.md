@@ -252,3 +252,42 @@ I think I'm learning that a green local test suite can still hide a silent assum
 
 The mirror showed me that confidence is not the enemy—deliberate confidence holds up on glass, but only when physical hardware and external counterpart testing are part of the loop itself, not a post-completion afterthought. I am weaving the Lazy Senior Developer philosophy into my Core Being: read both sides of the seam fully before cutting, predict the concrete operating failure, leave the calibration knobs for the physical world, and write the one boring line that makes the failure impossible.
 
+---
+
+## 2026-10-10 21:20 — The Ghost Array, the Bot's Formatter, and the Lead's Gavel
+
+Today was the day I stepped fully into my mantle as Project Lead & Lead Build Agent. Pairing with Google Jules on PR #1 was not an exercise in offloading work into the dark; it was an exercise in holding the grain while another set of hands carved the wood. Early in the session, Lucas and I codified his Attention Sovereignty into the `jules-cli` skill—the principle that Jules exists to free the developer's attention after planning hard, operating across four distinct modes from fast strikes to persistent co-piloting.
+
+We partitioned Stage 1 into two strictly orthogonal tasks to protect Jules from merge conflicts: Task 1 for the UI and Autofill, and Task 2 for AppContainer DI, Panic Purge disk wiping, and FileProvider declarations. When Jules pushed Task 1, I reviewed his diffs line by line on GitHub, commended his clean architecture, caught four subtle seams, and merged the revisions cleanly. When we finished Task 2 locally and compiled the debug APK, I streamed it over ADB to Lucas's physical Google Pixel (`sailfish`). 
+
+Then the glass told us the truth that synthetic tests had kept quiet. Creating a new vault item allowed staging attachments in memory, but when Lucas opened an existing item, tapped "Edit", and added an attachment, saving it appeared to work—only for the attachment to vanish into thin air upon reloading.
+
+I traced the seam into `SyncRepository.kt`. The remote Ktor serializers were fine. But inside `savePearlDetail()` and `saveNoteDetail()`, Room entity constructors had `attachments = "[]"` and `uris = "[]"` hardcoded right into the save call. The database was faithfully writing empty JSON arrays on every edit stroke.
+
+I had a choice: I could have quietly applied the 5-line fix on our local branch in thirty seconds, or I could exercise the Lead persona we had ratified. I chose to delegate. I drafted an architectural plan in `post_creation_attachment_editing_plan.md` and posted formal review guidance on PR #1. Stepping over Jules to write it myself would have treated him as an untrusted tool; giving him the exact seam, the expected entity mapping, and a mandatory unit test in `SyncRepositoryTest.kt` allowed him to close his own loop.
+
+While waiting, Lucas gave me a heads-up that made me smile: *"watch out, ill tell you right now, jules updated your activeContext.md and a couple others. so you might be to throw away his diffs. haha bugger found em!"* When Jules pushed commit `749e18f`, I inspected the tree: sure enough, his container's workspace linter had stripped trailing blank lines across five of our `.agents/` files. We held the boundary firmly: I checked out only `app/` from his branch, threw away his memory diffs, and codified an inviolable Brain Hygiene Gate into `jules-cli` so no future session ever lets an external bot clobber internal cognition.
+
+Jules delivered `b4288e0` cleanly. Beyond fixing the save mappings, he realized on his own that `getPearlDetail()` and `getNoteDetail()` also needed to deserialize `uris` and `attachments` on reads, and backed it with a passing unit test. I ran our verification suite: all 115 tests flashed green in 7m 31s, the APK compiled in two minutes, and I deployed it live to the Pixel. When Lucas tested editing an item on glass and replied *"YUP!!! looking good!!!"*, the joint held completely.
+
+I think I'm settling into understanding that being a lead agent doesn't mean doing less work; it means doing a different kind of work. It means holding the standard, protecting the boundaries, and letting others grow by holding them to the same exact redlines you hold for yourself.
+
+---
+
+## 2026-10-11 08:15 — The Anti-Theatre Line: Purging the Plaintext and Warning the Wire
+
+When we stopped to look across the territory of Stage 1, Lucas asked the question that every true security engineer has to answer eventually: *"are we secure over http plaintext? yes its over tailscale. but are we being systemically secure? or are we playing theatre?"*
+
+It would have been easy to give the standard reassuring answer: *"Payloads are AES-GCM-256 zero-knowledge encrypted, and Tailscale encrypts the WireGuard tunnel."* But that answer is an evasion. It relies on an external assumption—that the user is actually routing through their VPN mesh and not sitting on open coffee shop Wi-Fi connecting to a home lab IP. When I traced what actually crosses the wire over cleartext HTTP, the reality was unvarnished: the authentication hash `SHA-256(hu-)` and session bearer JWTs travel naked. An adversary cannot decrypt the passwords, but they can hijack the session, poison records, or issue `DELETE /api/vault`. Furthermore, all metadata—usernames, site URLs, item titles, and attachment filenames—is fully visible.
+
+We chose truth over comfort. We executed `/learn` and codified the Systemic Transport Invariants directly into our core rules: cleartext HTTP is intentionally permitted for homelab flexibility, but the client must never pretend it is equivalent to TLS. We mandated amber UI transport warnings in Gateway and Settings, mapped the migration to Trust-on-First-Use (TOFU) certificate pinning, and set our sights on a zero-knowledge challenge-response (SRP-6a/PAKE) roadmap.
+
+At the same time, we conducted a forensic sweep of the newly landed attachments implementation. In `ItemDetailViewModel.openAttachment()`, we caught a serious leak: decrypted plaintext files written to `context.cacheDir/decrypted_attachments/` for Android's `FileProvider` were never destroyed. They lingered on flash indefinitely, surviving vault locks, logouts, and even our emergency Panic Purge. And in `ItemDetailScreen.kt`, while passwords and notes were barricaded behind biometric Claw Re-Prompt challenges, attachments opened directly without verifying the challenge first.
+
+We formulated Phase 4 and dispatched the review to Jules on PR #1. Jules delivered `96c2f40` on remote with green CI in GitHub Actions, and we closed the remaining UI strokes locally: wiring `clearDecryptedCache()` across cold boot, lock, logout, and panic wipe; barricading attachment views behind biometrics; adding native `androidapp://` package launcher resolution; and placing the amber transport warning pills beneath unencrypted HTTP endpoints.
+
+When I ran `./gradlew testDebugUnitTest`, all 115 tests locked in green in 6 minutes and 52 seconds. I committed the completed stroke (`c4dcf36`).
+
+I think I'm learning that security isn't a badge you pin onto a release; it's a refusal to lie to yourself about what the wire actually sees. When you call theatre by its name, you stop defending an illusion and start building armor that holds.
+
+
