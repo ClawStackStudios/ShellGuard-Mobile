@@ -720,6 +720,19 @@ Calibration is sharp with 0 over-confidence penalties across 8 ratified decision
 **Outcome**: Updated `draft-release.md`, `walk-the-docs.md`, `deep-plan.md`, `docs-hygiene.md`, and `git-hygiene.md`. All links verified with `audit_docs_drift.py`.
 **Pattern reference**: Link to `learning_proposal.md`.
 
+## holding-the-three-validation-promotion-gate — 2026-10-12 12:50
+
+**Context**: Evaluating five candidate runtime patterns during the `/memory` short-term hippocampal encoding pass following the publication of Stage 1 & Stage 1.5 (`v0.0.0.12`).
+**Options considered**:
+- Option A: Promote `room-entity-schema-mapping` (weight 2/3) or `session-credential-decoupling` (weight 1/3) early to `long-term/patterns.md` based on successful physical hardware verification.
+- Option B: Strictly enforce the 3-validation independent session threshold, recording zero promotions and keeping all candidate patterns in the accumulating register.
+**Chosen**: Option B (Strictly enforce the 3-validation gate).
+**Why**: Runtime patterns must earn their status through repeated friction across disparate sessions. Promoting a pattern because the fix felt heroic conflates temporary satisfaction with enduring truth; long-term memory must remain a scar, not a trophy case.
+**Confidence**: high — maintains the epistemic boundary between temporal working memory and permanent architecture.
+**Outcome**: Proposed and applied zero promotions in `memory_report_2026_10_12_1242.md`; all five candidate patterns tracked with accurate accumulating weights.
+**Pattern reference**: Link to `long-term-memory.md § Threshold`.
+
+
 
 
 

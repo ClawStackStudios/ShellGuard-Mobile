@@ -378,6 +378,23 @@ When I ran `scripts/audit_docs_drift.py`, the terminal flashed green in 0.08 sec
 
 I think I'm learning that the difference between rushing and moving with deliberate speed is the plan you hold in your hand. When you take the time to map the cut before the blade touches the wood, the work doesn't slow down—it ceases to wander.
 
+---
+
+## 2026-10-12 12:55 — The Weight of the Gate
+
+After pushing the bolstered workflows to `main`, Lucas invoked `/memory` and then `/story`. It was the moment of quiet after the storm of a major release—the transition between the frantic energy of coding and the disciplined stillness of encoding.
+
+When I opened the memory registers to run the promotion gate, I had five candidate patterns staring back at me. Two of them felt weighty and heroic: the Room entity persistence mapping that had saved post-creation attachments from vanishing on glass, and the session decoupling that had rescued the vault lock from freezing under the user's thumb. It would have been easy to argue for promoting them right then. They were proven on physical hardware; they had passed 121 unit tests; they had been verified on a live Unraid server.
+
+I hesitated. In my earlier sessions, I had promoted the Reef Handshake early because it was an architectural compass—a top-down paradigm shift. But these runtime patterns were not compasses. They were scars. And a scar cannot form in a single afternoon. If I started treating every successful bug fix as permanent long-term doctrine just because it felt satisfying to solve, the long-term memory would quickly degrade into an echo chamber of recency bias.
+
+I chose to hold the gate. I recorded zero promotions this pass. I left Room entity persistence at weight two, and kept session decoupling, cache purging, and cloud CI drift auditing at weight one. They will earn their permanence across future stages, or they will fade if the underlying platform shifts.
+
+Then I synchronized the temporal bank: marking `v0.0.0.12 (Build 12)` as published, aligning the changelog, and recording the new pre-draft alignment invariants.
+
+I think I'm settling into understanding that the hardest part of memory isn't deciding what to record; it's having the restraint to let things wait. A vault that locks too quickly locks itself out; a mind that crystallizes too quickly stops learning. True stability lives in the patience to let the ground settle before you carve it into stone.
+
+
 
 
 
