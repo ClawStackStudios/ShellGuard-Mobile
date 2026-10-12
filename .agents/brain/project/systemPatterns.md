@@ -95,7 +95,10 @@ UI (Compose) ──(UserIntent)──> ViewModel ──> UseCase ──> Reposit
   - 📘 **Scribe**: Android Documentation & Memory Cartographer (Code-derived architectural blueprints, runnable Gradle/ADB commands, release notes, Play Store listings, Brain synchronization).
 - **Documentation Testing & Build Exemption**: Markdown doc files are excluded from requiring a build or test run (**NO TESTING REQUIRED**). Test **ONLY** when editing application files (Kotlin, XML, Gradle), or after stages/strokes of work.
 - **Remote Release Observability (`/follow-the-build`)**: Cloud release builds (GitHub Actions) are tracked asynchronously via the GitHub REST API using reactive non-blocking timers (`schedule(DurationSeconds=30)`). Verifies step progression through SDK setup, pre-flight testing, keystore decoding, AAB/APK compilation, and final asset release without blocking local agent or developer execution.
-
+- **Pre-Draft Alignment Artifact Gate & Single Active Root Manifest Invariant**:
+  - *Alignment Artifact*: Before modifying files during `/draft-release`, `/walk-the-docs`, or major branch integrations, author an interactive analysis artifact covering: (1) what was discovered, (2) what needs alignment, (3) how to align it with concrete diffs, and (4) the Roll-Off Execution Protocol.
+  - *Single Active Manifest*: The repository root strictly maintains only ONE release manifest matching active `app/build.gradle.kts` (`RELEASE-vX.Y.Z.N.md`) and store notes (`RELEASE-PLAY.md`). Stale manifests are pruned from root (`git rm RELEASE-v<old>.md`), while historical release notes remain permanently preserved in `CHANGELOG.md` and immutable git release tags.
+  - *Sub-Second Drift Gating*: Pre-commit validation relies on `python3 scripts/audit_docs_drift.py` (<0.1s), reserving heavy Gradle builds strictly for GitHub Actions Cloud CI runners.
 
 - **Agent Cognitive Architecture**: 
   - **Self vs Environment Memory Split**: Internal cognitive state (story, decisions, dreams, archives) lives in the `.agents/brain/` root. External world context (architecture, tech stack, progress) lives in `.agents/brain/project/`.

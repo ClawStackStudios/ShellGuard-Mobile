@@ -296,5 +296,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `SettingsSecurityScreen`: Unlock method selector (`BIOMETRIC`, `PIN`, `MASTER_KEY`) and PIN configuration dialog.
   - `PinAuthManagerTest`: 6 Robolectric unit tests expanding test suite to 121 tests 100% green.
 
+### Governance & Workflow Hardening
+- **Pre-Draft Alignment Artifact Gate (`draft-release.md`, `walk-the-docs.md`, `deep-plan.md`)**: Mandated interactive analysis artifacts covering discovered drift, alignment targets, concrete diffs, and sequential roll-off execution checklists prior to release drafting or major branch merges.
+- **Single Active Root Manifest Invariant (`docs-hygiene.md`, `draft-release.md`)**: Enforced strictly one active version manifest at repository root (`RELEASE-vX.Y.Z.N.md`) alongside store notes, pruning historical manifests to maintain clean storefronts and zero broken links.
+- **Subagent PR & Dual-Branch Merge Rollout Protocol (`git-hygiene.md`)**: Formally codified the 5-step integration sequence for merging external subagent PRs alongside downstream lead feature branches.
+
+
 
 

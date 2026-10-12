@@ -5,7 +5,7 @@
 - **Monotonic Build Code**: `12` (`versionCode = 12` in `app/build.gradle.kts`)
 - **Active Release Channel**: Production / GitHub Release & Google Play Track
 - **Latest Git Tag**: `v0.0.0.12`
-- **Release Status**: Staged / Ready for Release Tag
+- **Release Status**: Published / Live on GitHub Release & Google Play Track
 - **Central Version Source**: `app/build.gradle.kts` (`versionCode`, `versionName`)
 
 ## SemVer Calculus & Increment Rules (4-Digit Convention: `MAJOR.MINOR.PATCH.REVISION`)
@@ -29,7 +29,8 @@
 | `0.0.0.9` | `9` | `v0.0.0.9` | 2026-10-04 | Phase 5: Context-Aware Autofill, Inline Chips & Add-Item Deep Linking | Published |
 | `0.0.0.10` | `10` | `v0.0.0.10` | 2026-10-04 | Phase 6: Settings Hub, Security Controls & Web-Parity Backup Engine | Published |
 | `0.0.0.11` | `11` | `v0.0.0.11` | 2026-10-08 | Phase 7: Context-Aware Autofill Expansion, 2-Step Login & Option B Masking | Published |
-| `0.0.0.12` | `12` | `v0.0.0.12` | 2026-10-11 | Stage 1: Full Server Parity (Encrypted Attachments & Multi-URI Bridge) | Ready |
+| `0.0.0.12` | `12` | `v0.0.0.12` | 2026-10-12 | Stage 1: Full Server Parity (Encrypted Attachments & Multi-URI Bridge) + Stage 1.5 PIN Re-Auth | Published |
+
 
 ## Pending Delta (Next Release Target)
 - **Immediate Target**: Stage 2: Mental Flow & Ergonomic Form Polish (Tasks 03 & 04)

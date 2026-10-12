@@ -1,7 +1,8 @@
 # Progress: ShellGuard Mobile
 
-## Current Status: Stage 1 & 1.5 Server Parity & In-Place Re-Auth — Complete & Hardware-Verified on Google Pixel (`121/121` Tests Green)
-All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold through Phase 7 (Context-Aware Autofill Expansion) are verified on Google Pixel hardware. Stage 1 (Server Parity: Encrypted Attachments, Multi-URI Bridge, Storage DI Wiring, Settings Debt, and Room Persistence Hotfix) and Stage 1.5 (In-Place Vault Re-Authentication & PBKDF2-SHA256 PIN Unlock) are 100% implemented, tested green across 121 unit tests, and verified live on physical Google Pixel hardware (`sailfish`).
+## Current Status: Stage 1 & 1.5 Server Parity & In-Place Re-Auth — Published (`v0.0.0.12 (Build 12)`) & Verified on Google Pixel (`121/121` Tests Green)
+All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold through Phase 7 (Context-Aware Autofill Expansion) are verified on Google Pixel hardware. Stage 1 (Server Parity: Encrypted Attachments, Multi-URI Bridge, Storage DI Wiring, Settings Debt, and Room Persistence Hotfix) and Stage 1.5 (In-Place Vault Re-Authentication & PBKDF2-SHA256 PIN Unlock) are 100% implemented, tested green across 121 unit tests, and verified live on physical Google Pixel hardware (`sailfish`). Release `v0.0.0.12 (Build 12)` is published and pushed to `main` with GitHub Actions Cloud CI verification.
+
 
 
 
@@ -202,7 +203,8 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
     - Tested end-to-end and verified on physical Google Pixel (`sailfish`) connecting to live Unraid test prod server (`192.168.1.70:6565`).
   - Verification: 121 unit and Robolectric tests passing 100% green across 19 suites (`PinAuthManagerTest.kt` added).
   - Cloud CI Offload: Configured `.github/workflows/ci.yml` and `scripts/audit_docs_drift.py`, offloading all 121 unit tests, doc verification, and debug APK assembly to GitHub Actions cloud runners (passed in 3m 27s).
-  - Release Rollout: Drafted `v0.0.0.12 (Build 12)`, cleaned up legacy release files (`RELEASE-v0.0.0.11.md`), and reconciled all repository anchors.
+  - Release Rollout: Published and tagged `v0.0.0.12 (Build 12)`, merged Jules PR #1 and `feat/stage-1-...` into `main`, cleaned up legacy release files (`RELEASE-v0.0.0.11.md`), and reconciled all repository anchors. Codified Pre-Draft Alignment Artifact Gate, Single Active Root Manifest Invariant, Sub-Second Drift Auditing, and Dual-Branch PR Merge Rollout across `.agents/workflows/` and `.agents/rules/`.
+
 
 
 ## What's Left to Build (Master Roadmap Stages 2–5)
