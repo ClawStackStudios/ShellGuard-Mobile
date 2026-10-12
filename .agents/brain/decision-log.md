@@ -1,8 +1,5 @@
 # Decision Log
 
-## 2026-10-03 — splitting the autofill authentication stack
-While researching 2026 Autofill implementation patterns, discovered we must aggressively unlearn legacy `AutofillNode` structures. Confirmed that standard forms and passkey authentication now exist on two entirely separate architectural planes (`Modifier.semantics` vs `Credential Manager`). We will implement both independently rather than forcing one into the other.
-
 ## 2026-10-04 — context-aware locked inline chips & add-item deep linking
 Transformed the Autofill suggestion pipeline: when locked, rather than hiding accounts or leaking titles, we present matched domain strings with 'Unlock Vault' inline above the keyboard. When 0 matches exist, we only show 'Add Item', which deep links directly to MainActivity's item form with the active URI pre-populated, preserving context via a global LockScreen overlay.
 
@@ -60,7 +57,6 @@ Purged legacy Build 11 release manifest to ensure only current release documenta
 ## 2026-10-12 — pre-draft alignment artifact gate & single manifest invariant
 Codified the Pre-Draft Alignment Artifact Gate into /draft-release and /walk-the-docs, mandating an interactive analysis artifact covering what needs alignment, how to align it, and a sequential roll-off checklist before mutating code or docs. Ratified the Single Active Root Manifest invariant and Cloud CI offload across hygiene rules.
 
-
-
-
+## 2026-10-12 — pre-work assumptions & jules cli dispatch
+Codified `.agents/workflows/pre-work-assumptions.md` to run anticipatory reflection while waiting for upstream Jules builds, surfacing the CWE-384 in-memory backgroundTimestamp lock bypass ahead of Stage 3. Dispatched Jules CLI session 1446424829708118836 on `feat/stage-2-mental-flow-and-ergonomics` with partitioned task cards and physical Pixel test readiness.
 
