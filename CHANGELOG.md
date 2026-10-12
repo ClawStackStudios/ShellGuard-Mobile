@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.0.0.12] - 2026-10-11 (Build 12) — Stage 1: Full Server Parity (Encrypted Attachments & Multi-URI Bridge) & Stage 1.5 (In-Place Re-Auth & PIN Unlock)
+## [0.0.0.12] - 2026-10-12 (Build 12) — Stage 1: Full Server Parity (Encrypted Attachments & Multi-URI Bridge) & Stage 1.5 (In-Place Re-Auth & PIN Unlock)
 ### Added
+- **Automated GitHub Actions Cloud CI & Verification (`.github/workflows/ci.yml`)**: Continuous integration workflow running headless Zulu JDK 17, documentation drift validation, 121 unit/Robolectric tests, and debug APK compilation in the cloud with artifact retention, eliminating local development machine build strain.
+- **Deterministic Documentation Drift Auditor (`scripts/audit_docs_drift.py`)**: Sub-second Python verification gate asserting that version codes, Play Store release notes character limits (< 500 chars), supported versions, and relative markdown links 100% bow to code reality.
 - **PBKDF2-SHA256 Vault PIN Authentication (`PinAuthManager.kt`, `PinPadView.kt`)**: 100,000-iteration PBKDF2-SHA256 PIN hashing with 16-byte cryptographically secure random salt, constant-time `MessageDigest.isEqual` comparison to prevent timing attacks, rate-limiting lockout counter (5 failed attempts trigger 30-second backoff), and masked dot visualizer with tactile haptic feedback.
 - **In-Place Vault Re-Authentication (`LockScreen.kt`, `LockViewModel.kt`)**: Replaced blocking full-logout lock screen with responsive in-place unlocking supporting Biometrics, PIN entry, and fallback Master Sovereign Key (`hu-`) modal without terminating active session tokens, losing form state, or resetting navigation.
 - **Decoupled Session Persistence Pattern (`EncryptedDeviceVault.kt`)**: Separated ephemeral in-memory shell key destruction (`zeroizeMemory()`) from sealed hardware KeyStore storage, enabling instant vault rehydration upon PIN or biometric verification while preserving session network authorization.

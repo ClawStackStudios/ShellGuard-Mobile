@@ -30,6 +30,7 @@ Welcome to **v0.0.0.12** of **ShellGuard Mobile** — **Stage 1: Server Parity (
 8. **Deterministic Plaintext Cache Purge (`clearDecryptedCache`)**: Enforced deterministic deletion of temporary plaintext files in `context.cacheDir/decrypted_attachments/` across cold start (`ShellGuardApp.onCreate`), user logout (`VaultDashboardViewModel.logout`), and emergency wipe (`SettingsViewModel.executePanicPurge`).
 9. **Filename Sanitization & Path Traversal Immunity**: Stripped directory traversal sequences (`..`, `/`, `\`) from attachment filenames before creating files on the Android filesystem.
 10. **In-Place Vault Re-Authentication & PBKDF2-SHA256 PIN Unlock (`PinAuthManager.kt`, `LockScreen.kt`)**: Replaced blocking lock state with responsive in-place unlocking supporting Biometrics, 100k-iteration PBKDF2-SHA256 PIN with `PinPadView` (haptic tactile feedback, masked visualizer, 5-attempt rate-limiting lockout), and fallback Master Sovereign Key (`hu-`) intake modal without terminating network sessions, dropping form edits, or resetting navigation.
+11. **Automated Cloud CI Pipeline & Zero Local Build Strain (`.github/workflows/ci.yml`, `scripts/audit_docs_drift.py`)**: Configured headless Zulu JDK 17 Continuous Integration workflow on GitHub Actions runners, offloading all 121 unit/Robolectric tests, documentation drift auditing, and debug APK assembly to cloud runners.
 
 All **121 unit and Robolectric tests pass 100% green** (`BUILD SUCCESSFUL in 7m 41s`), backed by GitHub Actions cloud CI and verified live on physical Google Pixel (`sailfish`) hardware.
 

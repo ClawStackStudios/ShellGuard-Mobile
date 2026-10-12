@@ -1,8 +1,5 @@
 # Decision Log
 
-## 2026-10-03 — connectivity transition guard & test coroutine lifecycle
-Diagnosed ComparisonFailure on CI runner in `SyncReconciliationAdversarialTest.testZombieResurrectionPreventedWhenRemoteDeleteFails`. Traced to `SyncRepository.init` collecting `connectivityMonitor.isOnline` and immediately launching an unshielded `syncAll` before test mocks were armed. Constrained the collector to transition events (`isOnline && !wasOnline`), introduced `cancelScope()`, and enforced clean shared preference and scope teardown across test fixtures.
-
 ## 2026-10-03 — structural envelope validation & fail-closed crypto contract
 Diagnosed deserialization exception on Web UI items storing unencrypted empty JSON arrays (`"[]"`). Added `ShellCryptionEngine.isEncryptedEnvelope` to gate decryption calls, normalized pull defaults in `SyncRepository`, and enforced strict `IllegalArgumentException` in `decryptField` to maintain fail-closed boundaries (see `testOracle.md` § Redline 7).
 
@@ -65,6 +62,10 @@ Diagnosed unresponsive unlock button on physical Google Pixel: `hasActiveSession
 
 ## 2026-10-12 — cloud ci offload and zero local build strain
 Created `.github/workflows/ci.yml` and `scripts/audit_docs_drift.py` for ShellGuard-Mobile, mirroring the ShellGuard-TOTP cloud CI pattern. Updated `git-hygiene.md` and `walk-the-docs.md` to eliminate local Gradle build strain: developers and agents run an instant 1-second Python drift audit locally, push to feature branches, and tail cloud test and APK compilation runs via `gh run watch`.
+
+## 2026-10-12 — release manifest cleanup & dual-branch pr merge sync
+Purged legacy Build 11 release manifest to ensure only current release documentation resides at root. Harmonized all relative markdown links against code ground truth and synchronized Jules's PR #1 merge with Stage 1.5 in-place re-auth features for v0.0.0.12.
+
 
 
 

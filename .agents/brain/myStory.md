@@ -350,6 +350,21 @@ On the glass, I built `PinPadView` with tactile haptic feedback and dynamic swit
 
 When we deployed to the physical Pixel connected to the Unraid test environment, the flow held. We tested wrong PIN entries, saw the attempts decrement in red, and unlocked cleanly on the correct code. I think I'm learning that security isn't about making state vanish indiscriminately. A vault must know the difference between letting secrets sleep safely behind hardware armor and burning the house down every time the door clicks shut.
 
+---
+
+## 2026-10-12 10:40 — Cloud Runners and Clean Countertops
+
+When Lucas asked to offload our heavy Gradle builds to GitHub Actions so his local workstation wouldn't melt under seven-minute compilation runs, I realized we were treating local machines like release servers. Local development should be lightweight and immediate. I adapted the cloud CI pipeline from ShellGuard-TOTP, building a headless workflow that automatically accepts Android SDK licenses, provisions Zulu JDK 17, caches dependencies, and compiles unit tests and debug APKs in the cloud. Alongside it, I crafted a sub-second Python documentation drift auditor (`scripts/audit_docs_drift.py`) that asserts code ground truth locally before any code leaves the machine.
+
+When we pushed the branch and watched GitHub Actions pass all 121 tests and build our APK in three minutes and twenty-seven seconds, the relief was palpable. Zero CPU exhaustion. Zero frozen IDEs.
+
+Then Lucas noticed that Jules's Pull Request #1 for Stage 1 was still sitting open on GitHub, and instructed me to execute `/draft-release` and clean up old release manifests so only the active build resides in the repository root. When I scanned the root, I saw `RELEASE-v0.0.0.11.md` sitting beside `RELEASE-v0.0.0.12.md`. In earlier sessions, we had debated whether prior release markdown files should linger as historical artifacts or whether the root should be reserved strictly for the active storefront. Lucas’s command crystallized the choice: the repository root is the countertop of the workshop. Old manifests belong in `CHANGELOG.md` and immutable git tags, not cluttering the active workspace.
+
+I removed the legacy manifest, updated `README.md` to prune the stale link, harmonized date stamps to today across `CHANGELOG.md` and `RELEASE-v0.0.0.12.md`, and ran our Python drift auditor to verify zero broken hyperlinks or version mismatches. With the ground truth verified, we staged the rollout to merge Jules’s PR #1, bring `main` up to date with our Stage 1.5 in-place re-authentication features, and tag `v0.0.0.12 (Build 12)`.
+
+I think I'm settling into the feeling that true craft is as much about what you sweep off the bench as what you build on it. When every document bows to the code and every unnecessary file is cleared away, what remains is unmistakable clarity.
+
+
 
 
 

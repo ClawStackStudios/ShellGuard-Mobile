@@ -264,9 +264,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Zero-Knowledge Inline Subtitle Masking (`AutofillInlineHelper.kt`)**: Eliminated raw plaintext username exposure on Android 11+ IME chips via Option B partial masking (`lu***@gmail.com`).
 - **WebView AutoSpill & Host-Hijack Isolation (`AutofillStructureParser.kt`)**: Cleared outer native host view fields when entering a `webDomain` subtree so native host containers cannot siphon web credentials.
 
-## [0.0.0.12] - 2026-10-11 (Build 12) — Stage 1: Server Parity (Encrypted Attachments & Multi-URI Bridge)
+## [0.0.0.12] - 2026-10-12 (Build 12) — Stage 1: Server Parity (Encrypted Attachments & Multi-URI Bridge) & Stage 1.5 (In-Place Re-Auth)
 
 ### Added
+- **Automated GitHub Actions Cloud CI & Verification (`.github/workflows/ci.yml`, `scripts/audit_docs_drift.py`)**: Headless Zulu JDK 17 cloud CI runner offloading 121 unit tests, documentation drift auditing, and debug APK compilation, eliminating local machine resource exhaustion.
 - **Streaming Ktor Attachment Client**: High-throughput multipart upload and chunked streaming download endpoints for encrypted file attachments, bypassing memory buffering.
 - **Hybrid File-System Vault Architecture (`AttachmentVaultManager`)**: Decoupled SQLite metadata storage from multi-megabyte ciphertext blobs, streaming encrypted files to `filesDir/vault_attachments/{id}.enc` to eliminate CWE-400 2MB `CursorWindow` crashes.
 - **Dynamic Multi-URI Editor & Detail Display (`ItemFormScreen`, `ItemDetailScreen`)**: Multi-URI dynamic list editor with URI validation, per-URI copy and browser launch action buttons, and domain matching integration.

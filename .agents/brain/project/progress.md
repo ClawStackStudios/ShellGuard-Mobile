@@ -200,8 +200,9 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
     - Reef Modernist `PinPadView` with tactile haptic feedback and dynamic `LockScreen` presentation.
     - Inline Master Sovereign Key modal allowing typing or JSON upload of 67-character `hu-` key for in-place re-authentication.
     - Tested end-to-end and verified on physical Google Pixel (`sailfish`) connecting to live Unraid test prod server (`192.168.1.70:6565`).
-  - Hardware Verification: Full on-device verification on physical Google Pixel (`sailfish`): file attachments staged, saved, edited post-creation, persisted across room queries, and rendered in detail cards; lock screen with PIN and Master Key verified live.
   - Verification: 121 unit and Robolectric tests passing 100% green across 19 suites (`PinAuthManagerTest.kt` added).
+  - Cloud CI Offload: Configured `.github/workflows/ci.yml` and `scripts/audit_docs_drift.py`, offloading all 121 unit tests, doc verification, and debug APK assembly to GitHub Actions cloud runners (passed in 3m 27s).
+  - Release Rollout: Drafted `v0.0.0.12 (Build 12)`, cleaned up legacy release files (`RELEASE-v0.0.0.11.md`), and reconciled all repository anchors.
 
 
 ## What's Left to Build (Master Roadmap Stages 2–5)

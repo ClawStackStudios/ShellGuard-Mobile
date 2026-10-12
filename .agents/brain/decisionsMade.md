@@ -696,5 +696,18 @@ Calibration is sharp with 0 over-confidence penalties across 8 ratified decision
 **Outcome**: Vault unlocks seamlessly in place via PIN or Master Sovereign Key, preserves backstack state, and dismisses the lock overlay without navigation disruption.
 **Pattern reference**: New pattern — accumulating, weight 1/3.
 
+## release-v0-0-0-12-manifest-cleanup-and-dual-branch-sync — 2026-10-12 10:35
+
+**Context**: Preparing the formal milestone release for Stage 1 (Server Parity: Attachments & Multi-URI) and Stage 1.5 (In-Place PIN Re-Auth). Jules's PR #1 was open on GitHub targeting `main`, while legacy `RELEASE-v0.0.0.11.md` remained in the repository root alongside the new `RELEASE-v0.0.0.12.md`.
+**Options considered**:
+- Option A: Keep historical `RELEASE-v*.md` files in root indefinitely — Preserves disk artifacts, but clutters the repository root with superseded markdown files and increases documentation drift surface.
+- Option B: Clean up the superseded `RELEASE-v0.0.0.11.md` from root, leaving only the active release manifest (`RELEASE-v0.0.0.12.md`) and store notes (`RELEASE-PLAY.md`), while preserving release history inside `CHANGELOG.md` and git tags — Keeps the repository root razor-clean, guarantees documentation strictly bows to code truth, and streamlines cloud CI validation.
+**Chosen**: Option B.
+**Why**: The root of the repository is the storefront of the codebase. A developer or release pipeline checking the root should see exactly one definitive release manifest for the active build. Historical release notes live in `CHANGELOG.md` and git tags, where they belong.
+**Confidence**: high — verified via `scripts/audit_docs_drift.py` passing 100% green.
+**Outcome**: Removed `RELEASE-v0.0.0.11.md`, updated `README.md` links, harmonized `CHANGELOG.md` and `RELEASE-v0.0.0.12.md` dates, and orchestrated dual-branch merge of PR #1 and `feat/stage-1-...` into `main`.
+**Pattern reference**: Link to `project/productVersion.md § Semantic Progression Strategy`.
+
+
 
 
