@@ -50,10 +50,12 @@ Ensures `.so` libraries remain uncompressed and 16 KB page-aligned inside APKs/A
 2. **Manifest Binding**: `AndroidManifest.xml` must declare:
    - `android:networkSecurityConfig="@xml/network_security_config"`
    - `android:usesCleartextTraffic="true"`
-3. **OkHttp Engine Configuration**:
+3. **OkHttp Engine & Transport Architecture**:
    - Must register `ConnectionSpec.CLEARTEXT` alongside `ConnectionSpec.MODERN_TLS` and `ConnectionSpec.COMPATIBLE_TLS`.
-   - Relaxed `X509TrustManager` and permissive `HostnameVerifier` for private IP subnets and Tailscale MagicDNS (`*.ts.net`).
-   - Enable `followRedirects(true)` and `followSslRedirects(true)` for VPN routing.
+   - Amber UI transport warning pills enforced whenever unencrypted `http://` endpoints are active.
+   - Stage 5 migration: replace temporary `relaxedTrustManager` with `PinningTrustManager`, validating leaf certificates against pinned SHA-256 fingerprints and verifying rotated certificates via ECDSA-SHA256 signatures against the pinned Instance Identity Key (`instance.key`).
+   - Enable `followRedirects(true)` and `followSslRedirects(true)` for VPN and mesh routing.
+   - Dual-homed network dispatcher: races concurrent health probes between local LAN IP (high-speed) and Tailscale MagicDNS (`*.ts.net`), falling back to offline Room caching.
 
 ## Verification Gate Invariants
 - **Application Files (Kotlin, XML, Gradle)**: Mandatory pre-commit verification gate (`./gradlew testDebugUnitTest` and `./gradlew assembleDebug`).

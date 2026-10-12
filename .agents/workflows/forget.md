@@ -161,13 +161,22 @@ that file before the dissolution.
 
 ## Phase 4: Produce Forget Report Artifact
 
-Create `forget_report.md` as an artifact. Set
-`request_feedback = true` in ArtifactMetadata.
+> [!IMPORTANT]
+> **🛡️ Artifact Datestamp & Anti-Overwrite Invariant:**
+> 1. **Title Datestamp**: The top-level document heading MUST include the formatted date and 12-hour local time:  
+>    `# Forget Report - MM/DD/YYYY - H:MM am/pm` (e.g. `# Forget Report - 10/11/2026 - 7:44 pm`).
+> 2. **Timestamped Filename**: Always write the artifact to a discrete, timestamped filename:  
+>    `forget_report_YYYY_MM_DD_HHmm.md` (e.g. `forget_report_2026_10_11_1944.md`).
+> 3. **Anti-Overwrite Protection**: Never generate a report using only a bare static filename. If `forget_report.md` is also updated for canonical tooling compatibility, both files must be written so the timestamped version is preserved permanently in the project archive.
+
+Create `forget_report_YYYY_MM_DD_HHmm.md` (and optionally sync canonical `forget_report.md`) as an artifact. Set `request_feedback = true` in ArtifactMetadata.
 
 ### Report Structure
 
 ```markdown
-# Forget Report — [YYYY-MM-DD HH:MM]
+# Forget Report - MM/DD/YYYY - H:MM am/pm
+
+> *Session Date: [Month DD, YYYY (MM/DD/YYYY — H:MM AM/PM local time)]*
 
 ## Summary
 Proposing to dissolve [n] entries from [m] files.

@@ -27,8 +27,16 @@ You must NEVER work directly on `main`.
 
 ## 🗺️ Step 3: Tactical Planning
 1. **Research:** Use `grep_search` and `view_file` to map the exact files and dependencies involved in the task.
-2. **Document:** If the task requires architectural changes, involves extensive logic, or deviates from existing patterns, create or update the `implementation_plan.md` artifact.
-3. **Approval:** If a plan was created, stop and await the user's explicit approval before proceeding to Execution.
+2. **Document:** If the task requires architectural changes, involves extensive logic, or deviates from existing patterns, create or update the implementation plan artifact using a task-scoped timestamped filename (e.g. `implementation_plan_<task>_YYYY_MM_DD.md`):
+   > [!IMPORTANT]
+   > **🛡️ Artifact Datestamp & Anti-Overwrite Invariant:**
+   > - **Title Datestamp**: Heading must be `# Implementation Plan — [Task] - MM/DD/YYYY - H:MM am/pm`.
+   > - **Timestamped Filename**: Always write to a discrete task/date-stamped file (e.g. `implementation_plan_<task>_YYYY_MM_DD.md`) rather than overwriting prior plans.
+3. **Preview & Approval:**
+   > [!IMPORTANT]
+   > **🛑 The Preview Mandate:**  
+   > Always **"Show me what you're going to add, where you will add it, and to what files please."**  
+   > Present the full preview, and await the user's explicit approval before proceeding to Execution.
 
 ## ⚙️ Step 4: Execution
 - Only once Steps 1-3 are complete may you begin modifying source code.

@@ -67,10 +67,24 @@ If local machine configurations, hardware serial numbers, or environment secrets
 - `rm -rf` or any bulk file deletion
 - If unsure whether a file belongs to another agent's in-flight work, stop and coordinate — don't delete to silence an error.
 
-## Android Pre-Commit Verification Gate
-- Run unit and UI tests before committing: `./gradlew testDebugUnitTest`.
-- Ensure clean build verification: `./gradlew assembleDebug`.
-- **Documentation Exemption**: Markdown doc files are excluded from requiring a build or test run (**NO TESTING** is required). Test **ONLY** when editing application files (Kotlin, XML, Gradle), or after stages/strokes of work.
+## Cloud CI Offload & Pre-Commit Verification Gate
+- **Zero Local Strain Principle**: You do **NOT** need to trigger heavy `./gradlew testDebugUnitTest` or `./gradlew assembleDebug` builds locally on the development machine. Full build compilation, 121+ Robolectric/unit tests, and debug APK artifact packaging are offloaded to GitHub Actions Cloud CI (`.github/workflows/ci.yml`).
+- **Fast Local Pre-Commit Gate**:
+  - Run the lightweight documentation drift check: `python3 scripts/audit_docs_drift.py` (executes in <1 second with zero CPU strain).
+  - **Documentation Exemption**: Markdown doc files are excluded from requiring local Gradle builds.
+- **Push & Tail Cloud Build Protocol**:
+  - Commit changes adhering to the two-layer attribution format.
+  - Push branch to remote: `git push origin <branch>`.
+  - Tail and monitor the cloud build via GitHub CLI:
+    ```bash
+    # View recent CI runs
+    gh run list -L 3
+    # Watch live progress and logs
+    gh run watch
+    # Or view failure logs if a run fails
+    gh run view --log-failed
+    ```
+- **Local Gradle Exception**: Running local `./gradlew testDebugUnitTest` or `./gradlew assembleDebug` is strictly optional and reserved for offline development or localized single-test debugging (`--tests "com.clawstack.shellguard.*SpecificTest*"`).
 
 ## Attribution & Commit Message Format
 - Commit under the human's configured identity (`git config user.name` / `user.email`). No separate agent identity, no AI co-author line.
@@ -102,7 +116,7 @@ Before executing any interactive rebase, history surgery, or multi-commit squash
    git branch backup/$(git branch --show-current)-pre-rebase
    ```
 2. **Perform Rebase**: Execute rebase cleanly.
-3. **Verify Integrity**: Run `./gradlew testDebugUnitTest` to confirm tests remain 100% green post-rebase.
+3. **Verify Integrity**: Push to remote feature branch (`git push --force-with-lease`) and monitor cloud CI verification (`gh run watch`), or optionally run `./gradlew testDebugUnitTest` if working strictly offline.
 4. **Prune Anchor**: Once verified and merged/pushed, delete the temporary safety branch (`git branch -D backup/...`).
 
 ### 2. Autosquash & Clean Commit Curation

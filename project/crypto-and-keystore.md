@@ -277,6 +277,9 @@ object SecurityPreferenceController {
         
         context.deleteDatabase("shellguard.db")
         
+        // Purge all encrypted attachments and plaintext decrypted cache
+        AttachmentVaultManager(context).clearAll()
+        
         val keyStore = java.security.KeyStore.getInstance("AndroidKeyStore")
         keyStore.load(null)
         if (keyStore.containsAlias("ShellGuardBiometricKey")) {
@@ -354,6 +357,13 @@ object BiometricRecoveryHandler {
 }
 ```
 
+### 8.1 Attachment Re-Prompt Verification Gate
+When a vault item has `reprompt == true`, biometric/PIN re-authentication applies strictly to:
+1. Password unmasking / copying
+2. Secure note content unmasking / copying
+3. SSH private key unmasking / copying
+4. **Attachment Access**: Viewing, streaming, or opening an attachment (`onOpenAttachment`) via `AttachmentVaultManager` must verify `isRepromptPassed` before decrypting to the cache directory and launching `ACTION_VIEW`.
+
 ---
 
 ## 9. Sensitive Clipboard Hardening (Android 13+ CWE-359)
@@ -415,4 +425,31 @@ Whenever an existing password pearl is updated, previous passwords must be prese
 - **Serialized Form**: JSON array `[{"password":"...","changed_at":"2026-09-24T23:00:00Z"}]`
 - **ShellCryption AAD Binding**: `vault_pearls_history:{id}`
 - Decryption occurs only on-demand when the user views the History Sheet in `ItemDetailScreen`.
+
+---
+
+## 11. Vault PIN Authentication & Decoupled Session Persistence (PinAuthManager)
+
+To enable frictionless, in-place re-authentication without relying exclusively on Android BiometricPrompt or dropping active sessions back to the login screen, ShellGuard Mobile implements a standalone PBKDF2-SHA256 PIN authentication engine and decoupled KeyStore session persistence.
+
+### A. PBKDF2-SHA256 Derivation & Verification
+- **Salt Generation**: 16 cryptographically secure random bytes generated via `java.security.SecureRandom`.
+- **Iteration Count**: 100,000 iterations using `PBKDF2WithHmacSHA256` (`SecretKeyFactory`).
+- **Key Length**: 256 bits (32 bytes).
+- **Constant-Time Comparison**: Verification utilizes `MessageDigest.isEqual(derivedHash, storedHash)` to neutralize timing side-channel attacks.
+- **Storage**: The 16-byte salt and 32-byte hash are Base64-encoded and persisted securely in `EncryptedDeviceVault` (backed by Android KeyStore hardware AES-256 wrapping).
+
+### B. Attempt Rate-Limiting & Lockout Cascade
+To defend against brute-force attacks on 4-to-8 digit PINs:
+- **Lockout Threshold**: 5 failed consecutive attempts (`MAX_FAILED_ATTEMPTS`).
+- **Lockout Duration**: 30-second backoff lockout period (`LOCKOUT_DURATION_MS = 30_000L`).
+- **Lockout Enforcement**: Once locked out, `verifyPin()` rejects all attempts immediately, returning `PinVerificationResult.LockedOut(remainingSeconds)`.
+- **Master Key Fallback**: Users can bypass lockout or recover if the PIN is forgotten by re-entering their Sovereign Master Key (`hu-`) or uploading their `clawkey.json` file in-place.
+- **Successful Verification Reset**: Entering the correct PIN immediately clears the failed attempt counter and lockout timestamp.
+
+### C. Decoupled Session Persistence Pattern
+- **Volatile Zeroization on Lock**: When the vault locks (`vaultLockManager.lockVault()`), volatile in-memory shell key buffers are zeroized (`inMemoryShellKey = null`), destroying decryption capability in RAM.
+- **Hardware KeyStore Retention**: `EncryptedDeviceVault` retains the AES-256 wrapped shell key, user UUID, and active server session token in hardware-backed storage.
+- **In-Place Rehydration**: Upon valid PIN or Biometric authentication, `EncryptedDeviceVault.inMemoryShellKey` is re-hydrated from KeyStore storage in place, immediately unsealing the Room SQLCipher database and dismissing the lock overlay without terminating server connectivity, losing draft form state, or resetting the navigation backstack.
+
 

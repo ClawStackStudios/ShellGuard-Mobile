@@ -264,9 +264,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Zero-Knowledge Inline Subtitle Masking (`AutofillInlineHelper.kt`)**: Eliminated raw plaintext username exposure on Android 11+ IME chips via Option B partial masking (`lu***@gmail.com`).
 - **WebView AutoSpill & Host-Hijack Isolation (`AutofillStructureParser.kt`)**: Cleared outer native host view fields when entering a `webDomain` subtree so native host containers cannot siphon web credentials.
 
-## [Unreleased] — Stage 1: Server Parity (Encrypted Attachments & Multi-URI Bridge)
+## [0.0.0.12] - 2026-10-12 (Build 12) — Stage 1: Server Parity (Encrypted Attachments & Multi-URI Bridge) & Stage 1.5 (In-Place Re-Auth)
 
 ### Added
+- **Automated GitHub Actions Cloud CI & Verification (`.github/workflows/ci.yml`, `scripts/audit_docs_drift.py`)**: Headless Zulu JDK 17 cloud CI runner offloading 121 unit tests, documentation drift auditing, and debug APK compilation, eliminating local machine resource exhaustion.
 - **Streaming Ktor Attachment Client**: High-throughput multipart upload and chunked streaming download endpoints for encrypted file attachments, bypassing memory buffering.
 - **Hybrid File-System Vault Architecture (`AttachmentVaultManager`)**: Decoupled SQLite metadata storage from multi-megabyte ciphertext blobs, streaming encrypted files to `filesDir/vault_attachments/{id}.enc` to eliminate CWE-400 2MB `CursorWindow` crashes.
 - **Dynamic Multi-URI Editor & Detail Display (`ItemFormScreen`, `ItemDetailScreen`)**: Multi-URI dynamic list editor with URI validation, per-URI copy and browser launch action buttons, and domain matching integration.
@@ -288,5 +289,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Biometric Claw Re-Prompt Gate on Attachments (`ItemDetailScreen.kt`)**: Wrapped `onOpenAttachment` with biometric verification when `state.reprompt == true`, preventing unauthorized decryption of sensitive files on unlocked devices.
 - **Path Traversal Defense & MIME Type Fallback (`ItemDetailViewModel.kt`)**: Wrapped attachment filenames in `File(fileName).name` and dynamically resolved missing MIME types via Android `MimeTypeMap`.
 - **Systemic Transport Invariants Codified**: Codified anti-theatre transport invariants into `.agents/rules/android-development.md` §5 and `systemPatterns.md`, warning against unprotected `SHA-256(hu-)` transmission and naked metadata leakage on cleartext HTTP.
+- **Stage 1.5 In-Place Vault Re-Authentication & PBKDF2-SHA256 PIN Unlock**:
+  - `PinAuthManager`: 100k-iteration PBKDF2-SHA256 derivation with 16-byte random salt, constant-time `MessageDigest.isEqual` verification, and 5-attempt rate-limiting lockout counter (30s backoff).
+  - `EncryptedDeviceVault`: Decoupled session persistence zeroizing volatile RAM keys on lock while preserving hardware KeyStore wrapped secrets for instant in-place rehydration without dropping active sessions.
+  - `LockScreen` & `PinPadView`: Tactile 62dp keypad, masked animated dots, attempt lockout warning, Master Key modal, and unified scrollable layout.
+  - `SettingsSecurityScreen`: Unlock method selector (`BIOMETRIC`, `PIN`, `MASTER_KEY`) and PIN configuration dialog.
+  - `PinAuthManagerTest`: 6 Robolectric unit tests expanding test suite to 121 tests 100% green.
+
 
 

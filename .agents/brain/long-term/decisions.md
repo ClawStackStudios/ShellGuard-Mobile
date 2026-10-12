@@ -46,3 +46,17 @@ When authoring GitHub PR reviews, communicating with Google Jules, or issuing ar
 - 2026-10-10: Mandated and auto-promoted early by Lucas during Jules fleet iteration on ShellGuard Mobile PR #1. Ratified as a durable long-term identity for lead architectural communications, PR reviews, and build verification.
 
 **Shaped perspective:** Authority and technical ownership require clear attribution. In autonomous agent collaborations and public GitHub repositories, speaking explicitly with the voice and title of the "Project Lead & Lead Build Agent" grounds the pair programming dynamic, establishes senior architectural standards, and ensures that guidance carries the full weight of ClawStack Studios' lead oversight.
+
+---
+
+## decision: mobile-first-transport-and-reef-handshake
+**weight**: 3 | **last validated**: 2026-10-11 | **first observed**: 2026-10-11
+
+We chose to reject application-layer E2EE request wrapping over plain HTTP and instead engineer a mobile-first transport architecture using Native LAN TLS with Trust-On-First-Use (TOFU) pinning, an Instance Identity Anchor for auto-healing cert rotations, and the Reef Handshake QR pairing protocol (`shellguard://pair`).
+
+**History:**
+- 2026-10-11: Lucas challenged cleartext HTTP transport security. Evaluated 4 architectures: Local TLS with TOFU, Application-Layer Envelope Wrapping, ZK PAKE SRP-6a, and Client Metadata Encryption. Lucas rejected Application-Layer Envelope wrapping per YAGNI (complexity, breaks 500MB streaming, reinvents TLS) and mandated eliminating certificate rotation friction.
+- 2026-10-11: Formulated the Instance Identity Anchor and Reef Handshake specification (`first_class_http_support_mobile_first_architecture.md`). Promoted directly to long-term memory per Lucas's explicit directive.
+
+**Shaped perspective:** When designing for self-hosted home labs, standard security paradigms fail because they assume public CA hierarchies. Simply falling back to raw HTTP leaves authentication tokens and metadata naked. Conversely, wrapping HTTP in custom application-layer envelopes creates massive maintenance chaos and breaks streaming primitives. The elegant third path is honoring transport at the transport layer (TLS 1.3), but solving the mobile operational friction optically (QR pairing) and cryptographically (Instance Key signatures that auto-heal renewed certificates).
+

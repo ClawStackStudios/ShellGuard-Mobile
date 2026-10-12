@@ -42,6 +42,12 @@ UI (Compose) ──(UserIntent)──> ViewModel ──> UseCase ──> Reposit
   - Client-side AES-GCM-256 payload encryption protects passwords, notes, and attachments from server-side and wire inspection. However, transport security is not optional: cleartext HTTP exposes authentication hashes (`SHA-256(hu-)`), session JWTs, and all item metadata (URLs, usernames, titles, filenames).
   - External network layers (Tailscale, WireGuard) provide transit encryption only when actively routing. Never assume cleartext HTTP is secure without explicit IP validation or user consent.
   - Self-signed homelab TLS must use Trust-On-First-Use (TOFU) certificate fingerprint pinning rather than unrestricted blind trust managers.
+- **Mobile-First Sync & The Reef Handshake Invariant**:
+  - *Canonical Specification*: See `first_class_http_support_mobile_first_architecture.md`.
+  - *The Paradigm Inversion*: Rather than treating mobile as a remote web browser bolt-on, ShellGuard builds the server-client relationship from the phone's perspective: built to store and sync securely by default.
+  - *Zero-Touch Pairing*: CameraX QR scan of `shellguard://pair` ingests LAN IP, Tailscale host, SHA-256 fingerprint, and public Instance Key in one 300ms stroke, eliminating manual entry.
+  - *Auto-Healing Pinning*: Decouples ephemeral TLS certs from the permanent root Instance Identity Key (`instance.key`), which signs rotation proofs (`/api/public/tls-manifest`), enabling seamless auto-healing of rotated certs without developer friction.
+  - *Dual-Homed Mobility*: Seamless concurrent probe racing between fast home LAN (<20ms) and Tailscale mesh with automatic failover to offline Room caching.
 
 ## Settings Hub & Persistence Architecture
 - **DataStore Reactive Pipeline & Deterministic ViewModel Synchronization**: `SettingsRepository` binds user preferences into a persistent, reactive `Flow<AppSettings>` using `androidx.datastore:datastore-preferences:1.1.3`, seeded with `.onStart { emit(AppSettings()) }` inside `combine(...)` pipelines and paired with `Job`-returning ViewModel mutations and `clearAll()` test isolation. *(see [long-term/patterns.md § pattern: deterministic-datastore-viewmodel-synchronization](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/brain/long-term/patterns.md))*

@@ -159,6 +159,7 @@ mindmap
 3. **Screen Capture Defense (`FLAG_SECURE`)**: Scoped to release builds, blocking screen recorders, malware overlays, and task-switcher previews while preserving developer inspection in debug builds.
 4. **Sensitive Clipboard Masking (CWE-359)**: Password copies apply `ClipDescription.EXTRA_IS_SENSITIVE = true` to suppress visual cleartext previews in Android 13+ clipboard overlays, paired with an automated 30s background scrub timer.
 5. **Emergency Panic Purge (`ACTION_PANIC_WIPE`)**: Broadcast receiver executes an instant irreversible wipe across KeyStore aliases, EncryptedSharedPreferences, Room database files, and terminates the process immediately.
+6. **In-Place Re-Authentication & Decoupled Session Persistence**: Vault locking zeroizes volatile in-memory shell keys without purging hardware-sealed KeyStore secrets or active network sessions. Users re-authenticate in-place using Biometrics, 100k-iteration PBKDF2-SHA256 PIN (`PinPadView` with tactile haptics and 5-attempt lockout backoff), or Master Sovereign Key modal without resetting the UI backstack or losing draft form edits.
 
 ---
 

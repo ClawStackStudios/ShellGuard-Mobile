@@ -143,6 +143,7 @@ data class PearlDto(
     val attachments: List<String> = emptyList(),
     val custom_fields: Map<String, String> = emptyMap(),
     val tags: List<String> = emptyList(),
+    // Multi-URI entries supporting web URLs (https://) and Android application packages (androidapp://com.example.app)
     val uris: List<String> = emptyList(),
     val password_history: List<String> = emptyList(),
     val created_at: String,
@@ -563,5 +564,13 @@ Since the ShellGuard server often runs on local networks (LAN) or via Tailscale,
 
 **Ktor OkHttp Engine configuration (refer to Section 3 for Kotlin code):**
 The `getUnsafeOkHttpClient` in `ShellGuardClient` configures OkHttp to trust all certificates and bypass hostname verification, which is necessary for connections to local LAN IPs or self-signed Tailscale endpoints.
+
+### 6.1 Amber Cleartext HTTP Transport Warning
+
+While cleartext HTTP is explicitly permitted in `network_security_config.xml` to support local home labs, the mobile client enforces transparency regarding transport risk:
+- **Threat Vector**: Unencrypted HTTP exposes the client's `SHA-256(hu-)` login hash, session bearer tokens, and vault item metadata (URLs, titles, usernames) to network eavesdroppers.
+- **Client Enforcement**: Whenever `baseUrl` begins with `http://` or port `:80` / custom unencrypted HTTP is selected, `GatewayScreen` and `SettingsServerScreen` MUST render an amber transport warning indicator:
+  `⚠️ Unencrypted HTTP — Session tokens and item metadata are exposed on local network`
+- **Zero-Knowledge Auth Evolution**: Future revisions will replace static `SHA-256(hu-)` transmission with a zero-knowledge challenge-response protocol (SRP-6a / OPAQUE) to prevent session credential harvesting even across unencrypted HTTP channels.
 
 ---

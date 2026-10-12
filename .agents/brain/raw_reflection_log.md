@@ -191,3 +191,46 @@ Improvements_Identified_For_Consolidation:
 - Pattern: Option B Masked Username (`lu***@domain.com`) + Category/Tag Inline Chip Disambiguation.
 ---
 
+---
+Date: 2026-10-11
+TaskRef: "Mobile-First HTTPS Transport Architecture & Long-Term Memory Promotion"
+
+Learnings:
+- Decoupling ephemeral transport certificates from a permanent root server identity (Instance Identity Key `instance.key`) solves the developer friction of standard TOFU pinning by allowing the server to cryptographically sign rotation proofs (`/api/public/tls-manifest`) that mobile clients auto-heal silently without scary MITM false alarms.
+- The Reef Handshake QR pairing protocol (`shellguard://pair`) encapsulates LAN/Tailscale endpoints, certificate fingerprints, and instance public keys into a single 300ms optical CameraX scan, completely eliminating manual IP, port, and fingerprint entry.
+- Sync-native mobile-first architecture demands dual-homed network mobility: concurrent probe racing between high-speed home LAN (<20ms) and Tailscale WireGuard mesh, falling back smoothly to encrypted offline Room caching.
+- Redline: Captive portals on public Wi-Fi return HTTP 200/302 for every route; health check probes must strictly verify custom headers (`X-ShellGuard-API: true`) or JSON status to prevent spoofing.
+- Android Doze mode suspends background UDP WireGuard sockets, requiring strict Ktor connect timeouts (<= 3s) to avoid UI lockups.
+
+Successes:
+- Formulated the paradigm inversion: building from the moving device's perspective ("built to store and sync securely by default").
+- Created comprehensive specification `first_class_http_support_mobile_first_architecture.md` and paired meta-prompts for both ShellGuard Web Server and ShellGuard Mobile.
+- Appended Stage 5 prompt and long-term testing invariants to `project/meta-prompt-ai-studio.md` and `ROADMAP.md` as the `v0.0.1.0 (Build 16)` structural completion milestone.
+- Expanded `.agents/rules/android-development.md` (§ 5.C-F) and `.agents/brain/project/systemPatterns.md`.
+- Promoted pattern, decision, and learning directly into `.agents/brain/long-term/` memory per Lucas's explicit directive.
+---
+
+---
+Date: 2026-10-12
+TaskRef: "Stage 1.5 In-Place Vault Re-Authentication & Lockout Protection"
+
+Learnings:
+- Decoupling memory zeroization from persistent session state: Purging `shell_key` from EncryptedSharedPreferences on lock collapsed `hasActiveSession()` and trapped the app in an un-dismissible lock overlay. `zeroizeMemory()` must purge volatile RAM buffers while EncryptedSharedPreferences (backed by Android KeyStore hardware AES-256) retains the sealed key for PIN/biometric rehydration.
+- PBKDF2-SHA256 PIN authentication: 100,000 iterations with a 16-byte cryptographically secure salt and constant-time `MessageDigest.isEqual()` provides robust brute-force defense on mobile storage with sub-80ms evaluation latency on physical ARM64 hardware.
+- Attempt lockout counter: Enforcing maximum failed attempt thresholds (3, 5, 10) prevents brute-force attacks on 6-digit numeric PINs by invalidating PIN entry and falling back to Master Sovereign Key re-authentication upon exhaustion.
+- Compact screen Compose layout ergonomics: Centering long vertical forms inside `Box` with absolute `Alignment.BottomCenter` buttons causes text overlapping on 16:9 / 18:9 screens (e.g. Google Pixel sailfish). Placing actions into a single scrollable `Column` with proportional `dp` button sizing guarantees seamless readability across all device densities.
+
+Difficulties:
+- Initial lock test on physical device had unresponsive unlock button due to `hasActiveSession()` returning false when RAM key was null. Resolved by updating session check to verify authenticated user profile and network token, while delegating cryptographic unlock to PIN/Master Key.
+
+Successes:
+- Designed and built `PinPadView`, `PinAuthManager`, and dynamic presentation switching in `LockScreen`.
+- Successfully verified full unlock flow on physical Google Pixel (`sailfish`) connecting to live Unraid test prod server (`192.168.1.70:6565`): PIN configuration, lockout countdown decrement on wrong PIN, instant unlock on correct PIN, and Master Sovereign Key modal in-place unlock.
+
+Improvements_Identified_For_Consolidation:
+- General pattern: Session credential retention vs volatile zeroization distinction in Android KeyStore-backed zero-knowledge vaults.
+- General pattern: Ergonomic scrollable column alignment over Box bottom-pinning for variable-height PIN and keyboard interfaces.
+---
+
+
+

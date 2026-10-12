@@ -1,7 +1,7 @@
 # Progress: ShellGuard Mobile
 
-## Current Status: Stage 1 Server Parity — Complete & Hardware-Verified on Google Pixel (`115/115` Tests Green)
-All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold through Phase 7 (Context-Aware Autofill Expansion) are verified on Google Pixel hardware. Stage 1 (Server Parity: Encrypted Attachments, Multi-URI Bridge, Storage DI Wiring, Settings Debt, and Room Persistence Hotfix) is 100% implemented, tested green across 115 unit tests, and verified live on physical Google Pixel hardware (`sailfish`).
+## Current Status: Stage 1 & 1.5 Server Parity & In-Place Re-Auth — Complete & Hardware-Verified on Google Pixel (`121/121` Tests Green)
+All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold through Phase 7 (Context-Aware Autofill Expansion) are verified on Google Pixel hardware. Stage 1 (Server Parity: Encrypted Attachments, Multi-URI Bridge, Storage DI Wiring, Settings Debt, and Room Persistence Hotfix) and Stage 1.5 (In-Place Vault Re-Authentication & PBKDF2-SHA256 PIN Unlock) are 100% implemented, tested green across 121 unit tests, and verified live on physical Google Pixel hardware (`sailfish`).
 
 
 
@@ -193,14 +193,32 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
     - Native `androidapp://` package scheme launcher resolution in `DetailUrlRow`.
     - Path traversal sanitization (`File(name).name`) and dynamic `MimeTypeMap` resolution.
     - Cleartext HTTP amber transport warning pills across `GatewayScreen` and `SettingsSyncScreen`.
-  - Hardware Verification: Full on-device verification on physical Google Pixel (`sailfish`): file attachments staged, saved, edited post-creation, persisted across room queries, and rendered in detail cards.
-  - Verification: 115/115 headless unit tests passing 100% green (`BUILD SUCCESSFUL in 6m 52s`).
+  - Stage 1.5 (In-Place Vault Re-Authentication & Lockout Protection):
+    - Decoupled volatile RAM zeroization from KeyStore encrypted preferences, preserving session tokens and sealed keys across locks without forcing complete re-login.
+    - PBKDF2-SHA256 `PinAuthManager` running 100,000 iterations with 16-byte salt and constant-time equality check.
+    - Configurable unlock method selector in `SettingsSecurityScreen` (`BIOMETRIC`, `PIN`, `MASTER_KEY`) and attempt lockout thresholds (3, 5, 10).
+    - Reef Modernist `PinPadView` with tactile haptic feedback and dynamic `LockScreen` presentation.
+    - Inline Master Sovereign Key modal allowing typing or JSON upload of 67-character `hu-` key for in-place re-authentication.
+    - Tested end-to-end and verified on physical Google Pixel (`sailfish`) connecting to live Unraid test prod server (`192.168.1.70:6565`).
+  - Verification: 121 unit and Robolectric tests passing 100% green across 19 suites (`PinAuthManagerTest.kt` added).
+  - Cloud CI Offload: Configured `.github/workflows/ci.yml` and `scripts/audit_docs_drift.py`, offloading all 121 unit tests, doc verification, and debug APK assembly to GitHub Actions cloud runners (passed in 3m 27s).
+  - Release Rollout: Drafted `v0.0.0.12 (Build 12)`, cleaned up legacy release files (`RELEASE-v0.0.0.11.md`), and reconciled all repository anchors.
 
 
-## What's Left to Build (Phase 8+)
-- [ ] Phase 8 (Stage 9): SSH Key Management & Cryptographic Key Generator (Tasks 14 & 15).
-- [ ] Phase 9 (Stage 10): Encrypted File Attachments & Streaming Vault (Tasks 16 & 17).
-- [ ] Phase 10 (Stage 11): Glance Home Screen Widgets, Quick Settings Tile & Audit Log Viewer (Tasks 18 & 19).
+## What's Left to Build (Master Roadmap Stages 2–5)
+- [ ] **Stage 2: Mental Flow & Ergonomic Form Polish (Build 13)**:
+  - Task 03: Seamless Cold-Start Routing, Reconnect Recovery & Sub-16ms Search.
+  - Task 04: Touch Targets (≥48dp), Haptic Feedback & Soft Keyboard Insets (`.imePadding`).
+- [ ] **Stage 3: Security Lifecycle, Biometrics & Offline Resilience (Build 14)**:
+  - Task 05: Lock Persistence Across Process Death & Offline Mutation Queue.
+  - Task 06: PIN Keypad Polish, Circular Dial Feel & Panic Destruction.
+- [ ] **Stage 4: In-The-Wild Autofill Verification & Release Hardening (Build 15)**:
+  - Task 07: Browser Testing (Chrome/Brave/Firefox), 2-Step Login & Anti-AutoSpill Audit.
+  - Task 08: 16 KB Page Alignment, ProGuard R8 Shrinking & Native Packaging.
+- [ ] **Stage 5: First-Class HTTPS Transport & The Reef Handshake (Build 16) — Structural Completion**:
+  - Task 09: TOFU PinningTrustManager & Instance Anchor Auto-Heal Engine.
+  - Task 10: Reef Handshake QR Ingestion (`shellguard://pair`), Dual-Homed Mobility & v0.0.1.0 Release.
+
 
 
 

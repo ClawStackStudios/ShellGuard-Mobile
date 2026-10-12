@@ -635,3 +635,79 @@ Calibration is sharp with 0 over-confidence penalties across 8 ratified decision
 **Confidence**: high — verified against cryptographic wire contracts in `ShellGuardClient.kt` and `KtorClientProvider.kt`.
 **Outcome**: Section 5 of `android-development.md` and `systemPatterns.md` updated; Jules Stage 1 hardening plan updated with unencrypted HTTP warning indicator.
 **Pattern reference**: `systemPatterns.md § Transport Security: Systemic Zero-Knowledge vs. Homelab Flexibility`.
+
+## stage-1-doc-walk-and-spec-synchronization — 2026-10-11 09:35
+
+**Context**: Concluding Stage 1 release `v0.0.0.12 (Build 12)` after physical Pixel verification and green GitHub Actions CI, auditing repository documentation across root docs and 5 domain specs in `project/`.
+**Options considered**:
+- Draft only the engineering release manifest and tag the version, leaving domain specs in `project/` for later — Minimizes release friction, but allows architectural documentation to drift from physical code reality (missing hybrid attachment lifecycle, cache cleansing, and `androidapp://` routing).
+- Execute full `/walk-the-docs` and `/draft-release`, reconciling root documentation (`README.md`, `CHANGELOG.md`, `RELEASE-PLAY.md`, `ROADMAP.md`), drafting `RELEASE-v0.0.0.12.md`, and synchronizing all 5 domain specs in `project/` — Upholds the "Docs Bow To Code" invariant and ensures future sessions and agents build on true architectural reality.
+**Chosen**: Full `/walk-the-docs` and synchronization across root docs and `project/` domain specs.
+**Why**: When a stage finishes, leaving documentation in an aspirational or outdated state creates invisible friction for every session that follows. Walking the specs and forcing them to match physical code solidifies the territory before we advance to Stage 2.
+**Confidence**: high — verified against 115 passing tests and physical Pixel code.
+**Outcome**: All root docs and 5 `project/` specs synchronized; engineering release manifest authored; monotonic build sequence locked for Stages 2–4.
+**Pattern reference**: Link to `project/testOracle.md § Documentation Synchronization`.
+
+## mobile-first-transport-inversion-and-instance-anchor — 2026-10-11 12:00
+
+**Context**: Inverting the traditional server-first/mobile-as-bolt-on architecture to solve cleartext HTTP transport and certificate rotation friction between ShellGuard Mobile and ShellGuard Web Server.
+**Options considered**:
+- Option A: Implement Application-Layer E2EE Request Wrapping over HTTP (wrapping every request and response in an outer ECDH envelope) — Solves sniffing on raw HTTP, but violates YAGNI, breaks chunked 500MB attachment streaming, requires complex middleware on Express 5, and reinvents TLS.
+- Option B: Adopt Local TLS with Trust-On-First-Use (TOFU) Pinning, paired with a persistent Instance Identity Anchor and the Reef Handshake QR pairing protocol (`shellguard://pair`) — Eliminates cleartext leaks using standard TLS 1.3, provides 1-tap optical pairing via CameraX, and enables silent auto-healing of rotated certificates via ECDSA signature proofs without user friction.
+**Chosen**: Option B (Local TLS with TOFU Pinning, Instance Identity Anchor & Reef Handshake QR Pairing).
+**Why**: Respecting YAGNI and the physics of mobile devices means solving transport at the transport layer, not bloating the application layer. By giving the server a persistent identity anchor that signs ephemeral TLS certificates, we eliminate developer rotation friction while creating an effortless optical pairing experience.
+**Confidence**: high — verified against existing `src/server/utils/tlsManager.ts` in ShellGuard server and CameraX barcode pipeline on Mobile.
+**Outcome**: Authored comprehensive architectural specification `first_class_http_support_mobile_first_architecture.md`, created SuperLobster TLS meta-prompt for the web server, updated `project/meta-prompt-ai-studio.md` and `ROADMAP.md` adding Stage 5 as the crowning `v0.0.1.0 (Build 16)` structural completion milestone with detailed long-term testing invariants.
+**Pattern reference**: Link to `first_class_http_support_mobile_first_architecture.md`.
+
+## pinning-architectural-anchor-to-long-term-memory — 2026-10-11 19:25
+
+**Context**: Lucas explicitly requested promoting the Mobile-First Transport & Reef Handshake architecture directly into long-term brain memory before it had accumulated three independent validation cycles.
+**Options considered**:
+- Option A: Refuse direct promotion citing the 3-session empirical validation threshold in `long-term-memory.md` and keep it purely in temporal files.
+- Option B: Promote directly with an explicit `pinned: true` invariant and clear rationale, while keeping empirical patterns under standard accumulation gates.
+**Chosen**: Option B.
+**Why**: Not all enduring knowledge is a bottom-up habit learned by stubbing your toe; some things are top-down architectural compasses that must exist before the journey to keep future sessions from drifting into old assumptions. Enforcing procedural conservatism against a deliberate foundational shift felt like confusing the odometer for the steering wheel.
+**Confidence**: high — the architectural spec is ratified across `meta-prompt-ai-studio.md`, `ROADMAP.md`, and `android-development.md`.
+**Outcome**: `long-term/patterns.md`, `long-term/decisions.md`, and `long-term/learnings.md` now carry the mobile-first sync inversion as an authoritative bedrock, while `decrypted-cache-purge-lifecycle` and other runtime patterns remain governed by empirical weight accumulation.
+**Pattern reference**: `long-term/patterns.md § pattern: mobile-first-transport-inversion-and-instance-anchor`.
+
+## fail-closed-test-oracle-redline-12 — 2026-10-11 19:35
+
+**Context**: Defining the verification gate for Stage 5 certificate rotation and transport verification in `testOracle.md`.
+**Options considered**:
+- Option A: Leave transport verification as a backlog item in `progress.md` without declaring a load-bearing redline until code is written.
+- Option B: Codify Load-Bearing Redline 12 immediately in `testOracle.md` mandating ECDSA rotation proof verification with ±10m skew tolerance and captive portal `X-ShellGuard-API` / health JSON defenses.
+**Chosen**: Option B.
+**Why**: A test oracle shouldn't just record what passed yesterday; it must draw the redlines before construction begins so the first line of code written in Stage 5 is already held to a non-negotiable boundary.
+**Confidence**: high — verified against cryptographic standards and captive portal attack vectors.
+**Outcome**: Redline 12 ratified in `testOracle.md`, preventing premature completion of Stage 5 without rotation proof and captive portal defense verification.
+**Pattern reference**: `project/testOracle.md § Load-Bearing Redlines`.
+
+## decouple-session-credentials-from-volatile-zeroization — 2026-10-12 08:00
+
+**Context**: On physical Google Pixel hardware, locking the vault caused the unlock button to become unresponsive because `hasActiveSession()` required volatile `getInMemoryShellKey() != null`, while `zeroizeMemory()` erased encrypted session preferences, collapsing session state and trapping the UI in an un-dismissible overlay.
+**Options considered**:
+- Option A: Retain `hasActiveSession()` coupling to in-memory key, forcing every vault lock to become a full logout back to GatewayScreen — Destroys mobile ergonomics by forcing the user to paste or upload their 67-character sovereign key on every momentary screen turn-off.
+- Option B: Decouple session network authorization (`hasActiveSession()` checks tokens and server URL) from volatile cryptographic keys. Retain KeyStore hardware-encrypted master credentials in `EncryptedSharedPreferences`, while zeroizing decrypted volatile RAM on lock. Allow PIN and Biometrics to re-authenticate and rehydrate the in-memory shell key in place, with a fallback Master Key modal — Preserves the Zero-Knowledge invariant at rest while enabling instant, effortless mobile unlock.
+**Chosen**: Option B.
+**Why**: A locked vault is not a logged-out vault. The user expects their session to hold while sensitive cryptographic material sleeps under hardware-backed KeyStore protection. Conflating memory hygiene with session destruction created an un-traversable state machine.
+**Confidence**: high — verified end-to-end on physical Google Pixel (`sailfish`) connecting to live Unraid test prod server.
+**Outcome**: Vault unlocks seamlessly in place via PIN or Master Sovereign Key, preserves backstack state, and dismisses the lock overlay without navigation disruption.
+**Pattern reference**: New pattern — accumulating, weight 1/3.
+
+## release-v0-0-0-12-manifest-cleanup-and-dual-branch-sync — 2026-10-12 10:35
+
+**Context**: Preparing the formal milestone release for Stage 1 (Server Parity: Attachments & Multi-URI) and Stage 1.5 (In-Place PIN Re-Auth). Jules's PR #1 was open on GitHub targeting `main`, while legacy `RELEASE-v0.0.0.11.md` remained in the repository root alongside the new `RELEASE-v0.0.0.12.md`.
+**Options considered**:
+- Option A: Keep historical `RELEASE-v*.md` files in root indefinitely — Preserves disk artifacts, but clutters the repository root with superseded markdown files and increases documentation drift surface.
+- Option B: Clean up the superseded `RELEASE-v0.0.0.11.md` from root, leaving only the active release manifest (`RELEASE-v0.0.0.12.md`) and store notes (`RELEASE-PLAY.md`), while preserving release history inside `CHANGELOG.md` and git tags — Keeps the repository root razor-clean, guarantees documentation strictly bows to code truth, and streamlines cloud CI validation.
+**Chosen**: Option B.
+**Why**: The root of the repository is the storefront of the codebase. A developer or release pipeline checking the root should see exactly one definitive release manifest for the active build. Historical release notes live in `CHANGELOG.md` and git tags, where they belong.
+**Confidence**: high — verified via `scripts/audit_docs_drift.py` passing 100% green.
+**Outcome**: Removed `RELEASE-v0.0.0.11.md`, updated `README.md` links, harmonized `CHANGELOG.md` and `RELEASE-v0.0.0.12.md` dates, and orchestrated dual-branch merge of PR #1 and `feat/stage-1-...` into `main`.
+**Pattern reference**: Link to `project/productVersion.md § Semantic Progression Strategy`.
+
+
+
+

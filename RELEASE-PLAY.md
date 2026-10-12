@@ -3,6 +3,21 @@
 > **Single Source of Truth for Google Play Store What's New Notes**  
 > *Google Play enforces a strict 500-character limit per localized language block.*
 
+## `v0.0.0.12` — Stage 1 & 1.5: Server Parity & In-Place PIN Re-Auth (Build 12)
+
+```xml
+<en-US>
+• In-Place Unlock: PBKDF2 PIN, Biometrics & Master Key modal.
+• Encrypted Attachments: Private streaming storage off SQLite.
+• Multipart Sync: Chunked upload & download server parity.
+• Multi-URI Bridge: Dynamic secondary URLs & autofill match.
+• Claw Re-Prompt: Biometrics guard file viewing & sensitive copy.
+• Zero Cache Leak: Plaintext scrubbed on logout & emergency wipe.
+• Amber Alerts: Cleartext HTTP warnings in Gateway & Sync.
+• 121 Tests 100% Green on Pixel hardware.
+</en-US>
+```
+
 ---
 
 ## `v0.0.0.11` — Phase 7: Context-Aware Autofill Expansion, 2-Step Login & Option B Masking (Build 11)

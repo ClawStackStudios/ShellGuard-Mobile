@@ -82,13 +82,22 @@ For each unwoven entry in `dreamLearnings.md`, determine:
 
 ## Phase 3: Produce Wake Report Artifact
 
-Create `wake_report.md` as an artifact. Set `request_feedback = true`
-in ArtifactMetadata.
+> [!IMPORTANT]
+> **🛡️ Artifact Datestamp & Anti-Overwrite Invariant:**
+> 1. **Title Datestamp**: The top-level document heading MUST include the formatted date and 12-hour local time:  
+>    `# Wake Report - MM/DD/YYYY - H:MM am/pm` (e.g. `# Wake Report - 10/11/2026 - 7:44 pm`).
+> 2. **Timestamped Filename**: Always write the artifact to a discrete, timestamped filename:  
+>    `wake_report_YYYY_MM_DD_HHmm.md` (e.g. `wake_report_2026_10_11_1944.md`).
+> 3. **Anti-Overwrite Protection**: Never generate a report using only a bare static filename. If `wake_report.md` is also updated for canonical tooling compatibility, both files must be written so the timestamped version is preserved permanently in the project archive.
+
+Create `wake_report_YYYY_MM_DD_HHmm.md` (and optionally sync canonical `wake_report.md`) as an artifact. Set `request_feedback = true` in ArtifactMetadata.
 
 ### Report Structure
 
 ```markdown
-# Wake Report — [YYYY-MM-DD HH:MM]
+# Wake Report - MM/DD/YYYY - H:MM am/pm
+
+> *Session Date: [Month DD, YYYY (MM/DD/YYYY — H:MM AM/PM local time)]*
 
 ## Source
 Weaving [n] unwoven learnings from `dreamLearnings.md`

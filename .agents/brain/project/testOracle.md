@@ -43,12 +43,19 @@ These are hard, non-negotiable invariants discovered through architectural audit
 11. **DataStore Combine Initial Emission & Coroutine Test Isolation Invariant**:
     - Any `ViewModel` combining an AndroidX `DataStore` flow (which reads from disk on `Dispatchers.IO`) with an in-memory `MutableStateFlow` via `combine(...)` MUST seed the `DataStore` flow with `.onStart { emit(DefaultSettings()) }`. Without an initial synchronous emission, `combine` holds back all in-memory `_extraState` updates (such as error/status banners) until `Dispatchers.IO` completes its initial disk read, causing race conditions on slower CI runners.
     - Test fixtures in `@Before setUp()` must reset `DataStore` state inside `runBlocking { ... }` rather than invoking `runTest(testDispatcher)` on the same `TestDispatcher` instance used by the `@Test` body.
+12. **Mobile-First Transport & Certificate Rotation Invariant**:
+    - Ephemeral transport certificates (EC P-256) must NEVER be assumed permanent. When a server certificate rotates (fingerprint mismatch), the client must verify the rotation proof against the pinned Instance Identity Key (`instance.key`) via `/api/public/tls-manifest` with a strict ±10 minute timestamp tolerance before updating pinned credentials.
+    - Captive portal HTTP 200/302 responses on public Wi-Fi networks must NEVER be treated as valid vault connections without verifying the explicit custom header `X-ShellGuard-API: true` or a valid health JSON status `{ "status": "scuttling" }`.
+13. **In-Place Re-Authentication & Session Key Decoupling Invariant**:
+    - When the vault is locked (`vaultLockManager.lockVault()`), volatile in-memory shell key buffers are zeroized (`inMemoryShellKey = null`), but hardware-sealed KeyStore secrets and server session tokens are NOT cleared.
+    - Unlocking the vault in-place via Biometrics, PIN (`PinAuthManager`), or Master Key (`verifyMasterKey`) re-hydrates `EncryptedDeviceVault.inMemoryShellKey` without dropping the active session, disconnecting from the server, or resetting the Navigation backstack.
+    - Wrong PIN attempts must increment failed attempt counters and enforce exponential/fixed backoff lockout (5 failed attempts trigger 30s lockout), falling back safely to Master Key entry.
 
-## 3. Active Test Suite Inventory (114 Tests Total — 100% Green)
+## 3. Active Test Suite Inventory (121 Tests Total — 100% Green)
 - **`ClawCryptoTest`**: ClawKey Base62 format validation (67 chars), SHA-256 hashing.
 - **`ShellCryptionEngineTest`**: HKDF-SHA-256 derivation, AES-GCM-256 with 10 AAD namespaces, JSON envelope serialization.
 - **`CustomFieldTest`**: Bitwarden polymorphic custom field JSON serialization (`TEXT`, `HIDDEN`, `BOOLEAN`, `LINKED`).
-- **`SyncRepositoryTest`**: Room SQLCipher DAO interaction, conflict reconciliation, delta synchronization.
+- **`SyncRepositoryTest`**: Room SQLCipher DAO interaction, conflict reconciliation, delta synchronization, and post-creation attachment/multi-URI persistence.
 - **`EncryptedDeviceVaultTest`**: KeyStore key persistence, cold-restart key re-hydration, RAM zeroization.
 - **`Base32DecoderTest`**: RFC 4648 Base32 decoding, padding handling, character sanitization.
 - **`TotpEngineTest`**: RFC 6238 HMAC-SHA1/256/512, Steam Guard alphanumeric tokens, dynamic truncation.
@@ -60,4 +67,5 @@ These are hard, non-negotiable invariants discovered through architectural audit
 - **`SettingsRepositoryTest`**: DataStore preference persistence, default key hydration, and clearAll isolation.
 - **`SettingsViewModelTest`**: MVI state binding, job synchronization, theme/security preference mutations.
 - **`VaultBackupEngineTest`**: Polymorphic schema serialization, dual-mode HKDF/PBKDF2 export/decrypt cycles, format sniffing, and Bitwarden JSON ingestion.
+- **`PinAuthManagerTest`**: 100k-iteration PBKDF2-SHA256 derivation, constant-time verification, remaining attempts calculation, attempt threshold lockout enforcement, PIN clearing, and counter reset.
 

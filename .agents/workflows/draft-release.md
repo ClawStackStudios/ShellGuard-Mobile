@@ -194,6 +194,14 @@ The file offset must be evenly divisible by `16384` (16 KB), confirming Android 
 
 ## 🏷️ Step 8: Post-Release Tagging & Brain Sync
 
+> [!IMPORTANT]
+> **🛡️ Immutable Release Manifest Retention & No-Overwrite Invariant:**
+> 1. **Discrete Version-Stamped Files**: Every release drafted or published MUST have its own dedicated release manifest file in the repository root: `RELEASE-vX.Y.Z.N.md` (e.g. `RELEASE-v0.0.0.12.md`).
+> 2. **Never Overwrite Historical Manifests**: Prior release manifests (e.g., `RELEASE-v0.0.0.11.md`, `RELEASE-v0.0.0.10.md`) are immutable historical records. Never overwrite, rename, or truncate a prior release manifest to serve a new version.
+> 3. **Title & Date Invariant**: The heading MUST declare the version, build code, and release date:  
+>    `# Release Manifest: vX.Y.Z.N (Build N) — YYYY-MM-DD` (e.g. `# Release Manifest: v0.0.0.12 (Build 12) — 2026-10-11`).
+> 4. **Append-Only History**: All release entries in `CHANGELOG.md` and release notes history in `RELEASE-PLAY.md` must remain append-only and strictly preserved across the project lifespan.
+
 After rollout, tag the repository and update project history:
 
 ```bash
@@ -205,3 +213,4 @@ git push origin v0.0.0.1
 ### Update Brain:
 1. Append details to [`.agents/brain/project/changelog.md`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/brain/project/changelog.md).
 2. Record the rollout event in [`.agents/brain/activeContext.md`](file:///config/Local-Storage/workspace-lucas/projects/Agents/ShellGuard-Mobile/.agents/brain/activeContext.md).
+

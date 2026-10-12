@@ -95,12 +95,63 @@ class EncryptedDeviceVault(private val context: Context) {
     fun zeroizeMemory() {
         inMemoryShellKey?.fill(0.toByte())
         inMemoryShellKey = null
+    }
+
+    fun clearPersistentShellKey() {
         prefs.edit().remove(KEY_SHELL_KEY).apply()
     }
 
     fun clearSession() {
         zeroizeMemory()
+        clearPersistentShellKey()
         prefs.edit().clear().apply()
+    }
+
+    fun savePinHash(saltBase64: String, hashBase64: String) {
+        prefs.edit()
+            .putString(KEY_PIN_SALT, saltBase64)
+            .putString(KEY_PIN_HASH, hashBase64)
+            .putInt(KEY_FAILED_PIN_ATTEMPTS, 0)
+            .apply()
+    }
+
+    fun getPinSalt(): String? = prefs.getString(KEY_PIN_SALT, null)
+    fun getPinHash(): String? = prefs.getString(KEY_PIN_HASH, null)
+
+    fun clearPin() {
+        prefs.edit()
+            .remove(KEY_PIN_SALT)
+            .remove(KEY_PIN_HASH)
+            .remove(KEY_FAILED_PIN_ATTEMPTS)
+            .apply()
+    }
+
+    fun hasPinConfigured(): Boolean = !getPinSalt().isNullOrBlank() && !getPinHash().isNullOrBlank()
+
+    fun getFailedPinAttempts(): Int = prefs.getInt(KEY_FAILED_PIN_ATTEMPTS, 0)
+
+    fun incrementFailedPinAttempts(): Int {
+        val attempts = getFailedPinAttempts() + 1
+        prefs.edit().putInt(KEY_FAILED_PIN_ATTEMPTS, attempts).apply()
+        return attempts
+    }
+
+    fun resetFailedPinAttempts() {
+        prefs.edit().putInt(KEY_FAILED_PIN_ATTEMPTS, 0).apply()
+    }
+
+    fun verifyMasterKey(huKey: String): Boolean {
+        val storedHash = getHashedKey() ?: return false
+        val computedHash = ClawCrypto.hashHumanKey(huKey)
+        return java.security.MessageDigest.isEqual(
+            computedHash.toByteArray(Charsets.UTF_8),
+            storedHash.toByteArray(Charsets.UTF_8)
+        )
+    }
+
+    fun verifyClawKeyJson(jsonContent: String): Boolean {
+        val extractedKey = ClawCrypto.extractKey(jsonContent) ?: return false
+        return verifyMasterKey(extractedKey)
     }
 
     companion object {
@@ -110,5 +161,8 @@ class EncryptedDeviceVault(private val context: Context) {
         private const val KEY_USERNAME = "username"
         private const val KEY_HASHED_KEY = "hashed_key"
         private const val KEY_SHELL_KEY = "shell_key"
+        private const val KEY_PIN_SALT = "pin_salt"
+        private const val KEY_PIN_HASH = "pin_hash"
+        private const val KEY_FAILED_PIN_ATTEMPTS = "failed_pin_attempts"
     }
 }

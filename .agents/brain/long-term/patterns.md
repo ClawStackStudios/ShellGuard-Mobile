@@ -153,3 +153,20 @@ Reactive ViewModel state pipelines backed by AndroidX `DataStore` (`Dispatchers.
 - 2026-10-09: Diagnosed GitHub Actions CI `AssertionError` (`v0.0.0.11`, run `37897075874`) in `SettingsViewModelTest.testTriggerManualSyncWithNoActiveSession` where `combine(settingsRepo.settingsFlow, _extraState)` blocked in-memory error emissions until `DataStore` completed its initial disk read on `Dispatchers.IO`; fixed by seeding `.onStart { emit(AppSettings()) }` and using `runBlocking` in `setUp()`.
 
 **Shaped perspective:** This holds because `DataStore` intentionally confines file I/O to background threads (`Dispatchers.IO`), whereas MVI ViewModels and `UnconfinedTestDispatcher` tests mutate UI state synchronously on the main/test thread. When `combine` bridges those two worlds without an immediate initial value, fast local CPUs mask the race while slower cloud CI runners expose it as missing state updates. Explicit `.onStart` seeding, `Job` return contracts, and `runBlocking` fixture resets make the boundary deterministic across every hardware speed.
+
+---
+
+## pattern: mobile-first-transport-inversion-and-instance-anchor
+**weight**: 3 | **last validated**: 2026-10-11 | **first observed**: 2026-10-11
+**pinned**: true
+**status**: hot
+
+Invert the traditional server-first/mobile-as-bolt-on paradigm into a sync-native mobile-first architecture: (1) decouple ephemeral transport certificates from the server's permanent root identity by generating an Instance Identity Key (`instance.key`) that cryptographically signs rotation proofs (`/api/public/tls-manifest`), enabling mobile clients to silently auto-heal certificate pins without false MITM panics or developer friction; (2) pair instances via the Reef Handshake QR protocol (`shellguard://pair`) to ingest endpoints, certificate fingerprints, and instance public keys in a single CameraX optical stroke; and (3) race concurrent health probes between high-speed home LAN (<20ms) and Tailscale WireGuard mesh with automated failover to encrypted offline Room caching.
+
+**History:**
+- 2026-10-11: Lucas challenged cleartext HTTP transport security vs. security theatre; identified that while payload secrets are AES-GCM encrypted, auth hashes (`SHA-256(hu-)`), bearer JWTs, and metadata travel naked over HTTP.
+- 2026-10-11: Rejected bespoke application-layer envelope wrapping per YAGNI (complexity, breaks 500MB chunked streaming, reinvents TLS); uncovered latent EC P-256 engine in `src/server/utils/tlsManager.ts`.
+- 2026-10-11: Lucas identified the developer friction of standard TOFU certificate rotation; engineered the Instance Identity Anchor to cryptographically prove rotated certificates over the wire and auto-heal pinned pins silently; codified Stage 5 prompt in `project/meta-prompt-ai-studio.md` and `ROADMAP.md` as the `v0.0.1.0 (Build 16)` structural completion milestone.
+
+**Shaped perspective:** When client-server software is built server-first, mobile is forced to behave like an unruly web browser, passing the burden of network configuration, IP typing, and certificate warnings to the human. True mobile-first engineering respects the physics of devices moving through the physical world: connections must be paired optically, certificates must auto-heal through persistent cryptographic anchors, and networks must fail over seamlessly between home Wi-Fi and wireguard tunnels without interrupting the vault's reactive river.
+

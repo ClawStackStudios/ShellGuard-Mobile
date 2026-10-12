@@ -3,6 +3,7 @@ package com.clawstack.shellguard.ui.screens.settings
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,11 +23,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.NoPhotography
+import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.AlertDialog
+import com.clawstack.shellguard.crypto.BiometricAuthManager
+import com.clawstack.shellguard.data.local.UnlockMethod
+import com.clawstack.shellguard.ui.components.PinPadView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -78,6 +86,16 @@ fun SettingsSecurityScreen(
     val uiState by viewModel.uiState.collectAsState()
     val settings = uiState.settings
     var showPanicConfirmDialog by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val canUseBiometrics = remember {
+        BiometricAuthManager.canAuthenticate(context)
+    }
+    var showPinSetupDialog by remember { mutableStateOf(false) }
+    var pinSetupStep by remember { mutableStateOf(1) }
+    var firstEnteredPin by remember { mutableStateOf("") }
+    var currentPinInput by remember { mutableStateOf("") }
+    var pinDialogError by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         modifier = modifier
@@ -132,6 +150,194 @@ fun SettingsSecurityScreen(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // ── Section 0: Vault Unlock Method ──────────────────────────
+                item {
+                    Text(
+                        text = "VAULT UNLOCK METHOD",
+                        color = BrandClawCyan,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                        modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+                    )
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
+                        border = BorderStroke(1.dp, BorderSubtle),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                            // Option 1: Biometrics
+                            SecurityOptionRow(
+                                title = "Biometrics (Fingerprint / Face)",
+                                subtitle = if (canUseBiometrics) {
+                                    "Fast unlock via device hardware sensor"
+                                } else {
+                                    "Hardware biometric sensor not enrolled or unavailable"
+                                },
+                                selected = settings.unlockMethod == UnlockMethod.BIOMETRIC,
+                                onClick = {
+                                    if (canUseBiometrics) {
+                                        viewModel.updateUnlockMethod(UnlockMethod.BIOMETRIC)
+                                    }
+                                }
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp)
+                                    .height(1.dp)
+                                    .background(BorderSubtle.copy(alpha = 0.5f))
+                            )
+
+                            // Option 2: PIN Code
+                            SecurityOptionRow(
+                                title = "PIN Code (4–8 Digits)",
+                                subtitle = if (settings.hasPinConfigured) {
+                                    "Fast numeric keypad unlock (PIN Active)"
+                                } else {
+                                    "Quick keypad unlock (Tap to configure PIN)"
+                                },
+                                selected = settings.unlockMethod == UnlockMethod.PIN,
+                                onClick = {
+                                    if (settings.hasPinConfigured) {
+                                        viewModel.updateUnlockMethod(UnlockMethod.PIN)
+                                    } else {
+                                        pinSetupStep = 1
+                                        firstEnteredPin = ""
+                                        currentPinInput = ""
+                                        pinDialogError = null
+                                        showPinSetupDialog = true
+                                    }
+                                }
+                            )
+
+                            if (settings.hasPinConfigured) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 6.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    OutlinedButton(
+                                        onClick = {
+                                            pinSetupStep = 1
+                                            firstEnteredPin = ""
+                                            currentPinInput = ""
+                                            pinDialogError = null
+                                            showPinSetupDialog = true
+                                        },
+                                        modifier = Modifier.weight(1f).height(38.dp),
+                                        shape = RoundedCornerShape(8.dp),
+                                        border = BorderStroke(1.dp, ReefPink.copy(alpha = 0.5f)),
+                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = ReefPink)
+                                    ) {
+                                        Text("Change PIN", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                    }
+
+                                    OutlinedButton(
+                                        onClick = {
+                                            viewModel.clearPin()
+                                        },
+                                        modifier = Modifier.weight(1f).height(38.dp),
+                                        shape = RoundedCornerShape(8.dp),
+                                        border = BorderStroke(1.dp, BorderSubtle),
+                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = TextMuted)
+                                    ) {
+                                        Text("Remove PIN", fontSize = 12.sp)
+                                    }
+                                }
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp)
+                                    .height(1.dp)
+                                    .background(BorderSubtle.copy(alpha = 0.5f))
+                            )
+
+                            // Option 3: Master Key / ClawKey Only
+                            SecurityOptionRow(
+                                title = "Master Key / ClawKey Only",
+                                subtitle = "Require entering 67-char sovereign key or file on every unlock",
+                                selected = settings.unlockMethod == UnlockMethod.MASTER_KEY,
+                                onClick = { viewModel.updateUnlockMethod(UnlockMethod.MASTER_KEY) }
+                            )
+                        }
+                    }
+                }
+
+                // If PIN is enabled or configured, show Max Failed Attempts
+                if (settings.unlockMethod == UnlockMethod.PIN || settings.hasPinConfigured) {
+                    item {
+                        Text(
+                            text = "MAX FAILED PIN ATTEMPTS",
+                            color = BrandClawCyan,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp,
+                            modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+                        )
+
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = SurfaceDark),
+                            border = BorderStroke(1.dp, BorderSubtle),
+                            shape = RoundedCornerShape(14.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = "Lockout Threshold",
+                                    color = TextPrimary,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    text = "Exceeding limit disables PIN and forces Master Key re-authentication",
+                                    color = TextSecondary,
+                                    fontSize = 11.sp,
+                                    modifier = Modifier.padding(top = 2.dp, bottom = 12.dp)
+                                )
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    listOf(3, 5, 10).forEach { attempts ->
+                                        val isSelected = settings.maxPinAttempts == attempts
+                                        Box(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .background(
+                                                    if (isSelected) ReefPink.copy(alpha = 0.2f) else SurfaceDark
+                                                )
+                                                .border(
+                                                    1.dp,
+                                                    if (isSelected) ReefPink else BorderSubtle,
+                                                    RoundedCornerShape(8.dp)
+                                                )
+                                                .clickable { viewModel.updateMaxPinAttempts(attempts) }
+                                                .padding(vertical = 8.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = "$attempts Attempts",
+                                                color = if (isSelected) ReefPink else TextMuted,
+                                                fontSize = 12.sp,
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // ── Section 1: Vault Lock Timeout ───────────────────────────
                 item {
                     Text(
@@ -505,6 +711,98 @@ fun SettingsSecurityScreen(
                 },
                 containerColor = SurfaceDark,
                 shape = RoundedCornerShape(14.dp)
+            )
+        }
+
+        if (showPinSetupDialog) {
+            AlertDialog(
+                onDismissRequest = {
+                    showPinSetupDialog = false
+                    pinSetupStep = 1
+                    firstEnteredPin = ""
+                    currentPinInput = ""
+                    pinDialogError = null
+                },
+                title = {
+                    Text(
+                        text = if (pinSetupStep == 1) "Set Vault PIN" else "Confirm Vault PIN",
+                        color = TextPrimary,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                text = {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = if (pinSetupStep == 1) {
+                                "Enter a 6-digit PIN to secure your vault"
+                            } else {
+                                "Re-enter your 6-digit PIN to confirm"
+                            },
+                            color = TextSecondary,
+                            fontSize = 13.sp,
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
+
+                        PinPadView(
+                            currentPin = currentPinInput,
+                            onPinChange = {
+                                currentPinInput = it
+                                pinDialogError = null
+                            },
+                            pinLength = 6,
+                            isError = pinDialogError != null,
+                            errorMessage = pinDialogError,
+                            onPinComplete = { completedPin ->
+                                if (pinSetupStep == 1) {
+                                    firstEnteredPin = completedPin
+                                    currentPinInput = ""
+                                    pinSetupStep = 2
+                                } else {
+                                    if (completedPin == firstEnteredPin) {
+                                        viewModel.setupPin(
+                                            pin = completedPin,
+                                            onSuccess = {
+                                                showPinSetupDialog = false
+                                                pinSetupStep = 1
+                                                firstEnteredPin = ""
+                                                currentPinInput = ""
+                                            },
+                                            onError = { err ->
+                                                pinDialogError = err
+                                                pinSetupStep = 1
+                                                firstEnteredPin = ""
+                                                currentPinInput = ""
+                                            }
+                                        )
+                                    } else {
+                                        pinDialogError = "PINs do not match. Please try again."
+                                        pinSetupStep = 1
+                                        firstEnteredPin = ""
+                                        currentPinInput = ""
+                                    }
+                                }
+                            }
+                        )
+                    }
+                },
+                confirmButton = {},
+                dismissButton = {
+                    TextButton(onClick = {
+                        showPinSetupDialog = false
+                        pinSetupStep = 1
+                        firstEnteredPin = ""
+                        currentPinInput = ""
+                        pinDialogError = null
+                    }) {
+                        Text("Cancel", color = TextMuted)
+                    }
+                },
+                containerColor = SurfaceDark,
+                shape = RoundedCornerShape(16.dp)
             )
         }
     }
