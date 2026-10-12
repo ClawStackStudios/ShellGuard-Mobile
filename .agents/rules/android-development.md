@@ -188,6 +188,38 @@ Cleartext HTTP is **intentionally permitted** to support local home lab environm
 3. **Zero-Knowledge Auth Roadmap (PAKE / SRP-6a)**:
    - In subsequent architectural phases, authentication must transition from transmitting static `SHA-256(hu-)` to a zero-knowledge challenge-response (SRP-6a or OPAQUE). This guarantees that even total packet interception over cleartext HTTP yields zero usable credentials.
 
+### C. Mobile-First Architecture & The Reef Handshake Protocol
+- **Inversion of the Bolt-On Model**: The server-client relationship is designed from the phone's perspective. Transport is built to store and sync securely by default, not saved locally and synchronized as an afterthought.
+- **The Reef Handshake QR Pairing Invariant**:
+  - The primary onboarding flow for mobile clients is the **Reef Handshake** via CameraX barcode scanning (`shellguard://pair?...`).
+  - The URI schema encapsulates all connection primitives:
+    `shellguard://pair?v=1&lan=<lan_url>&ts=<mesh_url>&fp=<cert_sha256>&ik=<instance_pubkey>&alias=<name>`
+  - Mobile clients MUST parse this payload, persist `pinnedCertificateFingerprint` and `instancePublicKey` to `EncryptedDeviceVault`, and configure dual endpoints in a single optical stroke. Manual IP entry remains available as a secondary fallback.
+
+### D. The Instance Identity Anchor & Auto-Healing Rotation Engine
+- **Decoupling Certificate from Identity**: Ephemeral transport certificates (10-year or 90-day EC P-256 certs) must NEVER be treated as the root server identity. The root trust anchor is the server's permanent **Instance Identity Key (`instance.key`)**.
+- **Cryptographic Rotation Verification**:
+  - When a server certificate rotates (fingerprint mismatch detected during TLS handshake), the client must NOT immediately fail with a fatal user error.
+  - The client queries `/api/public/tls-manifest` and verifies:
+    $$\text{Signature} = \text{ECDSA-SHA256}(\text{instancePublicKey}, \text{newCertFingerprint} \parallel \text{timestamp})$$
+  - If valid and timestamp is fresh, the client **silently updates the pinned fingerprint** in `EncryptedDeviceVault` and seamlessly completes the connection.
+  - If invalid, unverified, or unsigned, the client MUST fail closed, throwing `UntrustedCertificateException`.
+
+### E. Dual-Homed Network Mobility & Latency Racing
+- **Dual Endpoints per Server Profile**: The client connection profile stores both `primaryLanUrl` (high-speed home Wi-Fi) and `fallbackMeshUrl` (Tailscale WireGuard mesh).
+- **Latency Race Dispatcher**:
+  - Network requests initiate a fast concurrent health probe (`HEAD /api/health`, 1200ms timeout) against `primaryLanUrl`.
+  - If on home Wi-Fi, the app binds to LAN (sub-20ms latency, optimal for large 500MB attachment streaming).
+  - If the LAN probe times out, the client automatically transparently routes through `fallbackMeshUrl`.
+  - If both endpoints are unreachable, the client transitions cleanly to `OfflineReadOnly` Room caching with an amber status banner.
+
+### F. Long-Term Transport Invariants & Silent Failure Watchlist
+- **Clock Drift Tolerance**: Manifest timestamp validation must enforce a **±10 minute clock skew tolerance** to prevent legitimate rotations from failing on unsynchronized home lab devices.
+- **Monotonic Timestamp Enforcement**: The client must enforce `manifest.timestamp > previousPinnedTimestamp` to prevent replay attacks using previously captured manifests.
+- **Captive Portal False-Positive Defense**: A network probe must NEVER consider an HTTP 200/302 response as a successful connection unless verified with the custom header `X-ShellGuard-API: true` or valid health JSON `{ "status": "scuttling" }`.
+- **Tailscale Socket Re-acquisition**: Ktor client must set strict socket connect timeouts (`connectTimeout <= 3s`) to prevent indefinite hangs when Android Doze mode suspends background UDP WireGuard sockets.
+- **R8 Serialization Preservation**: Serialization models (`TlsManifestDto`, `ServerConnectionProfile`, `ShellResponse`) must be annotated with `@Keep` to prevent R8 from stripping synthetic reflection companions in release builds.
+
 ---
 
 ## 6. 16 KB Memory Page-Size Alignment & Packaging

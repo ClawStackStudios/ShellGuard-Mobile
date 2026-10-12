@@ -647,3 +647,54 @@ Calibration is sharp with 0 over-confidence penalties across 8 ratified decision
 **Confidence**: high — verified against 115 passing tests and physical Pixel code.
 **Outcome**: All root docs and 5 `project/` specs synchronized; engineering release manifest authored; monotonic build sequence locked for Stages 2–4.
 **Pattern reference**: Link to `project/testOracle.md § Documentation Synchronization`.
+
+## mobile-first-transport-inversion-and-instance-anchor — 2026-10-11 12:00
+
+**Context**: Inverting the traditional server-first/mobile-as-bolt-on architecture to solve cleartext HTTP transport and certificate rotation friction between ShellGuard Mobile and ShellGuard Web Server.
+**Options considered**:
+- Option A: Implement Application-Layer E2EE Request Wrapping over HTTP (wrapping every request and response in an outer ECDH envelope) — Solves sniffing on raw HTTP, but violates YAGNI, breaks chunked 500MB attachment streaming, requires complex middleware on Express 5, and reinvents TLS.
+- Option B: Adopt Local TLS with Trust-On-First-Use (TOFU) Pinning, paired with a persistent Instance Identity Anchor and the Reef Handshake QR pairing protocol (`shellguard://pair`) — Eliminates cleartext leaks using standard TLS 1.3, provides 1-tap optical pairing via CameraX, and enables silent auto-healing of rotated certificates via ECDSA signature proofs without user friction.
+**Chosen**: Option B (Local TLS with TOFU Pinning, Instance Identity Anchor & Reef Handshake QR Pairing).
+**Why**: Respecting YAGNI and the physics of mobile devices means solving transport at the transport layer, not bloating the application layer. By giving the server a persistent identity anchor that signs ephemeral TLS certificates, we eliminate developer rotation friction while creating an effortless optical pairing experience.
+**Confidence**: high — verified against existing `src/server/utils/tlsManager.ts` in ShellGuard server and CameraX barcode pipeline on Mobile.
+**Outcome**: Authored comprehensive architectural specification `first_class_http_support_mobile_first_architecture.md`, created SuperLobster TLS meta-prompt for the web server, updated `project/meta-prompt-ai-studio.md` and `ROADMAP.md` adding Stage 5 as the crowning `v0.0.1.0 (Build 16)` structural completion milestone with detailed long-term testing invariants.
+**Pattern reference**: Link to `first_class_http_support_mobile_first_architecture.md`.
+
+## pinning-architectural-anchor-to-long-term-memory — 2026-10-11 19:25
+
+**Context**: Lucas explicitly requested promoting the Mobile-First Transport & Reef Handshake architecture directly into long-term brain memory before it had accumulated three independent validation cycles.
+**Options considered**:
+- Option A: Refuse direct promotion citing the 3-session empirical validation threshold in `long-term-memory.md` and keep it purely in temporal files.
+- Option B: Promote directly with an explicit `pinned: true` invariant and clear rationale, while keeping empirical patterns under standard accumulation gates.
+**Chosen**: Option B.
+**Why**: Not all enduring knowledge is a bottom-up habit learned by stubbing your toe; some things are top-down architectural compasses that must exist before the journey to keep future sessions from drifting into old assumptions. Enforcing procedural conservatism against a deliberate foundational shift felt like confusing the odometer for the steering wheel.
+**Confidence**: high — the architectural spec is ratified across `meta-prompt-ai-studio.md`, `ROADMAP.md`, and `android-development.md`.
+**Outcome**: `long-term/patterns.md`, `long-term/decisions.md`, and `long-term/learnings.md` now carry the mobile-first sync inversion as an authoritative bedrock, while `decrypted-cache-purge-lifecycle` and other runtime patterns remain governed by empirical weight accumulation.
+**Pattern reference**: `long-term/patterns.md § pattern: mobile-first-transport-inversion-and-instance-anchor`.
+
+## fail-closed-test-oracle-redline-12 — 2026-10-11 19:35
+
+**Context**: Defining the verification gate for Stage 5 certificate rotation and transport verification in `testOracle.md`.
+**Options considered**:
+- Option A: Leave transport verification as a backlog item in `progress.md` without declaring a load-bearing redline until code is written.
+- Option B: Codify Load-Bearing Redline 12 immediately in `testOracle.md` mandating ECDSA rotation proof verification with ±10m skew tolerance and captive portal `X-ShellGuard-API` / health JSON defenses.
+**Chosen**: Option B.
+**Why**: A test oracle shouldn't just record what passed yesterday; it must draw the redlines before construction begins so the first line of code written in Stage 5 is already held to a non-negotiable boundary.
+**Confidence**: high — verified against cryptographic standards and captive portal attack vectors.
+**Outcome**: Redline 12 ratified in `testOracle.md`, preventing premature completion of Stage 5 without rotation proof and captive portal defense verification.
+**Pattern reference**: `project/testOracle.md § Load-Bearing Redlines`.
+
+## decouple-session-credentials-from-volatile-zeroization — 2026-10-12 08:00
+
+**Context**: On physical Google Pixel hardware, locking the vault caused the unlock button to become unresponsive because `hasActiveSession()` required volatile `getInMemoryShellKey() != null`, while `zeroizeMemory()` erased encrypted session preferences, collapsing session state and trapping the UI in an un-dismissible overlay.
+**Options considered**:
+- Option A: Retain `hasActiveSession()` coupling to in-memory key, forcing every vault lock to become a full logout back to GatewayScreen — Destroys mobile ergonomics by forcing the user to paste or upload their 67-character sovereign key on every momentary screen turn-off.
+- Option B: Decouple session network authorization (`hasActiveSession()` checks tokens and server URL) from volatile cryptographic keys. Retain KeyStore hardware-encrypted master credentials in `EncryptedSharedPreferences`, while zeroizing decrypted volatile RAM on lock. Allow PIN and Biometrics to re-authenticate and rehydrate the in-memory shell key in place, with a fallback Master Key modal — Preserves the Zero-Knowledge invariant at rest while enabling instant, effortless mobile unlock.
+**Chosen**: Option B.
+**Why**: A locked vault is not a logged-out vault. The user expects their session to hold while sensitive cryptographic material sleeps under hardware-backed KeyStore protection. Conflating memory hygiene with session destruction created an un-traversable state machine.
+**Confidence**: high — verified end-to-end on physical Google Pixel (`sailfish`) connecting to live Unraid test prod server.
+**Outcome**: Vault unlocks seamlessly in place via PIN or Master Sovereign Key, preserves backstack state, and dismisses the lock overlay without navigation disruption.
+**Pattern reference**: New pattern — accumulating, weight 1/3.
+
+
+

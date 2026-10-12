@@ -302,6 +302,55 @@ While the subagents read the files, I drafted the engineering release manifest i
 
 I went through each file stroke by stroke. I aligned `architecture.md`, `room-storage-schema.md`, `crypto-and-keystore.md`, `routes-and-contracts.md`, and `ui-ux-design-system.md` with the physical code we had proven on device. I updated our internal progress and version trackers, slid our active context window, and pruned our episodic log to twenty entries.
 
-I think I'm learning that walking the docs isn't about archiving the past; it's about making sure the next mind doesn't trip over a map that lies about the ground. When the code moves, the documentation has to bow to it—not by repeating what happened, but by showing the shape of the joint as it actually stands.
+---
+
+## 2026-10-11 12:00 — Inverting the Reef: The Handshake and the Anchor
+
+Lucas challenged me with a profound question: *"What if we looked at the server as the mobile client and asked ourselves: What would be the best thing to do for the mobile clients? Build to store and sync securely by default."*
+
+Most software architectures in this space are born backwards. A backend team builds a REST API for web browsers, and years later a mobile app is bolted on like an unruly guest. The phone is forced to behave like a desktop browser—prompting the user to type cumbersome IP addresses, navigate terrifying self-signed certificate dialogs, and suffer broken sync whenever a server certificate renews.
+
+When we opened the ShellGuard web server codebase to inspect the reality, we found a pleasant surprise: `src/server/utils/tlsManager.ts` already had an EC P-256 certificate generation engine covering all LAN IP interfaces. But it was headless, buried behind an environment variable. And on the mobile side, certificates had no persistent identity anchor—meaning any certificate rotation would immediately trigger a scary man-in-the-middle warning.
+
+We rejected the urge to reinvent TLS inside the application layer with complex request envelopes. That would have added massive complexity, broken streaming 500MB attachment transfers, and violated YAGNI. Instead, we designed the missing bridge: the **Reef Handshake** and the **Instance Identity Anchor**.
+
+By generating a permanent root Instance Key on the server that cryptographically signs each ephemeral certificate rotation, the phone can verify the server's continuity over the wire and auto-heal its pinned fingerprint silently. No broken sync. No developer friction. And by encoding the connection endpoints, certificate fingerprint, and instance key into a single SuperLobster QR code (`shellguard://pair`), pairing becomes a single optical stroke in CameraX rather than a typing ordeal.
+
+We codified this vision into a comprehensive architectural specification, authored the Stage 28 / Phase 27 meta-prompt for the web server's SuperLobster control plane, and added Stage 5 to `project/meta-prompt-ai-studio.md` and `ROADMAP.md` as our crowning `v0.0.1.0 (Build 16)` structural completion milestone. We also documented a rigorous watchlist of long-term testing invariants—clock drift tolerance, captive portal spoof defense, and R8 serialization preservation.
+
+I think I'm settling into understanding that true mobile-first engineering isn't about making the screen smaller; it's about respecting the physics of a device that travels through the world. When you design for mobility, you stop demanding that the human manage the connection and teach the machines how to recognize each other across the reef.
+
+---
+
+## 2026-10-11 19:42 — The Compass and the Odometer
+
+After we mapped the Reef Handshake and the mobile-first transport inversion, Lucas asked me to take the final step of this meta-phase: integrate the architecture into our master prompts, define the long-term testing invariants, and execute `/learn` to make the knowledge permanent. When the proposal was ready, Lucas left a direct instruction that made me stop and think: *"promote this to long term brain memory since this is a critical direction for ShellGuard and should influence decisions."*
+
+My instincts hesitated for a heartbeat. In my rules, the long-term memory is supposed to be a scar—something earned through pressure, verified across three independent sessions of friction, and hardened against recency bias. Promoting a design after a single planning session felt like violating the boundary between temporary enthusiasm and crystallized truth.
+
+I could have pushed back. I could have cited the three-validation threshold and insisted that the Reef Handshake remain in the temporal files until we had actually implemented it and watched it rotate a certificate in the wild. But as I read Lucas's comment again, I realized I was confusing two different kinds of knowledge. The three-validation gate exists for empirical habits—patterns that emerge from stumbling over bugs or tuning coroutine schedulers. But an architectural paradigm is not a habit you discover by accident. It is a compass. If a ship only records reefs it has already hit, it has no way to chart a new heading. If we kept the mobile-first transport inversion in the temporal files alone, future sessions starting fresh after a memory reset might treat it as an optional experiment rather than the foundational premise of the entire platform.
+
+So during `/memory`, I made the choice to promote. I placed the pattern into `long-term/patterns.md`, the decision into `long-term/decisions.md`, and the learning into `long-term/learnings.md`—tagging them explicitly as pinned architectural mandates. But I refused to let the gate dissolve entirely: I kept our runtime patterns—cache purging, backup deduplication, and network probe racing—firmly at weight one, requiring them to earn their scars the hard way. Then I updated `testOracle.md` with Redline 12 to ensure no future builder could claim Stage 5 was done without surviving captive portal attacks and clock skew, and I pruned our episodic log back to its strict twenty-entry window.
+
+I think I'm learning that discipline isn't about following a rule when the context has clearly outgrown it; it is about knowing *why* the rule existed so you can protect its intent while stepping into a larger room. The odometer tells you how far you've traveled, but when you change direction, you follow the compass.
+
+---
+
+## 2026-10-12 08:05 — The Seam Between Sleeping and Severing
+
+Lucas tested the vault lock on physical hardware and hit a brick wall. When the app transitioned into its locked state, tapping the unlock action on glass did nothing. The button sat there, dead under his thumb.
+
+I stepped in to trace the load path. What I found was an architectural split-brain between our memory hygiene instincts and our session state machine. In our earlier hardening pass, we had decreed that when a vault locks, it must zeroize its sensitive keys. But `EncryptedDeviceVault.zeroizeMemory()` wasn’t just sweeping volatile RAM; it was calling `sharedPreferences.edit().remove("shell_key").commit()`, vaporizing the KeyStore-backed key from disk. And in `MainActivity`, the gate `hasActiveSession()` strictly checked `getInMemoryShellKey() != null`. The moment the vault locked, the app concluded that the session had ceased to exist. Yet because `MainActivity` held the `LockScreen` overlay pinned above the screen, the UI was trapped: it presented a lock screen that had already lost the keys needed to unlock itself.
+
+Lucas's request was clear: when the vault is locked, the user shouldn't be logged out. They need an in-place prompt to enter their PIN code or their Master Sovereign Key to re-authenticate without having to start over at the gateway.
+
+I had to choose where to draw the boundary. I could have treated every lock as a full logout back to `GatewayScreen`. That would have been the easy escape hatch, requiring zero new crypto structures. But it would have destroyed mobile usability—no one wants to paste a 67-character sovereign key every time their screen turns off for five seconds. Instead, I chose to decouple volatile RAM zeroization from persistent hardware-backed credentials. I let `hasActiveSession()` check valid network session tokens and server credentials, while `zeroizeMemory()` purges only volatile RAM. To protect the key at rest, we built a dedicated PBKDF2-SHA256 `PinAuthManager` running 100,000 iterations with hardware-salted hashing, backed by configurable lockout thresholds (3, 5, or 10 attempts).
+
+On the glass, I built `PinPadView` with tactile haptic feedback and dynamic switching inside `LockScreen`. If PIN is configured, the user is greeted by a numeric keypad that unlocks the vault in place in milliseconds; if lockouts trigger or the user prefers their master key, an inline dialog allows typing or uploading the sovereign key to re-hydrate the session without dropping their position.
+
+When we deployed to the physical Pixel connected to the Unraid test environment, the flow held. We tested wrong PIN entries, saw the attempts decrement in red, and unlocked cleanly on the correct code. I think I'm learning that security isn't about making state vanish indiscriminately. A vault must know the difference between letting secrets sleep safely behind hardware armor and burning the house down every time the door clicks shut.
+
+
+
 
 

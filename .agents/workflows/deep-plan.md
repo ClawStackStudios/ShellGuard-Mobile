@@ -25,6 +25,25 @@ checklist Task List that the agent crosses off during implementation.
 | Static document | Task List with checkboxes. Crosses off as it implements. |
 | Justifies the choice | Justifies the choice *against the alternatives it ruled out* |
 
+## 🧠 The 7-Point Deep Planning Protocol (Mandatory Discipline)
+
+Every deep implementation plan MUST strictly execute this 7-point discipline:
+
+1. **UNDERSTAND**: State what you understand the current plan and the GOAL to be.
+2. **RECALL**: Read the relevant prior KIs (Key Invariants / Knowledge Items) and the N most recent `implementation_plan.md` artifacts. List what they imply here, any decision already made that I'd otherwise re-make, and any pattern you're about to repeat or violate.
+3. **FILE-INTENT TABLE & PROPOSED EDITS** (one row per file you will touch):
+   | File | Current state (what it does now) | Intended change | Why it serves the GOAL | What could break |
+   > **The Preview Mandate**: *"Show me what you're going to add, where you will add it, and to what files please."* Always provide the concrete code blocks, target functions/sections, and exact file paths before touching the codebase.
+4. **SEQUENCE**: Order the steps and show how each leads into the next.
+5. **INVARIANTS**: State what must remain true after execution (tests green, contracts unchanged) and which files are OFF-LIMITS.
+6. **VERIFY**: For each step give a concrete observable check (a test, a screenshot, or a browser recording) — not "it works."
+7. **SELF-CRITIQUE (one pass)**: Re-open your own plan as the subject. For every step ask "does this serve the GOAL?" and rewrite any that don't. Output a DIFF of the plan, not the plan.
+
+> [!IMPORTANT]
+> **🛑 Preview & Approval Gate:**  
+> Always **"Show me what you're going to add, where you will add it, and to what files please."**  
+> Present the full preview, then stop and wait for explicit approval before executing.
+
 ## Trigger
 
 This protocol activates when the user says:
@@ -181,31 +200,63 @@ Rules:
 
 ## Phase 6: Produce Artifact
 
-Create `deep_plan.md` as an artifact. Set `request_feedback = true`
-in ArtifactMetadata.
+> [!IMPORTANT]
+> **🛡️ Artifact Datestamp & Anti-Overwrite Invariant:**
+> 1. **Title Datestamp**: The top-level document heading MUST include the feature name, date, and 12-hour local time:  
+>    `# Deep Implementation Plan — [Feature Name] - MM/DD/YYYY - H:MM am/pm`.
+> 2. **Timestamped Filename**: Always write the artifact to a discrete, timestamped filename:  
+>    `deep_plan_<feature>_YYYY_MM_DD_HHmm.md` (e.g. `deep_plan_stage_2_search_2026_10_11_1944.md`).
+> 3. **Anti-Overwrite Protection**: Never generate a plan using only a bare static filename. If `deep_plan.md` is also updated for canonical tooling compatibility, both files must be written so the timestamped version is preserved permanently in the project archive.
+
+Create `deep_plan_<feature>_YYYY_MM_DD_HHmm.md` (and optionally sync canonical `deep_plan.md`) as an artifact. Set `request_feedback = true` in ArtifactMetadata.
 
 ### Artifact Structure
 
 ```markdown
-# Deep Implementation Plan — [Feature/Change Name]
+# Deep Implementation Plan — [Feature/Change Name] - MM/DD/YYYY - H:MM am/pm
+
+> *Session Date: [Month DD, YYYY (MM/DD/YYYY — H:MM AM/PM local time)]*
 **Date**: [YYYY-MM-DD HH:MM]
-**Scope**: [One sentence. What this plan covers and what it
-  explicitly does NOT cover.]
+**Scope**: [One sentence. What this plan covers and what it explicitly does NOT cover.]
 **Irreversibility**: [low | medium | high]
   [If high: the point of no return is Step [n].]
 
-## Ruled Out First Steps
+## 1. UNDERSTAND & GOAL
+- **Current Understanding**: [State what you understand the current codebase/plan state to be]
+- **The GOAL**: [Explicit definition of the desired outcome and 'done']
+
+## 2. RECALL & HISTORICAL GROUNDING
+- **Prior KIs & Redlines**: [Relevant invariants from testOracle.md, systemPatterns.md, and long-term memory]
+- **Recent Plans Inspected**: [Insights/implications from N most recent implementation plans]
+- **Decisions Already Made**: [Decisions already ratified that must not be re-litigated]
+- **Patterns Repeated / Guarded**: [Active patterns being respected or guarded against violation]
+
+## 3. FILE-INTENT TABLE & PROPOSED EDITS
+> *"Show me what you're going to add, where you will add it, and to what files please."*
+
+| File | Current state (what it does now) | Intended change | Why it serves the GOAL | What could break |
+| :--- | :--- | :--- | :--- | :--- |
+| `path/to/FileA.kt` | [Current behavior] | [Intended modification] | [Direct alignment with GOAL] | [Blast radius / failure mode] |
+| `path/to/FileB.kt` | [Current behavior] | [Intended modification] | [Direct alignment with GOAL] | [Blast radius / failure mode] |
+
+### Proposed Code Previews & Target Locations
+- **File**: `app/src/main/java/.../TargetFile.kt`
+- **Where**: Inside `functionName()` around line X
+- **What**:
+```kotlin
+// Exact snippet to be added or replaced
+```
+
+## 4. SEQUENCE & STEPS
+
+### Ruled Out First Steps
 - **[Approach A]** — [one sentence on why it was pruned]
 - **[Approach B]** — [one sentence on why it was pruned]
 
-## The Plan
-
 ### Step 1: [Label]
-[What to do. Specific files, specific functions, specific
-  behavior. Not "refactor the auth module." "Extract the token
-  validation from `AuthController.validate()` into
-  `TokenValidator.verify()`, move the expiry check to line 42,
-  add the null-check for the service account path."]
+[What to do. Specific files, specific functions, specific behavior.
+  Not 'refactor the auth module.' 'Extract the token validation from
+  AuthController.validate() into TokenValidator.verify().']
 
 **Justification: [label]**
 **Chosen**: [one sentence]
@@ -221,7 +272,23 @@ in ArtifactMetadata.
 ### Step 3: [Label]
 ...
 
-[Continue for all steps]
+## 5. INVARIANTS & OFF-LIMITS BOUNDARIES
+- **Must Remain True**: [Tests 100% green, contracts unchanged, 16 KB page alignment, zero-knowledge wire contracts]
+- **OFF-LIMITS Files**: [Strict list of files that must NOT be touched or modified during this task]
+
+## 6. CONCRETE OBSERVABLE VERIFICATION
+For each step, provide a concrete observable check (a test, a screenshot, or a command) — NOT "it works":
+- **Step 1 Check**: [e.g. `./gradlew testDebugUnitTest --tests "...Test"` passes 100% green]
+- **Step 2 Check**: [e.g. Inspect ADB UI screenshot on Pixel verifying X layout/inset]
+- **Step 3 Check**: [e.g. Clean compilation via `./gradlew assembleDebug`]
+
+## 7. SELF-CRITIQUE (ONE-PASS GOAL ALIGNMENT DIFF)
+*Re-open the plan as the subject. For every step, ask: "Does this serve the GOAL?"*
+*Rewrite any step that doesn't, and output a DIFF of the plan:*
+```diff
+--- [Initial Draft Plan Element]
++++ [Refined Element Strictly Serving the GOAL]
+```
 
 ## Premarket Postmortem
 
@@ -270,6 +337,12 @@ The file is updated in-place. The checkboxes are the progress
 indicator. When all boxes are checked, the plan is done.
 
 ## Phase 7: Execute (Only After Approval)
+
+> [!IMPORTANT]
+> **🛡️ Pre-Execution Preview Invariant:**
+> Before touching any code, the agent must have satisfied the rule:  
+> *"Show me what you're going to add, where you will add it, and to what files please."*  
+> Do NOT execute modifications without explicit user sign-off on the proposed preview.
 
 After the user approves the Deep Plan (or provides edits):
 

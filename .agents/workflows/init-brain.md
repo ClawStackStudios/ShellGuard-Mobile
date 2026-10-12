@@ -49,4 +49,10 @@ Establish the visual identity and current timeline pointer.
 
 ## 🧱 Step 5: Ground Truth Synthesis
 1. Verify that the `.agents/brain/` structure is complete and follows the rules established in `.agents/rules/brain.md`.
-2. Generate an **Artifact:** `initialization_report.md`. Summarize the ground truth anchors discovered, the mechanical realities mapped, and the implicit tribal knowledge uncovered. Present this to the user as their solid starting floor.
+2. Generate an **Artifact:** `initialization_report_YYYY_MM_DD_HHmm.md` (and optionally sync canonical `initialization_report.md`).
+   > [!IMPORTANT]
+   > **🛡️ Artifact Datestamp & Anti-Overwrite Invariant:**
+   > - **Title Datestamp**: Heading must be `# Initialization Report - MM/DD/YYYY - H:MM am/pm`.
+   > - **Timestamped Filename**: Always output to a discrete, timestamped file to preserve initialization history across resets.
+   Summarize the ground truth anchors discovered, the mechanical realities mapped, and the implicit tribal knowledge uncovered. Present this to the user as their solid starting floor.
+

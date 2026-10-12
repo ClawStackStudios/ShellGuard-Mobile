@@ -73,13 +73,22 @@ four Long-Term Memory files. Build a model of:
 
 ## Phase 3: Produce Dream Report Artifact
 
-Create `dream_report.md` as an artifact. Set `request_feedback = true`
-in ArtifactMetadata.
+> [!IMPORTANT]
+> **🛡️ Artifact Datestamp & Anti-Overwrite Invariant:**
+> 1. **Title Datestamp**: The top-level document heading MUST include the formatted date and 12-hour local time:  
+>    `# Dream Report - MM/DD/YYYY - H:MM am/pm` (e.g. `# Dream Report - 10/11/2026 - 7:44 pm`).
+> 2. **Timestamped Filename**: Always write the artifact to a discrete, timestamped filename:  
+>    `dream_report_YYYY_MM_DD_HHmm.md` (e.g. `dream_report_2026_10_11_1944.md`).
+> 3. **Anti-Overwrite Protection**: Never generate a report using only a bare static filename. If `dream_report.md` is also updated for canonical tooling compatibility, both files must be written so the timestamped version is preserved permanently in the project archive.
+
+Create `dream_report_YYYY_MM_DD_HHmm.md` (and optionally sync canonical `dream_report.md`) as an artifact. Set `request_feedback = true` in ArtifactMetadata.
 
 ### Report Structure
 
 ```markdown
-# Dream Report — [YYYY-MM-DD HH:MM]
+# Dream Report - MM/DD/YYYY - H:MM am/pm
+
+> *Session Date: [Month DD, YYYY (MM/DD/YYYY — H:MM AM/PM local time)]*
 
 ## Mode
 [Full | Shallow]

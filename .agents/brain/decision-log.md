@@ -1,11 +1,5 @@
 # Decision Log
 
-## 2026-09-27 — system autofill framework and home lab port isolation
-Delivered system-level Android AutofillService and transparent AutofillAuthActivity biometric gate with Bitwarden-parity TOTP clipboard auto-copy. Addressed home lab port cross-talk by automatically promoting BASE_DOMAIN matching to EXACT host+port matching whenever the target is an IP or localhost (see `deep_plan.md`), and guarded AssistStructure traversal against deep DOM recursion with a 64-level depth ceiling.
-
-## 2026-09-27 — dual adversarial audit and fail-closed sync reconciliation
-Subjected bidirectional sync and cryptographic retrieval to a dual adversarial audit pass (ruthless critic and surgical hacker). Replaced `tryLock` with serialized `withLock` to eliminate dropped sync calls, retained local tombstones until remote HTTP 200/204 to prevent zombie resurrection, guarded downstream pull against overwriting local pending edits, and converted detail retrieval to fail-closed Result.failure to block double-ciphertext corruption.
-
 ## 2026-10-03 — connectivity transition guard & test coroutine lifecycle
 Diagnosed ComparisonFailure on CI runner in `SyncReconciliationAdversarialTest.testZombieResurrectionPreventedWhenRemoteDeleteFails`. Traced to `SyncRepository.init` collecting `connectivityMonitor.isOnline` and immediately launching an unshielded `syncAll` before test mocks were armed. Constrained the collector to transition events (`isOnline && !wasOnline`), introduced `cancelScope()`, and enforced clean shared preference and scope teardown across test fixtures.
 
@@ -62,4 +56,11 @@ Addressed user challenge on cleartext HTTP over Tailscale. Uncovered that static
 
 ## 2026-10-11 — docs bow to code and ephemeral cache spec alignment
 Executed `/walk-the-docs` and `/draft-release` for Stage 1 (`v0.0.0.12 (Build 12)`). Reconciled all 5 domain specs in `project/` to physical code reality (hybrid attachment storage, `clearDecryptedCache` lifecycle, `password_history` empty string defaults, `androidapp://` routing, and amber cleartext warnings), cementing the principle that documentation must reflect physical code rather than aspirations.
+
+## 2026-10-11 — mobile-first transport inversion & instance identity anchor
+Inverted the traditional server-first/mobile-as-bolt-on paradigm into a sync-native mobile-first transport architecture. Solved certificate rotation friction by decoupling ephemeral TLS certs from a persistent Instance Identity Key that signs rotation proofs for silent auto-healing, designed zero-touch Reef Handshake QR pairing (`shellguard://pair`), and integrated dual-homed mobility and Stage 5 prompt into `project/meta-prompt-ai-studio.md` and `ROADMAP.md` as the `v0.0.1.0 (Build 16)` structural completion milestone.
+
+## 2026-10-12 — session credential decoupling & in-place vault re-auth
+Diagnosed unresponsive unlock button on physical Google Pixel: `hasActiveSession()` required volatile `getInMemoryShellKey() != null`, but `zeroizeMemory()` purged persistent preferences on lock, collapsing session state and trapping the UI in an un-dismissible overlay. Decoupled persistent KeyStore-wrapped credentials from RAM zeroization, implemented PBKDF2-SHA256 `PinAuthManager` with attempt lockout counters, dynamic `LockScreen` presentation with `PinPadView`, and an in-place Master Key modal, verifying seamless re-auth on physical hardware.
+
 

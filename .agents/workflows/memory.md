@@ -93,13 +93,22 @@ break if [condition]. What it costs to maintain is [tax].
 
 ## Phase 4: Produce Memory Report Artifact
 
-Create `memory_report.md` as an artifact. Set
-`request_feedback = true` in ArtifactMetadata.
+> [!IMPORTANT]
+> **🛡️ Artifact Datestamp & Anti-Overwrite Invariant:**
+> 1. **Title Datestamp**: The top-level document heading MUST include the formatted date and 12-hour local time:  
+>    `# Memory Report - MM/DD/YYYY - H:MM am/pm` (e.g. `# Memory Report - 10/11/2026 - 7:44 pm`).
+> 2. **Timestamped Filename**: Always write the artifact to a discrete, timestamped filename:  
+>    `memory_report_YYYY_MM_DD_HHmm.md` (e.g. `memory_report_2026_10_11_1944.md`).
+> 3. **Anti-Overwrite Protection**: Never generate a report using only a bare static filename. If `memory_report.md` is also updated for canonical tooling compatibility, both files must be written so the timestamped version is preserved permanently in the project archive.
+
+Create `memory_report_YYYY_MM_DD_HHmm.md` (and optionally sync canonical `memory_report.md`) as an artifact. Set `request_feedback = true` in ArtifactMetadata.
 
 ### Report Structure
 
 ```markdown
-# Memory Report — [YYYY-MM-DD HH:MM]
+# Memory Report - MM/DD/YYYY - H:MM am/pm
+
+> *Session Date: [Month DD, YYYY (MM/DD/YYYY — H:MM AM/PM local time)]*
 
 ## Bank Updates
 
