@@ -317,6 +317,13 @@ For each step, provide a concrete observable check (a test, a screenshot, or a c
 
 [User decides whether to address these before approval.]
 
+## 8. ROLL-OFF EXECUTION PROTOCOL (EXECUTION SEQUENCE)
+Every deep plan artifact MUST culminate in an explicit **Roll-Off Execution Protocol**:
+- **Sequential Command Checklist**: Exact terminal/shell commands to run in order.
+- **Target Files & Boundaries**: Explicit file paths and code seams.
+- **Verification Gates**: Sub-second drift checks (`python3 scripts/audit_docs_drift.py`) and cloud test tailing.
+- **Handoff & Completion**: The exact condition that marks the work complete.
+
 ## Task List
 
 - [ ] Step 1: [label]

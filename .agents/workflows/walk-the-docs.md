@@ -58,7 +58,9 @@ Walk each anchor document sequentially and enforce bidirectional consistency wit
 - [ ] Check against actual git diff to ensure every significant feature or fix is represented.
 
 ### 5. Root Release Manifest (`RELEASE-vX.Y.Z.N.md`)
-- [ ] Ensure a dedicated release note file exists at root (`RELEASE-v<versionName>.md`).
+- [ ] Ensure exactly **one** dedicated release manifest exists at root matching `versionName`: `RELEASE-v<versionName>.md`.
+- [ ] Confirm superseded prior release manifests (e.g. `RELEASE-v<old>.md`) have been cleanly pruned from the root (`git rm`).
+- [ ] Verify that `README.md` link table references only the active manifest with zero broken relative links.
 - [ ] Verify that `.github/workflows/release.yml` will find and parse this file upon tag push.
 
 ### 6. Mobile Store Distribution Notes (`RELEASE-PLAY.md`)

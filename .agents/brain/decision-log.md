@@ -1,14 +1,5 @@
 # Decision Log
 
-## 2026-10-03 — structural envelope validation & fail-closed crypto contract
-Diagnosed deserialization exception on Web UI items storing unencrypted empty JSON arrays (`"[]"`). Added `ShellCryptionEngine.isEncryptedEnvelope` to gate decryption calls, normalized pull defaults in `SyncRepository`, and enforced strict `IllegalArgumentException` in `decryptField` to maintain fail-closed boundaries (see `testOracle.md` § Redline 7).
-
-## 2026-10-03 — note masking parity and action cluster alignment
-Resolved visual and cryptographic inconsistency where opening a Note in Android displayed cleartext unmasked content by default. Implemented masked default rendering with bullet characters, the Eye-beside-Copy header action cluster, and biometric re-prompt gating on reveal/copy (see systemPatterns.md § Vault Domains & Parity).
-
-## 2026-10-03 — jetpack inline slice protocol & credential manager dual-stack
-Diagnosed silent keyboard inline autofill failure on Gboard/SwiftKey: traced to raw empty Slice.Builder rejecting IME layout inflation without androidx.autofill.inline.v1.InlineSuggestionUi. Built comprehensive dual-stack specification combining API 26-33 AutofillService inline slices with API 34+ CredentialProviderService bottom sheets, and reinforced locked dataset presentation binding.
-
 ## 2026-10-03 — splitting the autofill authentication stack
 While researching 2026 Autofill implementation patterns, discovered we must aggressively unlearn legacy `AutofillNode` structures. Confirmed that standard forms and passkey authentication now exist on two entirely separate architectural planes (`Modifier.semantics` vs `Credential Manager`). We will implement both independently rather than forcing one into the other.
 
@@ -65,6 +56,10 @@ Created `.github/workflows/ci.yml` and `scripts/audit_docs_drift.py` for ShellGu
 
 ## 2026-10-12 — release manifest cleanup & dual-branch pr merge sync
 Purged legacy Build 11 release manifest to ensure only current release documentation resides at root. Harmonized all relative markdown links against code ground truth and synchronized Jules's PR #1 merge with Stage 1.5 in-place re-auth features for v0.0.0.12.
+
+## 2026-10-12 — pre-draft alignment artifact gate & single manifest invariant
+Codified the Pre-Draft Alignment Artifact Gate into /draft-release and /walk-the-docs, mandating an interactive analysis artifact covering what needs alignment, how to align it, and a sequential roll-off checklist before mutating code or docs. Ratified the Single Active Root Manifest invariant and Cloud CI offload across hygiene rules.
+
 
 
 

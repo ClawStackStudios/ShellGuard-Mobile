@@ -13,31 +13,50 @@ description: Google Play Console Release & Deployment Workflow
 
 ```mermaid
 flowchart TD
-    PreFlight["1. 🧪 Pre-Flight Gate<br/>(Unit Tests & 16 KB Alignment Check)"]
+    Align["0. 🗺️ Alignment Artifact Gate<br/>(release_vX_Y_Z_N_alignment_plan.md)"]
+    PreFlight["1. 🧪 Pre-Flight Gate<br/>(audit_docs_drift.py & Cloud CI)"]
     Version["2. 🔢 Version Bump<br/>(versionCode + 1, versionName SemVer)"]
-    Bundle["3. 📦 Generate AAB Bundle<br/>(./gradlew bundleRelease)"]
+    Bundle["3. 📦 Generate AAB Bundle<br/>(Cloud CI / ./gradlew bundleRelease)"]
     Validate["4. 🔍 Inspect Bundle<br/>(bundletool / APK Analyzer)"]
     Upload["5. 🌐 Upload to Play Console<br/>(Internal / Closed Testing Track)"]
     Rollout["6. 👥 Tester Distribution<br/>(Share Opt-in Link)"]
     Tag["7. 🏷️ Git Tag & Brain<br/>(git tag vX.Y.Z.W & changelog.md)"]
 
-    PreFlight --> Version --> Bundle --> Validate --> Upload --> Rollout --> Tag
+    Align --> PreFlight --> Version --> Bundle --> Validate --> Upload --> Rollout --> Tag
 ```
+
+---
+
+## 🗺️ Step 0: The Alignment & Rollout Artifact Gate (Mandatory Pre-Draft)
+
+Before modifying code, bumping versions, merging branches, or drafting release notes, generate a comprehensive alignment artifact (`release_vX_Y_Z_N_alignment_and_rollout_plan.md`) with `request_feedback = true`:
+
+```text
+The artifact MUST systematically capture:
+1. What Needs Alignment: Complete audit of all repository anchors (app/build.gradle.kts, README.md, CHANGELOG.md, SECURITY.md, RELEASE-PLAY.md, ROADMAP.md, meta-prompt, brain files).
+2. What Needs Alignment in It: Specific line numbers, stale version badges, character limits (<500 chars), and outdated references.
+3. How to Align Everything: Concrete proposed diffs, legacy manifest prunings, and link updates.
+4. The Roll-Off Execution Protocol: Step-by-step checklist of shell commands, PR merges, fast-forwards, and tag pushes allowing immediate execution straight from the artifact upon approval.
+```
+
+> [!IMPORTANT]
+> **Awaiting Feedback**: Stop calling tools and allow the user to review, edit, or approve the alignment artifact before proceeding with file mutations.
 
 ---
 
 ## 🛠️ Step 1: Pre-Flight Verification Gate
 
-Before building a release artifact, run the full verification gate to ensure zero regressions:
+Run the sub-second deterministic documentation drift auditor locally before drafting:
 
 ```bash
-# Clean build cache and execute all unit and UI tests
-./gradlew clean testDebugUnitTest
+python3 scripts/audit_docs_drift.py
 ```
+
+*Note on Local Gradle*: Full unit testing (121+ Robolectric tests) and release bundle compilation are offloaded to GitHub Actions Cloud CI (`.github/workflows/ci.yml`). Do not run `./gradlew testDebugUnitTest` or `./gradlew assembleDebug` locally unless debugging offline.
 
 ### Invariants to Verify:
 - [ ] **Target SDK API 36**: Google Play Console strictly mandates `targetSdk = 36` (Android 16). Any bundle targeting API 35 or lower will be rejected during upload validation.
-- [ ] **Tests Passing**: 100% pass rate across all Robolectric and unit tests.
+- [ ] **Tests Passing in Cloud**: 100% pass rate across all Robolectric and unit tests on GitHub Actions.
 - [ ] **16 KB Alignment**: `gradle/libs.versions.toml` specifies `sqlcipher = "4.6.1"` and `app/build.gradle.kts` specifies `jniLibs.useLegacyPackaging = false`.
 - [ ] **Security Boundaries**: `FLAG_SECURE` active for production builds (`!BuildConfig.DEBUG` in `MainActivity.kt`).
 - [ ] **Network Security**: Cleartext permitted strictly for local LAN / VPN origins in `res/xml/network_security_config.xml`.
@@ -195,12 +214,12 @@ The file offset must be evenly divisible by `16384` (16 KB), confirming Android 
 ## 🏷️ Step 8: Post-Release Tagging & Brain Sync
 
 > [!IMPORTANT]
-> **🛡️ Immutable Release Manifest Retention & No-Overwrite Invariant:**
-> 1. **Discrete Version-Stamped Files**: Every release drafted or published MUST have its own dedicated release manifest file in the repository root: `RELEASE-vX.Y.Z.N.md` (e.g. `RELEASE-v0.0.0.12.md`).
-> 2. **Never Overwrite Historical Manifests**: Prior release manifests (e.g., `RELEASE-v0.0.0.11.md`, `RELEASE-v0.0.0.10.md`) are immutable historical records. Never overwrite, rename, or truncate a prior release manifest to serve a new version.
+> **🛡️ Single Active Release Manifest Invariant & Root Cleanliness:**
+> 1. **Single Discrete Manifest at Root**: The repository root must maintain **strictly ONE** version-stamped release manifest matching current `app/build.gradle.kts`: `RELEASE-vX.Y.Z.N.md` (alongside `RELEASE-PLAY.md`).
+> 2. **Prune Superseded Manifests**: Upon drafting a new release, cleanly delete prior root release manifests (`git rm RELEASE-v<old>.md`) and remove their references from `README.md`.
 > 3. **Title & Date Invariant**: The heading MUST declare the version, build code, and release date:  
->    `# Release Manifest: vX.Y.Z.N (Build N) — YYYY-MM-DD` (e.g. `# Release Manifest: v0.0.0.12 (Build 12) — 2026-10-11`).
-> 4. **Append-Only History**: All release entries in `CHANGELOG.md` and release notes history in `RELEASE-PLAY.md` must remain append-only and strictly preserved across the project lifespan.
+>    `# Release Manifest: vX.Y.Z.N (Build N) — YYYY-MM-DD` (e.g. `# Release Manifest: v0.0.0.12 (Build 12) — 2026-10-12`).
+> 4. **Immutable History Preserved in Tags & Changelog**: Full historical release notes are permanently preserved in `CHANGELOG.md`, `RELEASE-PLAY.md` `<en-US>` history blocks, and git release tags. Root files are the active storefront, not an archival attic.
 
 After rollout, tag the repository and update project history:
 

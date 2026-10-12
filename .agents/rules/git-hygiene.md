@@ -168,3 +168,12 @@ If an accidental `git reset`, dropped stash, or bad rebase occurs:
    git branch recovery-$(date +%Y%m%d%H%M) <hash>
    ```
 5. Inspect the recovery branch diff (`git diff HEAD..<recovery-hash>`) before applying.
+
+## Subagent PR & Dual-Branch Merge Rollout Protocol
+When merging upstream subagent PRs (e.g. Google Labs Jules PRs) that target `main` alongside downstream lead feature branches:
+1. **Reconcile on Feature Branch**: Apply all doc reconciliations, manifest prunings, and tests on the active feature branch.
+2. **Audit Drift**: Execute `python3 scripts/audit_docs_drift.py` locally (<1s).
+3. **Merge Subagent PR**: Merge the subagent PR into `main` via `gh pr merge <PR_ID> --merge`.
+4. **Synchronize & Fast-Forward**: Checkout `main`, pull latest, merge the feature branch (`git merge <branch>`), and push to `origin/main`.
+5. **Tag & Trigger Cloud Release**: Tag the release (`git tag -a vX.Y.Z.N`) and push tag to origin to trigger cloud release packaging.
+

@@ -708,6 +708,19 @@ Calibration is sharp with 0 over-confidence penalties across 8 ratified decision
 **Outcome**: Removed `RELEASE-v0.0.0.11.md`, updated `README.md` links, harmonized `CHANGELOG.md` and `RELEASE-v0.0.0.12.md` dates, and orchestrated dual-branch merge of PR #1 and `feat/stage-1-...` into `main`.
 **Pattern reference**: Link to `project/productVersion.md § Semantic Progression Strategy`.
 
+## codify-alignment-artifact-gate-and-single-manifest-invariant — 2026-10-12 10:50
+
+**Context**: Reflecting on the Stage 1 release preparation where authoring an interactive alignment artifact preemptively caught root manifest clutter, broken markdown links, and dual-branch merge friction.
+**Options considered**:
+- Option A: Retain the pre-release alignment analysis as an ad-hoc practice used only when an engineer thinks of it.
+- Option B: Codify the pattern across core workflows (`/draft-release`, `/walk-the-docs`, `/deep-plan`) and rules (`docs-hygiene.md`, `git-hygiene.md`) as an explicit gate and single-manifest invariant.
+**Chosen**: Option B.
+**Why**: When a practice produces exceptional clarity and turns what could have been a messy merge and release into a clean, deterministic rollout, leaving it informal invites regression. Embedding the artifact gate and single active root manifest into the workflow definitions guarantees that every future release starts with the same rigor.
+**Confidence**: high — validated empirically during `v0.0.0.12 (Build 12)` release execution.
+**Outcome**: Updated `draft-release.md`, `walk-the-docs.md`, `deep-plan.md`, `docs-hygiene.md`, and `git-hygiene.md`. All links verified with `audit_docs_drift.py`.
+**Pattern reference**: Link to `learning_proposal.md`.
+
+
 
 
 

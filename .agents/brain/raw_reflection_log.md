@@ -232,5 +232,25 @@ Improvements_Identified_For_Consolidation:
 - General pattern: Ergonomic scrollable column alignment over Box bottom-pinning for variable-height PIN and keyboard interfaces.
 ---
 
+---
+Date: 2026-10-12
+TaskRef: "Learn Protocol: Pre-Draft Alignment Artifact Gate, Single Active Manifest, and Dual-Branch Release Rollout"
+
+Learnings:
+- Pre-Draft Alignment Artifact Gate: Generating a structured, interactive analysis artifact before initiating a release draft or major branch merge exposes subtle documentation drift, superseded files, and missing linkages before any file mutations happen. Breaking it into 4 sections (What was discovered, What needs alignment, How to align it, and Roll-Off Execution Protocol) enables one-stroke execution straight from the artifact.
+- Single Active Root Release Manifest Invariant: Repositories should strictly preserve only ONE active versioned release manifest at root (`RELEASE-vX.Y.Z.N.md`) alongside store notes (`RELEASE-PLAY.md`). Stale historical manifests must be pruned from root (`git rm RELEASE-v<old>.md`) and links in `README.md` cleaned up; historical records remain fully preserved in `CHANGELOG.md` and git release tags.
+- Dual-Branch & Subagent PR Merge Rollout: When merging external subagent PRs (e.g., Jules PR targeting main) with feature branches holding downstream hardening, the safest sequence is: reconcile on feature branch -> drift audit -> merge subagent PR into main (`gh pr merge`) -> fast-forward/merge feature branch into main -> tag and push to trigger cloud CI packaging.
+- Sub-second deterministic doc audit: Using Python (`scripts/audit_docs_drift.py`) to verify version codes, regex patterns, char ceilings, and relative markdown links executes in <0.1s, allowing fast pre-commit gates while offloading heavy Android Gradle compilation to GitHub Actions cloud runners.
+
+Successes:
+- Bolstered `.agents/workflows/draft-release.md`, `.agents/workflows/walk-the-docs.md`, `.agents/workflows/deep-plan.md`, `.agents/rules/docs-hygiene.md`, and `.agents/rules/git-hygiene.md`.
+- Successfully validated with `python3 scripts/audit_docs_drift.py` passing 100% green.
+
+Improvements_Identified_For_Consolidation:
+- General pattern: Pre-Draft Alignment Artifact Gate and Roll-Off Execution Protocol across all planning and release workflows.
+- General pattern: Single Active Root Manifest & Zero-Broken-Link Invariant.
+---
+
+
 
 

@@ -72,4 +72,11 @@ Every version entry in `CHANGELOG.md` and `.agents/brain/project/changelog.md` M
   10. Cross-Repository Compatibility: Synchronize partner repository `compatibility_layer.md` if payload schemas or sync endpoints were modified.
 - **Automated Publication Trigger:** Pushing with `--release vX.Y.Z.N` in the commit message or pushing tag `vX.Y.Z.N` automatically executes `.github/workflows/release.yml` to build, sign, and publish the release with the markdown notes and branded binaries.
 
+## 6. Single Active Root Manifest & Zero-Broken-Link Invariant
+- **Single Discrete Manifest at Root**: The repository root must maintain **strictly ONE** version-stamped release manifest matching current `app/build.gradle.kts`: `RELEASE-vX.Y.Z.N.md` (alongside `RELEASE-PLAY.md`).
+- **Prune Superseded Manifests**: Upon drafting a new release, cleanly delete prior root release manifests (`git rm RELEASE-v<old>.md`) and remove their references from `README.md`.
+- **Link Parity Invariant**: `README.md` must NEVER contain links to non-existent historical manifests. Every link in `README.md` must resolve to a physical file on disk.
+- **Immutable History Preserved in Tags & Changelog**: Full historical release notes are permanently preserved in `CHANGELOG.md`, `RELEASE-PLAY.md` `<en-US>` history blocks, and git release tags. Root files are the active storefront, not an archival attic.
+
+
 
