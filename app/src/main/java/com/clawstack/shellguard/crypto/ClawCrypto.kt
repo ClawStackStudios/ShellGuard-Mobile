@@ -69,4 +69,27 @@ object ClawCrypto {
     fun constantTimeEquals(a: ByteArray, b: ByteArray): Boolean {
         return MessageDigest.isEqual(a, b)
     }
+
+    /**
+     * Extracts a valid sovereign ClawKey (hu- or lb-) from raw string or JSON file content.
+     */
+    fun extractKey(content: String): String? {
+        val trimmed = content.trim()
+        val tokenJsonMatch = """"token"\s*:\s*"([^"]+)"""".toRegex().find(trimmed)
+        if (tokenJsonMatch != null) {
+            val extracted = tokenJsonMatch.groupValues[1].trim()
+            if (isValidClawKey(extracted)) return extracted
+        }
+
+        val keyPatternMatch = """(hu-|lb-)[a-zA-Z0-9_-]+""".toRegex().find(trimmed)
+        if (keyPatternMatch != null) {
+            val extracted = keyPatternMatch.value.trim()
+            if (isValidClawKey(extracted)) return extracted
+        }
+
+        val unquoted = trimmed.removeSurrounding("\"").removeSurrounding("'").trim()
+        if (isValidClawKey(unquoted)) return unquoted
+
+        return null
+    }
 }

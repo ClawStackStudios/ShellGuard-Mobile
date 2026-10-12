@@ -102,6 +102,30 @@ class SettingsViewModel(
         settingsRepo.setAutofillInlineChips(enabled)
     }
 
+    fun updateUnlockMethod(method: com.clawstack.shellguard.data.local.UnlockMethod): Job = viewModelScope.launch {
+        settingsRepo.setUnlockMethod(method)
+    }
+
+    fun setupPin(pin: String, onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}): Job = viewModelScope.launch {
+        try {
+            appContainer.pinAuthManager.setupPin(pin)
+            settingsRepo.setUnlockMethod(com.clawstack.shellguard.data.local.UnlockMethod.PIN)
+            onSuccess()
+        } catch (e: Exception) {
+            onError(e.message ?: "Failed to set up PIN")
+        }
+    }
+
+    fun clearPin(onSuccess: () -> Unit = {}): Job = viewModelScope.launch {
+        appContainer.pinAuthManager.clearPin()
+        settingsRepo.setUnlockMethod(com.clawstack.shellguard.data.local.UnlockMethod.MASTER_KEY)
+        onSuccess()
+    }
+
+    fun updateMaxPinAttempts(attempts: Int): Job = viewModelScope.launch {
+        settingsRepo.setMaxPinAttempts(attempts)
+    }
+
     fun updateSyncOverCellular(enabled: Boolean): Job = viewModelScope.launch {
         settingsRepo.setSyncOverCellular(enabled)
     }

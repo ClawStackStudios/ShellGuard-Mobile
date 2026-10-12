@@ -115,8 +115,8 @@ class VaultDashboardViewModel(
     }
 
     fun lockVault(onLocked: () -> Unit) {
-        appContainer.deviceVault.zeroizeMemory()
         appContainer.vaultLockManager.lockVaultNow()
+        appContainer.deviceVault.zeroizeMemory()
         try {
             appContainer.attachmentVaultManager.clearDecryptedCache()
         } catch (_: Throwable) {}

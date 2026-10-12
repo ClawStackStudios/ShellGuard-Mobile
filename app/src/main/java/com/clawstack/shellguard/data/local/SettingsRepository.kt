@@ -23,6 +23,12 @@ enum class ThemeMode {
     LIGHT
 }
 
+enum class UnlockMethod {
+    BIOMETRIC,
+    PIN,
+    MASTER_KEY
+}
+
 data class AppSettings(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val dynamicColors: Boolean = false,
@@ -35,7 +41,10 @@ data class AppSettings(
     val autofillInlineChips: Boolean = true,
     val syncOverCellular: Boolean = true,
     val pullToRefreshEnabled: Boolean = true,
-    val defaultUriMatchMode: com.clawstack.shellguard.domain.matcher.UriMatchMode = com.clawstack.shellguard.domain.matcher.UriMatchMode.BASE_DOMAIN
+    val defaultUriMatchMode: com.clawstack.shellguard.domain.matcher.UriMatchMode = com.clawstack.shellguard.domain.matcher.UriMatchMode.BASE_DOMAIN,
+    val unlockMethod: UnlockMethod = UnlockMethod.BIOMETRIC,
+    val hasPinConfigured: Boolean = false,
+    val maxPinAttempts: Int = 5
 )
 
 interface SettingsRepository {
@@ -52,6 +61,9 @@ interface SettingsRepository {
     suspend fun setSyncOverCellular(enabled: Boolean)
     suspend fun setPullToRefreshEnabled(enabled: Boolean)
     suspend fun setDefaultUriMatchMode(mode: com.clawstack.shellguard.domain.matcher.UriMatchMode)
+    suspend fun setUnlockMethod(method: UnlockMethod)
+    suspend fun setHasPinConfigured(hasPin: Boolean)
+    suspend fun setMaxPinAttempts(attempts: Int)
     suspend fun clearAll()
 }
 
@@ -73,6 +85,9 @@ class SettingsRepositoryImpl(
         val SYNC_OVER_CELLULAR = booleanPreferencesKey("pref_sync_over_cellular")
         val PULL_TO_REFRESH_ENABLED = booleanPreferencesKey("pref_pull_to_refresh_enabled")
         val DEFAULT_URI_MATCH_MODE = stringPreferencesKey("pref_default_uri_match_mode")
+        val UNLOCK_METHOD = stringPreferencesKey("pref_unlock_method")
+        val HAS_PIN_CONFIGURED = booleanPreferencesKey("pref_has_pin_configured")
+        val MAX_PIN_ATTEMPTS = intPreferencesKey("pref_max_pin_attempts")
     }
 
     override val settingsFlow: Flow<AppSettings> = dataStore.data
@@ -101,6 +116,13 @@ class SettingsRepositoryImpl(
                 com.clawstack.shellguard.domain.matcher.UriMatchMode.BASE_DOMAIN
             }
 
+            val unlockMethodStr = preferences[PreferencesKeys.UNLOCK_METHOD]
+            val unlockMethod = try {
+                if (unlockMethodStr != null) UnlockMethod.valueOf(unlockMethodStr) else UnlockMethod.BIOMETRIC
+            } catch (e: IllegalArgumentException) {
+                UnlockMethod.BIOMETRIC
+            }
+
             AppSettings(
                 themeMode = themeMode,
                 dynamicColors = preferences[PreferencesKeys.DYNAMIC_COLORS] ?: false,
@@ -113,7 +135,10 @@ class SettingsRepositoryImpl(
                 autofillInlineChips = preferences[PreferencesKeys.AUTOFILL_INLINE_CHIPS] ?: true,
                 syncOverCellular = preferences[PreferencesKeys.SYNC_OVER_CELLULAR] ?: true,
                 pullToRefreshEnabled = preferences[PreferencesKeys.PULL_TO_REFRESH_ENABLED] ?: true,
-                defaultUriMatchMode = uriMode
+                defaultUriMatchMode = uriMode,
+                unlockMethod = unlockMethod,
+                hasPinConfigured = preferences[PreferencesKeys.HAS_PIN_CONFIGURED] ?: false,
+                maxPinAttempts = preferences[PreferencesKeys.MAX_PIN_ATTEMPTS] ?: 5
             )
         }
 
@@ -164,6 +189,19 @@ class SettingsRepositoryImpl(
 
     override suspend fun setDefaultUriMatchMode(mode: com.clawstack.shellguard.domain.matcher.UriMatchMode) {
         dataStore.edit { it[PreferencesKeys.DEFAULT_URI_MATCH_MODE] = mode.name }
+    }
+
+    override suspend fun setUnlockMethod(method: UnlockMethod) {
+        dataStore.edit { it[PreferencesKeys.UNLOCK_METHOD] = method.name }
+    }
+
+    override suspend fun setHasPinConfigured(hasPin: Boolean) {
+        dataStore.edit { it[PreferencesKeys.HAS_PIN_CONFIGURED] = hasPin }
+    }
+
+    override suspend fun setMaxPinAttempts(attempts: Int) {
+        val clamped = attempts.coerceIn(1, 20)
+        dataStore.edit { it[PreferencesKeys.MAX_PIN_ATTEMPTS] = clamped }
     }
 
     override suspend fun clearAll() {

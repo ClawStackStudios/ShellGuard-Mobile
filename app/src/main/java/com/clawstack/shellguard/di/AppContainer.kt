@@ -27,6 +27,7 @@ interface AppContainer {
     val attachmentVaultManager: com.clawstack.shellguard.data.local.AttachmentVaultManager
     val vaultLockManager: com.clawstack.shellguard.crypto.VaultLockManager
     val settingsRepository: SettingsRepository
+    val pinAuthManager: com.clawstack.shellguard.crypto.PinAuthManager
     val backupEngine: com.clawstack.shellguard.data.backup.VaultBackupEngine
     fun getClient(baseUrl: String): ShellGuardClient
 }
@@ -67,6 +68,10 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
 
     override val settingsRepository: SettingsRepository by lazy {
         SettingsRepositoryImpl(context)
+    }
+
+    override val pinAuthManager: com.clawstack.shellguard.crypto.PinAuthManager by lazy {
+        com.clawstack.shellguard.crypto.PinAuthManager(deviceVault, settingsRepository)
     }
 
     override val backupEngine: com.clawstack.shellguard.data.backup.VaultBackupEngine by lazy {
