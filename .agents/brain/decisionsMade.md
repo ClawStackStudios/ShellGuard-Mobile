@@ -732,6 +732,30 @@ Calibration is sharp with 0 over-confidence penalties across 8 ratified decision
 **Outcome**: Proposed and applied zero promotions in `memory_report_2026_10_12_1242.md`; all five candidate patterns tracked with accurate accumulating weights.
 **Pattern reference**: Link to `long-term-memory.md § Threshold`.
 
+## anticipatory-pre-work-reflection-vs-idle-waiting — 2026-10-12 13:45
+
+**Context**: Having prepared Stage 2 tasks and queued them for Google Jules CLI, deciding how the lead agent should invest cognitive cycles while an external subagent executes in the cloud.
+**Options considered**:
+- Enter an idle polling loop, waiting passively for Jules's commit or PR to land before thinking about next steps — Conserves tokens in the moment, but wastes architectural momentum and leaves downstream dependencies un-scouted.
+- Execute anticipatory pre-work reflection (`/pre-work-assumptions`), assuming in-flight work succeeds and mapping Stage 3 seams (uncovering the CWE-384 lock bypass and offline mutation queue) while structuring bite-sized dispatch comments — Keeps the lead agent ten paces ahead of the executor, catches architectural bugs before code is written, and prevents delegation stalls.
+**Chosen**: Execute anticipatory pre-work reflection (`/pre-work-assumptions`).
+**Why**: Idle waiting is an abdication of leadership. Operating on the forward assumption that the delegated task will succeed allows the lead agent to scout the downstream territory, uncover latent security vulnerabilities ahead of time, and break upcoming stages into digestible prompts so the delegator is always one step ahead of the executor.
+**Confidence**: high — surfaced the concrete CWE-384 in-memory timestamp vulnerability before writing a single line of Stage 3 code.
+**Outcome**: Codified `.agents/workflows/pre-work-assumptions.md`, authored `work_stage_reflection_stage_3_security_lifecycle_2026_10_12_1346.md`, enriched `deep_plan.md` with Section 9 prompt fleet, and ratified the pattern in `systemPatterns.md`.
+**Pattern reference**: `project/systemPatterns.md § Anticipatory Pre-Work Assumptions`.
+
+## mode-3-long-lived-copilot-delegation-over-micro-pr-churn — 2026-10-12 14:15
+
+**Context**: Determining how to structure the lifecycle of Stage 2 PRs and handoffs with Google Jules.
+**Options considered**:
+- Require a discrete PR for every micro-task (one for search, one for touch targets, one for haptics), merging and releasing each independently — Creates high review friction, pollutes git history with micro-PR churn, and fragments testing on physical hardware.
+- Adopt Mode 3 (The Lucas Pattern): maintain a single long-lived feature branch (`feat/stage-2-mental-flow-and-ergonomics`), review incoming diffs iteratively, test on real Google Pixel glass over ADB, scout settings and feature debt, and have Jules draft release documentation at the end of the stage — Matches the natural rhythm of full-featured engineering stages, preserves coherent focus, and grounds verification in physical reality.
+**Chosen**: Adopt Mode 3 (The Lucas Pattern).
+**Why**: Micro-PR churn fragments the mental flow of both the developer and the model. A cohesive feature stage deserves a single living branch where features compound, hardware testing provides empirical grounding, and release documentation wraps the unified milestone in a single stroke.
+**Confidence**: high — proven effective in Stage 1 with PR #1.
+**Outcome**: Authored `stage_2_meta_plan.md` with stopwatch start tracking and launched Jules session `1446424829708118836` targeting the long-lived feature branch.
+**Pattern reference**: `long-term/patterns.md § pattern: dual-medium-jules-orchestration` (accumulating, weight 2/3).
+
 
 
 
