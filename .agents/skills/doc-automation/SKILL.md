@@ -87,6 +87,20 @@ flowchart LR
 
 ## ⚙️ Implementation Methods & Automations
 
+### Method 0: Canonical Python Documentation Drift Auditor (Local & Cloud CI Gate)
+Executed in <1 second on local machines before pushing, and triggered automatically inside `.github/workflows/ci.yml` on every GitHub Actions push:
+
+```bash
+python3 scripts/audit_docs_drift.py
+```
+Validates:
+- `versionCode` and `versionName` alignment across `app/build.gradle.kts` and documentation.
+- `README.md` version badges.
+- `RELEASE-PLAY.md` `<en-US>` block length (<500 characters) and zero markdown leakage.
+- `CHANGELOG.md` release headers for the active version.
+- `SECURITY.md` supported version listings and reporting channels.
+- Integrity of all relative documentation hyperlinks across `*.md` and `project/*.md`.
+
 ### Method 1: Automated Git Diff Domain Classifier
 Run this lightweight shell recipe to immediately detect code changes that lack corresponding documentation updates:
 

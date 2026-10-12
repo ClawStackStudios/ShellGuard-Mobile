@@ -63,4 +63,8 @@ Inverted the traditional server-first/mobile-as-bolt-on paradigm into a sync-nat
 ## 2026-10-12 — session credential decoupling & in-place vault re-auth
 Diagnosed unresponsive unlock button on physical Google Pixel: `hasActiveSession()` required volatile `getInMemoryShellKey() != null`, but `zeroizeMemory()` purged persistent preferences on lock, collapsing session state and trapping the UI in an un-dismissible overlay. Decoupled persistent KeyStore-wrapped credentials from RAM zeroization, implemented PBKDF2-SHA256 `PinAuthManager` with attempt lockout counters, dynamic `LockScreen` presentation with `PinPadView`, and an in-place Master Key modal, verifying seamless re-auth on physical hardware.
 
+## 2026-10-12 — cloud ci offload and zero local build strain
+Created `.github/workflows/ci.yml` and `scripts/audit_docs_drift.py` for ShellGuard-Mobile, mirroring the ShellGuard-TOTP cloud CI pattern. Updated `git-hygiene.md` and `walk-the-docs.md` to eliminate local Gradle build strain: developers and agents run an instant 1-second Python drift audit locally, push to feature branches, and tail cloud test and APK compilation runs via `gh run watch`.
+
+
 

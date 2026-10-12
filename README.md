@@ -216,7 +216,6 @@ adb shell am start -n com.clawstack.shellguard/.MainActivity
 | [**`RELEASE-PLAY.md`**](RELEASE-PLAY.md) | Google Play Store release notes single source of truth across all published versions. |
 | [**`RELEASE-v0.0.0.12.md`**](RELEASE-v0.0.0.12.md) | Dedicated release manifest and architecture notes for v0.0.0.12 (Build 12). |
 | [**`RELEASE-v0.0.0.11.md`**](RELEASE-v0.0.0.11.md) | Dedicated release manifest and architecture notes for v0.0.0.11 (Build 11). |
-| [**`RELEASE-v0.0.0.10.md`**](RELEASE-v0.0.0.10.md) | Dedicated release manifest and architecture notes for v0.0.0.10 (Build 10). |
 | [**`project/architecture.md`**](project/architecture.md) | Deep architectural specification and system role boundaries. |
 | [**`project/routes-and-contracts.md`**](project/routes-and-contracts.md) | REST API endpoints, DTO models, and delta sync reconciliation contracts. |
 | [**`project/crypto-and-keystore.md`**](project/crypto-and-keystore.md) | Complete ShellCryption specification, KeyStore derivation, and biometric integration. |

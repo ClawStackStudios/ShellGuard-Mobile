@@ -92,20 +92,19 @@ Walk and synchronize the agent semantic and episodic memory:
 
 ---
 
-## ✅ Phase 4: Verification & Pre-Commit Oracle Gate
+## ✅ Phase 4: Verification & Cloud CI Verification Gate
 
-Never attest to documentation accuracy without running the test suite:
+Confirm that documentation 100% bows to the code:
 
 ```bash
-export JAVA_HOME="/config/Applications/android-studio/jbr"
-export PATH="$JAVA_HOME/bin:/config/Android/Sdk/platform-tools:$PATH"
-export GRADLE_OPTS="-XX:-UsePerfData -Djava.io.tmpdir=$PWD/app/build/tmp"
+# 1. Deterministic Documentation Drift Audit (<1 second local check)
+python3 scripts/audit_docs_drift.py
 
-# 1. Oracle Verification
-./gradlew testDebugUnitTest --no-configuration-cache --no-daemon
-
-# 2. Build Verification
-./gradlew assembleDebug --no-daemon
+# 2. Push & Monitor Cloud CI Runner
+git push origin <branch>
+gh run list -L 3
+gh run watch
 ```
 
-Confirm that test counts in `README.md`, `CHANGELOG.md`, and brain match the actual test run output (`Total: N, Failures: 0, Errors: 0`).
+*Note on Local Gradle*: Running `./gradlew testDebugUnitTest` and `./gradlew assembleDebug` locally is strictly optional. Full 121+ test verification and debug APK assembly are automatically executed by GitHub Actions Cloud CI (`.github/workflows/ci.yml`).
+
