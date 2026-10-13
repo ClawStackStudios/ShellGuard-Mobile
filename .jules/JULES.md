@@ -71,11 +71,11 @@ Always ensure all unit tests pass 100% green before submitting your Pull Request
 
 ## 📋 Active Task Pipeline
 
-The remaining work for Stage 1 is divided into two atomic, orthogonal tasks with zero file overlap:
+The active work for Stage 2 (Mental Flow & Ergonomic Form Polish) is divided into two atomic, orthogonal tasks with zero file overlap:
 
 | Task File | Domain | Scope | Status |
 |---|---|---|---|
-| [task-1-multi-uri-and-attachment-ui.md](tasks/task-1-multi-uri-and-attachment-ui.md) | UI & Autofill | Multi-URI editor, Attachment picker/viewer, Dashboard pod chip, Autofill hook | Ready |
-| [task-2-settings-debt-and-storage-wiring.md](tasks/task-2-settings-debt-and-storage-wiring.md) | Core & Settings | AppContainer DI, Panic Purge disk wipe, URI match mode preference, FileProvider, Backup schema | Ready |
+| [task-3-search-performance-and-cold-start.md](tasks/task-3-search-performance-and-cold-start.md) | Data & Performance | Pre-normalized search index, debounced flow (<16ms), graceful offline cold-start, reconnect recovery | Ready |
+| [task-4-touch-targets-and-ergonomics.md](tasks/task-4-touch-targets-and-ergonomics.md) | UI/UX & Ergonomics | ≥48dp touch targets, tactile haptics, soft keyboard insets, Secure Notes Markdown view | Ready |
 
 Jules agents can pick up either task independently without git conflicts.
