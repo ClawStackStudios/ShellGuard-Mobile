@@ -231,7 +231,7 @@ class VaultDashboardViewModelTest {
         viewModel.filteredItems.filter { it.isNotEmpty() }.first()
 
         // 2. Trigger sync when server is unreachable
-        viewModel.triggerSync()
+        viewModel.triggerSync().join()
         testScheduler.advanceUntilIdle()
 
         // 3. Error should be suppressed since cached items exist

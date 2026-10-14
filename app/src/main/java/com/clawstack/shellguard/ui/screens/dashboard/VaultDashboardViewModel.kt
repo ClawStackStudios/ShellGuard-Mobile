@@ -113,9 +113,9 @@ class VaultDashboardViewModel(
         _uiState.update { it.copy(selectedPod = pod) }
     }
 
-    fun triggerSync() {
-        if (ownerUuid.isBlank()) return
-        viewModelScope.launch {
+    fun triggerSync(): kotlinx.coroutines.Job {
+        return viewModelScope.launch {
+            if (ownerUuid.isBlank()) return@launch
             _uiState.update { it.copy(isSyncing = true, errorMessage = null) }
             val result = appContainer.syncRepository.syncAll(ownerUuid)
             _uiState.update { current ->
