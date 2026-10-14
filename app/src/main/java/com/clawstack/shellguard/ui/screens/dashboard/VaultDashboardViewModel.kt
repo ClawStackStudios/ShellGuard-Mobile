@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -113,14 +115,17 @@ class VaultDashboardViewModel(
         _uiState.update { it.copy(selectedPod = pod) }
     }
 
-    fun triggerSync() {
-        if (ownerUuid.isBlank()) return
-        viewModelScope.launch {
+    fun triggerSync(): Job {
+        if (ownerUuid.isBlank()) return CompletableDeferred(Unit)
+        return viewModelScope.launch {
             _uiState.update { it.copy(isSyncing = true, errorMessage = null) }
             val result = appContainer.syncRepository.syncAll(ownerUuid)
+            val hasCachedItems = allItems.value.isNotEmpty() ||
+                appContainer.database.vaultPearlDao().getAllActivePearls(ownerUuid).isNotEmpty() ||
+                appContainer.database.secureNoteDao().getAllActiveNotes(ownerUuid).isNotEmpty() ||
+                appContainer.database.sshKeyDao().getAllActiveKeys(ownerUuid).isNotEmpty()
+            val isOfflineProbeFailure = result.isFailure && result.exceptionOrNull()?.message?.contains("health probe") == true
             _uiState.update { current ->
-                val hasCachedItems = allItems.value.isNotEmpty()
-                val isOfflineProbeFailure = result.isFailure && result.exceptionOrNull()?.message?.contains("health probe") == true
                 current.copy(
                     isSyncing = false,
                     errorMessage = if (isOfflineProbeFailure && hasCachedItems) null else result.exceptionOrNull()?.message

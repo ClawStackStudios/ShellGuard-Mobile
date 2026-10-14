@@ -1,0 +1,15 @@
+--- app/src/main/java/com/clawstack/shellguard/ui/screens/gateway/GatewayViewModel.kt
++++ app/src/main/java/com/clawstack/shellguard/ui/screens/gateway/GatewayViewModel.kt
+@@ -70,12 +70,6 @@
+                 parseAndSetUrl(savedUrl)
+             }
+         }
+-
+-        appContainer?.deviceVault?.getHashedKey()?.let { savedKey ->
+-            if (savedKey.isNotBlank()) {
+-                _uiState.update { it.copy(clawKey = savedKey) }
+-            }
+-        }
+     }
+
+     fun parseAndSetUrl(input: String) {

@@ -69,12 +69,6 @@ class GatewayViewModel(
                 parseAndSetUrl(savedUrl)
             }
         }
-
-        appContainer?.deviceVault?.getHashedKey()?.let { savedKey ->
-            if (savedKey.isNotBlank()) {
-                _uiState.update { it.copy(clawKey = savedKey) }
-            }
-        }
     }
 
     fun parseAndSetUrl(input: String) {

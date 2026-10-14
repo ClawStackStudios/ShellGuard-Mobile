@@ -1,0 +1,15 @@
+--- GatewayViewModel.kt
++++ GatewayViewModel.kt
+@@ -69,12 +69,6 @@
+                 parseAndSetUrl(savedUrl)
+             }
+         }
+-
+-        appContainer?.deviceVault?.getHashedKey()?.let { savedKey ->
+-            if (savedKey.isNotBlank() && ClawCrypto.isValidClawKey(savedKey)) {
+-                _uiState.update { it.copy(clawKey = savedKey) }
+-            }
+-        }
+     }
+
+     fun parseAndSetUrl(input: String) {
