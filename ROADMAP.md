@@ -34,7 +34,9 @@ flowchart TD
 
     S1_SUB["<b>Stage 1 Sub-Phase: Vault Lock & Multi-Method Authentication</b><br/>✅ Complete · Hardware-Verified (121 Tests Green)<br/>• Task 02.A: PinAuthManager (PBKDF2) & Settings UnlockMethod<br/>• Task 02.B: Security Settings UI, Reef PinPad & LockScreen Overhaul"]:::completedStage
 
-    S2["<b>Stage 2: Mental Flow & Ergonomic Form Polish</b><br/>⚡ <b>Active Focus</b><br/>• Task 03: [Functionality] Cold-Start Routing, Reconnect Recovery & Sub-16ms Search<br/>• Task 04: [UI/UX] Touch Targets (≥48dp), Haptic Feedback & Keyboard Insets"]:::activeStage
+    S2["<b>Stage 2: Mental Flow & Ergonomic Form Polish</b><br/>✅ Complete · Hardware-Verified (126 Tests Green)<br/>• Task 03: [Functionality] Cold-Start Routing, Reconnect Recovery & Sub-16ms Search<br/>• Task 04: [UI/UX] Touch Targets (≥48dp), Haptic Feedback & Keyboard Insets"]:::completedStage
+
+    S2_SUB["<b>Stage 2 Sub-Phase: Search Ergonomics, IME Hardening & Heap Hygiene</b><br/>⚡ <b>Active Focus</b><br/>• Task 04.A: [Security] Disable Auto-Correct IME, Post-Lock Heap Drop<br/>• Task 04.B: [UI] Search Bar Clear Button, Empty Search States"]:::activeStage
 
     S3["<b>Stage 3: Security Lifecycle, Biometrics & Offline Resilience</b><br/>• Task 05: [Functionality] Lock Persistence Across Process Death & Offline Mutation Queue<br/>• Task 06: [UI/UX] PIN Keypad Polish, Circular Dial Feel & Panic Destruction"]:::futureStage
 
@@ -44,7 +46,7 @@ flowchart TD
 
     M1["<b>🏆 Structural Completion: v0.0.1.0 (Build 16)</b><br/>Hardened, production-ready Android Password Manager & Sync-Native Vault"]:::targetMilestone
 
-    S1 --> S1_SUB --> S2 --> S3 --> S4 --> S5 --> M1
+    S1 --> S1_SUB --> S2 --> S2_SUB --> S3 --> S4 --> S5 --> M1
 ```
 
 ---

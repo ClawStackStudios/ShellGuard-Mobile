@@ -13,6 +13,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -63,6 +68,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -104,6 +110,7 @@ fun VaultDashboardScreen(
     val filteredItems by viewModel.filteredItems.collectAsState()
     val podCounts by viewModel.podCounts.collectAsState()
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
 
     var isMenuExpanded by remember { mutableStateOf(false) }
     var showAutofillDialog by remember { mutableStateOf(false) }
@@ -294,6 +301,8 @@ fun VaultDashboardScreen(
                         .testTag("dashboard_search_input"),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true,
+                    keyboardOptions = KeyboardOptions(autoCorrect = false, capitalization = KeyboardCapitalization.None, imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = ReefPink,
                         unfocusedBorderColor = BorderSubtle,
@@ -397,6 +406,12 @@ fun VaultDashboardScreen(
                                 color = TextMuted,
                                 fontSize = 12.sp
                             )
+                            if (uiState.searchQuery.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                TextButton(onClick = { viewModel.updateSearchQuery("") }) {
+                                    Text("Clear Search Filter", color = BrandClawCyan, fontSize = 14.sp)
+                                }
+                            }
                         }
                     }
                 } else {
