@@ -1,7 +1,5 @@
 # Decision Log
 
-## 2026-10-04 — context-aware locked inline chips & add-item deep linking
-Transformed the Autofill suggestion pipeline: when locked, rather than hiding accounts or leaking titles, we present matched domain strings with 'Unlock Vault' inline above the keyboard. When 0 matches exist, we only show 'Add Item', which deep links directly to MainActivity's item form with the active URI pre-populated, preserving context via a global LockScreen overlay.
 
 ## 2026-10-04 — datastore preferences isolation & test state reset
 Encountered test isolation cross-talk in `SettingsRepositoryTest` when tests mutated the singleton Application `context.dataStore` without resetting state between runs. Added explicit `clearAll()` method to `SettingsRepository` and invoked it inside `@Before setUp()`, ensuring pure deterministic state across all test passes.
@@ -59,4 +57,10 @@ Codified the Pre-Draft Alignment Artifact Gate into /draft-release and /walk-the
 
 ## 2026-10-12 — pre-work assumptions & jules cli dispatch
 Codified `.agents/workflows/pre-work-assumptions.md` to run anticipatory reflection while waiting for upstream Jules builds, surfacing the CWE-384 in-memory backgroundTimestamp lock bypass ahead of Stage 3. Dispatched Jules CLI session 1446424829708118836 on `feat/stage-2-mental-flow-and-ergonomics` with partitioned task cards and physical Pixel test readiness.
+
+## 2026-10-12 — pr #2 line-level code review & coroutine job-returning fix
+Conducted forensic review of Jules PR #2 on Cloud CI. Caught two structural seams: `GatewayViewModel` pre-populating `clawKey` with 64-char SHA-256 hashes instead of sovereign `hu-` keys (breaking `isValidClawKey` regex and double-hashing on login), and `VaultDashboardViewModel.triggerSync()` returning `Unit` instead of `Job` while relying on `allItems.value` under `WhileSubscribed` (racing on `Dispatchers.IO` network timeouts). Submitted line-level GitHub PR review comments with Room fallback and `.join()` testing patterns.
+
+## 2026-10-14 — disciplined pr review protocol & zero-tolerance security gate
+Executed formal `/git-review-pr` protocol on PR #2 (`.reviews/PR-2-review.md`). Verified commit `2c7aae1` healed the test synchronization race with 126 green tests on Cloud CI and scrubbed all 6 patch residue files. Closed duplicate PR #3. Enforced zero-tolerance security gate by isolating OWASP M2 post-lock memory retention in `VaultDashboardViewModel.lockVault()` (wiping `_searchQuery` and `uiState`), OWASP M1 IME keyboard hardening (`autoCorrect = false`), and `GatewayViewModel.init` 64-char hash pre-population guard, dispatching line-level fix guidance to Jules.
 
