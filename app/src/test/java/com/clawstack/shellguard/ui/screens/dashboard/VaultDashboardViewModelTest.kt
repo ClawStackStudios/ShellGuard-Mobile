@@ -238,4 +238,34 @@ class VaultDashboardViewModelTest {
         val state = viewModel.uiState.value
         assertNull("Offline error should be suppressed when cached items exist", state.errorMessage)
     }
+
+    @Test
+    fun testLockVaultZeroizesSearchQueryAndState() = runTest(testDispatcher) {
+        val viewModel = VaultDashboardViewModel(appContainer, defaultDispatcher = testDispatcher)
+        backgroundScope.launch(testDispatcher) { viewModel.filteredItems.collect {} }
+        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect {} }
+        testScheduler.advanceUntilIdle()
+
+        // 1. Set some active state
+        viewModel.updateSearchQuery("secret token")
+        viewModel.selectPod(PodFilter.NOTES)
+        testScheduler.advanceUntilIdle()
+
+        assertEquals("secret token", viewModel.uiState.value.searchQuery)
+        assertEquals(PodFilter.NOTES, viewModel.uiState.value.selectedPod)
+
+        // 2. Lock the vault
+        var callbackInvoked = false
+        viewModel.lockVault {
+            callbackInvoked = true
+        }
+        testScheduler.advanceUntilIdle()
+
+        // 3. Verify state is dropped from memory
+        assertTrue("Callback should be invoked", callbackInvoked)
+        val state = viewModel.uiState.value
+        assertEquals("Search query should be cleared", "", state.searchQuery)
+        assertEquals("Pod filter should be reset to ALL", PodFilter.ALL, state.selectedPod)
+        assertNull("Error message should be nullified", state.errorMessage)
+    }
 }

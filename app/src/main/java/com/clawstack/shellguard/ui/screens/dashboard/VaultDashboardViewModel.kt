@@ -130,6 +130,7 @@ class VaultDashboardViewModel(
     }
 
     fun lockVault(onLocked: () -> Unit) {
+        _uiState.update { it.copy(searchQuery = "", selectedPod = PodFilter.ALL, errorMessage = null) }
         appContainer.vaultLockManager.lockVaultNow()
         appContainer.deviceVault.zeroizeMemory()
         try {

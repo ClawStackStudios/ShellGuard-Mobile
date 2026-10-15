@@ -71,7 +71,7 @@ class GatewayViewModel(
         }
 
         appContainer?.deviceVault?.getHashedKey()?.let { savedKey ->
-            if (savedKey.isNotBlank()) {
+            if (savedKey.isNotBlank() && com.clawstack.shellguard.crypto.ClawCrypto.isValidClawKey(savedKey)) {
                 _uiState.update { it.copy(clawKey = savedKey) }
             }
         }
