@@ -301,7 +301,7 @@ fun VaultDashboardScreen(
                         .testTag("dashboard_search_input"),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(autoCorrectEnabled = false, capitalization = KeyboardCapitalization.None, imeAction = ImeAction.Search),
+                    keyboardOptions = KeyboardOptions(autoCorrect = false, capitalization = KeyboardCapitalization.None, imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = ReefPink,
