@@ -1,9 +1,6 @@
 # Decision Log
 
 
-## 2026-10-04 — datastore preferences isolation & test state reset
-Encountered test isolation cross-talk in `SettingsRepositoryTest` when tests mutated the singleton Application `context.dataStore` without resetting state between runs. Added explicit `clearAll()` method to `SettingsRepository` and invoked it inside `@Before setUp()`, ensuring pure deterministic state across all test passes.
-
 ## 2026-10-04 — job-returning viewmodel mutations & unified test schedulers
 Hit 60-second coroutine timeouts in `SettingsViewModelTest` when testing DataStore mutations asynchronously. Returned `Job` from all ViewModel mutation functions, allowing tests to `.join()` before asserting downstream flow state, and bound `runTest(testDispatcher)` directly to `Dispatchers.Main`'s scheduler, reducing test suite time from 80s to 21s green.
 
@@ -63,4 +60,8 @@ Conducted forensic review of Jules PR #2 on Cloud CI. Caught two structural seam
 
 ## 2026-10-14 — disciplined pr review protocol & zero-tolerance security gate
 Executed formal `/git-review-pr` protocol on PR #2 (`.reviews/PR-2-review.md`). Verified commit `2c7aae1` healed the test synchronization race with 126 green tests on Cloud CI and scrubbed all 6 patch residue files. Closed duplicate PR #3. Enforced zero-tolerance security gate by isolating OWASP M2 post-lock memory retention in `VaultDashboardViewModel.lockVault()` (wiping `_searchQuery` and `uiState`), OWASP M1 IME keyboard hardening (`autoCorrect = false`), and `GatewayViewModel.init` 64-char hash pre-population guard, dispatching line-level fix guidance to Jules.
+
+## 2026-10-15 — pixel hardware verification & proactive proactivity seeding
+Installed Cloud CI debug APK (`2b2f34c`) on physical Google Pixel (`sailfish`) over TLS ADB, verifying sub-0.5ms search, OWASP M1 IME hardening, soft keyboard dismiss on Enter, (X) clear button, empty search state reset, and OWASP M2 post-lock memory zeroization on glass. Designed comprehensive finish package capitalizing on Jules's hot session: deep /walk-the-docs alignment, meta-prompt sub-phase spine, Android deprecation cleanup (`Icons.AutoMirrored.Filled.OpenInNew`), class-level Json instance hoisting, and proactive `// TODO:` code anchoring across UI components to seed Jules's background Suggested Tasks scanner for Task 04.
+
 
