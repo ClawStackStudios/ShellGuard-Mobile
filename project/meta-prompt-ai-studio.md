@@ -191,6 +191,12 @@ Eliminate cognitive friction, latency, and layout quirks across the app's three 
 - Harden Gateway cold-start routing: validate saved Base62 `hu-` sovereign key format, auto-fill server host/port, and transition immediately to local offline cache with an amber status banner if the server is unreachable.
 - Implement automated network reconnect recovery: seamlessly transition from `OFFLINE_READ_ONLY` to `SYNCING` ➔ `ONLINE_SYNCED` without UI stutter.
 
+**Stage 2 Sub-Phase: Search Ergonomics, IME Hardening & Heap Hygiene**
+- Execute OWASP M1 IME Hardening (disable auto-correct/capitalization on vault search fields) and OWASP M2 Post-Lock Heap Zeroization (actively wipe search queries and UI state upon vault lock).
+- Implement search bar trailing clear icon, dismiss soft keyboard on Enter, and an interactive empty search state quick-action reset.
+- Include Robolectric test assertions (e.g., `testLockVaultZeroizesSearchQueryAndState`) to verify volatile state clearance.
+*(Note: Task 03 & Stage 2 Sub-Phase are hardware-verified on physical Pixel glass).*
+
 ### Task 04: [UI/UX] Touch Targets (≥48dp), Haptic Feedback & Keyboard Insets
 - Audit all interactive surfaces against `mobile-android-design`: ensure all buttons, toggles, icon buttons, and list items have touch targets ≥ 48dp.
 - Implement subtle, tactile haptic feedback on secret reveal, copy actions, and password generation.

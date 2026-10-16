@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **In-Memory Normalized Search Index**: Pre-computed search tokens on UnifiedVaultItem enabling sub-0.5ms query filtering across 150+ vault items.
+- **Search Ergonomics & Empty State UI**: Trailing (X) clear button, keyboard dismissal on Search, and interactive empty search state quick-action filter reset.
+- **Post-Lock Heap Zeroization (OWASP M2)**: Active clearing of search queries and UI state upon vault lock to prevent volatile heap retention.
+- **IME Dictionary Hardening (OWASP M1)**: Disabled auto-correct and predictive text learning on vault search fields.
+- **Base62 Key Validation Guard**: Pre-validation of saved keys preventing SHA-256 hash formatting errors on Gateway initialization.
+
 ## [0.0.0.12] - 2026-10-12 (Build 12) — Stage 1: Full Server Parity (Encrypted Attachments & Multi-URI Bridge) & Stage 1.5 (In-Place Re-Auth & PIN Unlock)
 ### Added
 - **Automated GitHub Actions Cloud CI & Verification (`.github/workflows/ci.yml`)**: Continuous integration workflow running headless Zulu JDK 17, documentation drift validation, 121 unit/Robolectric tests, and debug APK compilation in the cloud with artifact retention, eliminating local development machine build strain.

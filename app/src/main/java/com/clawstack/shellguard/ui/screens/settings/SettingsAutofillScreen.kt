@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CheckCircle
@@ -211,7 +212,7 @@ fun SettingsAutofillScreen(
                                 shape = RoundedCornerShape(10.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.OpenInNew,
+                                    imageVector = Icons.AutoMirrored.Filled.OpenInNew,
                                     contentDescription = null,
                                     tint = OceanDark,
                                     modifier = Modifier.size(16.dp)

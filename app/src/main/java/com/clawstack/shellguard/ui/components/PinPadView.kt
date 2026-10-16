@@ -130,6 +130,7 @@ fun PinPadView(
         }
 
         // ── Numeric Keypad Matrix ───────────────────────────────────────────
+        // TODO(ui-touch): Confirm all 0-9 PinPad keys maintain strictly >= 48dp accessible bounding boxes with circular ripple bounds (Task 04).
         val rows = listOf(
             listOf("1", "2", "3"),
             listOf("4", "5", "6"),
