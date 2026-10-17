@@ -102,6 +102,7 @@ fun CircularDialPicker(
                             updateFromOffset(offset, size)
                         }
                     }
+                    // TODO(ux-gestures): Polish arc gesture dragging with tactile haptic ticks on duration snap points (Task 06).
                     .pointerInput(minSeconds, maxSeconds) {
                         detectDragGestures { change, _ ->
                             change.consume()

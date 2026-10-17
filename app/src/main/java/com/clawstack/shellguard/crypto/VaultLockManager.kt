@@ -30,6 +30,7 @@ class VaultLockManager(
     private val _isVaultLocked = MutableStateFlow(false)
     val isVaultLocked: StateFlow<Boolean> = _isVaultLocked.asStateFlow()
 
+    // TODO(security-lifecycle): Persist backgroundTimestamp to EncryptedSharedPreferences to enforce auto-lock timeout across process death and recents kill (Task 05 / CWE-384).
     private var backgroundTimestamp: Long = 0L
 
     fun getLockTimeout(): LockTimeout {

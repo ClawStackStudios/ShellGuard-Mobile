@@ -193,6 +193,7 @@ fun VaultDashboardScreen(
                     }
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        // TODO(ui-touch): Upgrade top bar menu and sync IconButtons to minimum 48dp touch targets (Task 04).
                         IconButton(
                             onClick = { viewModel.triggerSync() },
                             modifier = Modifier.size(38.dp)
@@ -326,6 +327,7 @@ fun VaultDashboardScreen(
                         val isSelected = uiState.selectedPod == pod
                         val count = podCounts[pod] ?: 0
 
+                        // TODO(ui-touch): Audit and enforce minimum 48dp touch targets on PodFilter chips using Modifier.defaultMinSize(minHeight = 48.dp) (Task 04).
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(10.dp))

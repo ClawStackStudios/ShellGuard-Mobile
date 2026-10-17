@@ -45,6 +45,7 @@ object NetworkSecurityHelper {
                 ConnectionSpec.CLEARTEXT
             )
         )
+        // TODO(transport-tofu): Replace relaxed TrustManager with TOFU PinningTrustManager and Instance Anchor auto-heal validation (Task 09).
         builder.sslSocketFactory(relaxedSslContext.socketFactory, relaxedTrustManager)
         builder.hostnameVerifier { _, _ -> true }
         builder.connectTimeout(15, TimeUnit.SECONDS)

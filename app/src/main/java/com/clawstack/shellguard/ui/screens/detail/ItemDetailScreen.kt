@@ -128,6 +128,7 @@ fun ItemDetailScreen(
     var clipboardProgress by remember { mutableFloatStateOf(1f) }
     var clipboardJob by remember { mutableStateOf<Job?>(null) }
 
+    // TODO(ux-haptics): Integrate tactile HapticFeedbackType.LongPress on copyToClipboard and secret visibility reveal (Task 04).
     fun copyToClipboard(label: String, text: String, isSensitive: Boolean) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText(label, text).apply {
@@ -490,6 +491,7 @@ fun ItemDetailScreen(
                                                     fontWeight = FontWeight.Bold,
                                                     letterSpacing = 0.5.sp
                                                 )
+                                                // TODO(ui-touch): Audit and enforce minimum 48dp touch targets on reveal and copy IconButtons in action rows (Task 04).
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                                     IconButton(
                                                         onClick = {
@@ -548,6 +550,7 @@ fun ItemDetailScreen(
                                                     .padding(12.dp)
                                             ) {
                                                 if (state.isSecretRevealed) {
+                                                    // TODO(ui-markdown): Replace plain Text with SecureNoteMarkdownView(content = state.secret) when revealed (Task 04).
                                                     Text(
                                                         text = state.secret.ifBlank { "(Empty Note)" },
                                                         color = if (state.secret.isBlank()) TextMuted else TextPrimary,

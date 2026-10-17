@@ -170,6 +170,7 @@ object AutofillStructureParser {
             result.webDomain = currentWebDomain
             // AutoSpill & Host-Hijack Defense: Clear any fields captured from outer native host views
             // before entering the WebView hierarchy.
+            // TODO(autofill-defense): Verify WebView forms cannot inherit credentials from outer native views during multi-window split (Task 07).
             if (!result.isFromWebView) {
                 result.usernameId = null
                 result.passwordId = null
