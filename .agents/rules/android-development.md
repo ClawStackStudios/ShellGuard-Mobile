@@ -141,6 +141,8 @@ Master identity keys, session tokens, derived symmetric keys (`shellKey`), and P
   Clipboard copies apply `ClipDescription.EXTRA_IS_SENSITIVE = true` to suppress visual cleartext previews in Android 13+ clipboard overlays, paired with an automated 30s/60s background scrubbing timer.
 - **Soft Keyboard & Scrolling**:
   All interactive form/input screens must apply `.imePadding()` and `.verticalScroll(rememberScrollState())` to prevent the soft keyboard from obscuring inputs. Action menus must expand **upward** (dropup).
+- **Parent Insets & BringIntoViewRequester Redundancy**:
+  When a parent or root container applies `.imePadding()` and an inner column uses `.verticalScroll(rememberScrollState())`, Compose natively auto-scrolls focused fields into the visible viewport upon keyboard opening. **Do NOT inject individual `BringIntoViewRequester` modifiers** onto each field or inside iterative loops (`forEachIndexed`), which introduces invalid `@Composable` invocations inside non-composable lambdas and clutters the tree. Guarantee keyboard clearance by placing adequate bottom spacing at the end of the scrollable column (`Spacer(modifier = Modifier.height(48.dp))`).
 - **Root Scaffold Inset Isolation**:
   When child screen composables apply `.statusBarsPadding()` and `.imePadding()`, the root Activity `Scaffold` must configure `contentWindowInsets = WindowInsets(0, 0, 0, 0)`. Failing to zero the Scaffold insets causes double-subtraction of keyboard height (crushing the available scroll layout to zero height when the IME opens).
 - **FLAG_SECURE Debug Scoping**:

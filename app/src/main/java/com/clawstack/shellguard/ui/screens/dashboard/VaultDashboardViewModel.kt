@@ -1,16 +1,22 @@
 package com.clawstack.shellguard.ui.screens.dashboard
 
+import kotlinx.coroutines.CoroutineDispatcher
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.clawstack.shellguard.data.repository.SyncStatus
 import com.clawstack.shellguard.data.repository.UnifiedVaultItem
 import com.clawstack.shellguard.data.repository.VaultItemDomain
 import com.clawstack.shellguard.di.AppContainer
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -34,7 +40,8 @@ data class DashboardUiState(
 )
 
 class VaultDashboardViewModel(
-    private val appContainer: AppContainer
+    private val appContainer: AppContainer,
+    val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : ViewModel() {
 
     private val ownerUuid = appContainer.deviceVault.getOwnerUuid().orEmpty()
@@ -52,28 +59,34 @@ class VaultDashboardViewModel(
         appContainer.syncRepository.observeUnifiedItems(ownerUuid)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    @OptIn(kotlinx.coroutines.FlowPreview::class)
+    private val debouncedSearchQuery = _uiState
+        .map { it.searchQuery.trim().lowercase() }
+        .distinctUntilChanged()
+        .debounce { query -> if (query.isEmpty()) 0L else 80L }
+
     val filteredItems: StateFlow<List<UnifiedVaultItem>> = combine(
         allItems,
-        _uiState
-    ) { items, state ->
+        _uiState.map { it.selectedPod }.distinctUntilChanged(),
+        debouncedSearchQuery
+    ) { items, selectedPod, query ->
+        val tokens = if (query.isEmpty()) emptyList() else query.split("\\s+".toRegex()).filter { it.isNotBlank() }
         items.filter { item ->
-            val matchesPod = when (state.selectedPod) {
+            val matchesPod = when (selectedPod) {
                 PodFilter.ALL -> true
                 PodFilter.PASSWORDS -> item.domain == VaultItemDomain.PASSWORD
                 PodFilter.NOTES -> item.domain == VaultItemDomain.NOTE
                 PodFilter.SSH_KEYS -> item.domain == VaultItemDomain.SSH_KEY
                 PodFilter.ATTACHMENTS -> item.hasAttachments
             }
-
-            val query = state.searchQuery.trim().lowercase()
-            val matchesSearch = query.isEmpty() ||
-                item.title.lowercase().contains(query) ||
-                item.subtitle.lowercase().contains(query) ||
-                item.category?.lowercase()?.contains(query) == true
-
+            val matchesSearch = tokens.isEmpty() || tokens.all { token ->
+                item.normalizedSearchIndex.contains(token)
+            }
             matchesPod && matchesSearch
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    }
+    .flowOn(defaultDispatcher)
+    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val attachmentCount: StateFlow<Int> = appContainer.database.secureAttachmentDao().observeItemCount(ownerUuid)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
@@ -100,22 +113,26 @@ class VaultDashboardViewModel(
         _uiState.update { it.copy(selectedPod = pod) }
     }
 
-    fun triggerSync() {
-        if (ownerUuid.isBlank()) return
-        viewModelScope.launch {
+    fun triggerSync(): kotlinx.coroutines.Job {
+        return viewModelScope.launch {
+            if (ownerUuid.isBlank()) return@launch
             _uiState.update { it.copy(isSyncing = true, errorMessage = null) }
             val result = appContainer.syncRepository.syncAll(ownerUuid)
-            _uiState.update {
-                it.copy(
+            _uiState.update { current ->
+                val hasCachedItems = allItems.value.isNotEmpty()
+                val isOfflineProbeFailure = result.isFailure && result.exceptionOrNull()?.message?.contains("health probe") == true
+                current.copy(
                     isSyncing = false,
-                    errorMessage = result.exceptionOrNull()?.message
+                    errorMessage = if (isOfflineProbeFailure && hasCachedItems) null else result.exceptionOrNull()?.message
                 )
             }
         }
     }
 
     fun lockVault(onLocked: () -> Unit) {
+        _uiState.update { it.copy(searchQuery = "", selectedPod = PodFilter.ALL, errorMessage = null) }
         appContainer.vaultLockManager.lockVaultNow()
+        _uiState.value = _uiState.value.copy(searchQuery = "", selectedPod = PodFilter.ALL)
         appContainer.deviceVault.zeroizeMemory()
         try {
             appContainer.attachmentVaultManager.clearDecryptedCache()

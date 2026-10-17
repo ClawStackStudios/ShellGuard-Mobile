@@ -1,7 +1,7 @@
 # Progress: ShellGuard Mobile
 
-## Current Status: Stage 1 & 1.5 Server Parity & In-Place Re-Auth — Published (`v0.0.0.12 (Build 12)`) & Verified on Google Pixel (`121/121` Tests Green)
-All foundational specifications, data schemas, API contracts, sync engines, UI/UX designs, and meta-prompts are written. Stage 0 Android scaffold through Phase 7 (Context-Aware Autofill Expansion) are verified on Google Pixel hardware. Stage 1 (Server Parity: Encrypted Attachments, Multi-URI Bridge, Storage DI Wiring, Settings Debt, and Room Persistence Hotfix) and Stage 1.5 (In-Place Vault Re-Authentication & PBKDF2-SHA256 PIN Unlock) are 100% implemented, tested green across 121 unit tests, and verified live on physical Google Pixel hardware (`sailfish`). Release `v0.0.0.12 (Build 12)` is published and pushed to `main` with GitHub Actions Cloud CI verification.
+## Current Status: Stage 2 Mental Flow & Ergonomic Form Polish — In Flight (Jules Session `1446424829708118836`)
+Stage 1 (Server Parity: Encrypted Attachments, Multi-URI Bridge, Storage DI Wiring, Settings Debt, and Room Persistence Hotfix) and Stage 1.5 (In-Place Vault Re-Authentication & PBKDF2-SHA256 PIN Unlock) are 100% published under Release `v0.0.0.12 (Build 12)` and verified on Google Pixel hardware. Stage 2 (Mental Flow & Ergonomic Form Polish, Build 13) is actively in flight under Mode 3 Long-Lived Co-Pilot architecture: Google Jules CLI Session `1446424829708118836` is executing Sub-Phase 2A (Task 03: Search Performance & Cold-Start Routing) on branch `feat/stage-2-mental-flow-and-ergonomics` while Task 04 (Touch Targets, Haptics & Ergonomics) is queued.
 
 
 
@@ -208,9 +208,9 @@ All foundational specifications, data schemas, API contracts, sync engines, UI/U
 
 
 ## What's Left to Build (Master Roadmap Stages 2–5)
-- [ ] **Stage 2: Mental Flow & Ergonomic Form Polish (Build 13)**:
-  - Task 03: Seamless Cold-Start Routing, Reconnect Recovery & Sub-16ms Search.
-  - Task 04: Touch Targets (≥48dp), Haptic Feedback & Soft Keyboard Insets (`.imePadding`).
+- [ ] **Stage 2: Mental Flow & Ergonomic Form Polish (Build 13)** *(IN PROGRESS — Jules Session `1446424829708118836` on `feat/stage-2-mental-flow-and-ergonomics`)*:
+  - [ ] Task 03: Seamless Cold-Start Routing, Reconnect Recovery & Sub-16ms Search *(Active in Google VM)*.
+  - [ ] Task 04: Touch Targets (≥48dp), Haptic Feedback & Soft Keyboard Insets (`.imePadding`) *(Queued)*.
 - [ ] **Stage 3: Security Lifecycle, Biometrics & Offline Resilience (Build 14)**:
   - Task 05: Lock Persistence Across Process Death & Offline Mutation Queue.
   - Task 06: PIN Keypad Polish, Circular Dial Feel & Panic Destruction.

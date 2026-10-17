@@ -99,6 +99,8 @@ UI (Compose) ──(UserIntent)──> ViewModel ──> UseCase ──> Reposit
   - *Alignment Artifact*: Before modifying files during `/draft-release`, `/walk-the-docs`, or major branch integrations, author an interactive analysis artifact covering: (1) what was discovered, (2) what needs alignment, (3) how to align it with concrete diffs, and (4) the Roll-Off Execution Protocol.
   - *Single Active Manifest*: The repository root strictly maintains only ONE release manifest matching active `app/build.gradle.kts` (`RELEASE-vX.Y.Z.N.md`) and store notes (`RELEASE-PLAY.md`). Stale manifests are pruned from root (`git rm RELEASE-v<old>.md`), while historical release notes remain permanently preserved in `CHANGELOG.md` and immutable git release tags.
   - *Sub-Second Drift Gating*: Pre-commit validation relies on `python3 scripts/audit_docs_drift.py` (<0.1s), reserving heavy Gradle builds strictly for GitHub Actions Cloud CI runners.
+- **Anticipatory Pre-Work Assumptions (`/pre-work-assumptions`)**:
+  While delegating long-running builds or feature stages to external subagents (e.g. Google Jules), the lead agent operates on the assumption that the in-flight work will succeed. By jumping ahead to the next architectural milestone (Stage N+1), the lead agent scouts the repository, maps dormant constraints (e.g. CWE-384 lock bypass, offline mutation queues, haptic dial detents), and prepares bite-sized follow-up task prompts before upstream code merges.
 
 - **Agent Cognitive Architecture**: 
   - **Self vs Environment Memory Split**: Internal cognitive state (story, decisions, dreams, archives) lives in the `.agents/brain/` root. External world context (architecture, tech stack, progress) lives in `.agents/brain/project/`.

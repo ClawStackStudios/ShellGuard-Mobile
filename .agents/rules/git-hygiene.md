@@ -67,6 +67,11 @@ If local machine configurations, hardware serial numbers, or environment secrets
 - `rm -rf` or any bulk file deletion
 - If unsure whether a file belongs to another agent's in-flight work, stop and coordinate — don't delete to silence an error.
 
+### Subagent Feature-Branch Push Pre-Clearance
+- Non-destructive pushes to an assigned task/feature branch (`git push origin HEAD` or `git push origin <branch>`) are explicitly **pre-authorized and expected** once local tests and verification pass.
+- Subagents (e.g. Jules) must never halt or block awaiting permission to push regular commits to their designated feature branch.
+- The prohibition strictly applies to pushing to the default branch (`main`) and force-pushing (`--force`).
+
 ## Cloud CI Offload & Pre-Commit Verification Gate
 - **Zero Local Strain Principle**: You do **NOT** need to trigger heavy `./gradlew testDebugUnitTest` or `./gradlew assembleDebug` builds locally on the development machine. Full build compilation, 121+ Robolectric/unit tests, and debug APK artifact packaging are offloaded to GitHub Actions Cloud CI (`.github/workflows/ci.yml`).
 - **Fast Local Pre-Commit Gate**:

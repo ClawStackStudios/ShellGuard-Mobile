@@ -56,8 +56,27 @@ data class UnifiedVaultItem(
     val reprompt: Boolean = false,
     val hasAttachments: Boolean = false,
     val localUpdatedAt: Long = 0L,
-    val remoteUpdatedAt: Long = 0L
-)
+    val remoteUpdatedAt: Long = 0L,
+    val normalizedSearchIndex: String = buildSearchIndex(title, subtitle, category, tags)
+) {
+    companion object {
+        fun buildSearchIndex(title: String, subtitle: String, category: String?, tags: List<String>): String {
+            return buildString {
+                append(title.lowercase().trim())
+                append(" ")
+                append(subtitle.lowercase().trim())
+                if (!category.isNullOrBlank()) {
+                    append(" ")
+                    append(category.lowercase().trim())
+                }
+                if (tags.isNotEmpty()) {
+                    append(" ")
+                    append(tags.joinToString(" ") { it.lowercase().trim() })
+                }
+            }
+        }
+    }
+}
 
 class SyncRepository(
     private val database: ShellGuardDatabase,
@@ -119,6 +138,7 @@ class SyncRepository(
                         subtitle = pearl.username ?: pearl.url ?: "Login",
                         domain = VaultItemDomain.PASSWORD,
                         category = pearl.category,
+                        tags = CustomFieldSerializer.deserializeTags(pearl.tags),
                         reprompt = pearl.reprompt,
                         hasAttachments = pearl.attachments.isNotBlank() && pearl.attachments.trim() != "[]",
                         localUpdatedAt = pearl.localUpdatedAt,
@@ -136,6 +156,7 @@ class SyncRepository(
                         subtitle = note.category ?: "Secure Note",
                         domain = VaultItemDomain.NOTE,
                         category = note.category,
+                        tags = CustomFieldSerializer.deserializeTags(note.tags),
                         reprompt = note.reprompt,
                         hasAttachments = note.attachments.isNotBlank() && note.attachments.trim() != "[]",
                         localUpdatedAt = note.localUpdatedAt,
@@ -153,6 +174,7 @@ class SyncRepository(
                         subtitle = key.username ?: "SSH Key",
                         domain = VaultItemDomain.SSH_KEY,
                         category = key.category,
+                        tags = CustomFieldSerializer.deserializeTags(key.tags),
                         reprompt = key.reprompt,
                         localUpdatedAt = key.localUpdatedAt,
                         remoteUpdatedAt = key.remoteUpdatedAt

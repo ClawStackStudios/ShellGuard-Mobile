@@ -69,6 +69,12 @@ class GatewayViewModel(
                 parseAndSetUrl(savedUrl)
             }
         }
+
+        appContainer?.deviceVault?.getHashedKey()?.let { savedKey ->
+            if (savedKey.isNotBlank() && com.clawstack.shellguard.crypto.ClawCrypto.isValidClawKey(savedKey)) {
+                _uiState.update { it.copy(clawKey = savedKey) }
+            }
+        }
     }
 
     fun parseAndSetUrl(input: String) {
