@@ -65,9 +65,9 @@ object HapticFeedbackHelper {
 
 ---
 
-### 4. Soft Keyboard Auto-Scroll Insets (`ItemFormScreen.kt`)
+### 4. Soft Keyboard Auto-Scroll Insets & Ergonomics (`ItemFormScreen.kt`)
 1. Upgrade action buttons (Cancel, Save, Add URL, Remove URL) to minimum `48.dp` touch targets.
-2. Ensure each form input field uses `Modifier.bringIntoViewRequester` or `onFocusChanged` so that when Gboard opens, the active field is smoothly scrolled into the viewport above the IME keyboard.
+2. Ensure form leverages container `.imePadding()` + `.verticalScroll()` with bottom clearance (`Spacer(modifier = Modifier.height(48.dp))`) so that when Gboard opens, the active field is smoothly scrolled into the viewport above the IME keyboard natively without redundant `BringIntoViewRequester` modifiers.
 
 ---
 
