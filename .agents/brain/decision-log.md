@@ -1,9 +1,6 @@
 # Decision Log
 
 
-## 2026-10-04 — dual-mode backup parity and test database isolation
-Engineered `VaultBackupEngine` supporting web-parity dual protection modes (`ACTIVE_KEY` via HKDF vs `CUSTOM_PASSPHRASE` with PBKDF2-SHA256 600,000 iterations), automatic format sniffing, and Bitwarden JSON ingestion. Resolved Robolectric `IllegalStateException` on main thread Room queries by initializing isolated in-memory test databases (`getInMemoryDatabase`) with explicit `.allowMainThreadQueries()`, passing 95/95 unit tests 100% green.
-
 ## 2026-10-04 — polymorphic payload schema and sovereign key alignment
 While auditing the backup engine for Web Parity, I identified that the initial implementation exported isolated lists (`pearls`, `notes`, `sshKeys`), whereas the ShellGuard Web counterpart requires a unified polymorphic `items` JSON array. I refactored `VaultBackupPayload` to serialize and deserialize polymorphic `BackupVaultItem` objects using a `type` discriminator, and enforced Base62 `hu-` Sovereign ClawKey validation.
 
@@ -63,3 +60,6 @@ Re-mapped freshly updated `jules-cli` skill ecosystem and codified 4 durable inv
 
 ## 2026-10-17 — jules knowledge store migration & tier-2 architecture
 Deprecated legacy `.jules/JULES.md` and transitioned repository knowledge into `.jules/KNOWLEDGE.md` to complement root `AGENTS.md`. Established atomic declarative units for zero-knowledge decryption, CursorWindow limits, storage lifecycle parity, direct file writes, Compose keyboard scroll clearance, and subagent push pre-clearance.
+
+## 2026-10-17 — release v0.0.0.13 alignment & single active manifest rollout
+Executed formal `/draft-release` alignment for `v0.0.0.13 (Build 13)`. Purged legacy `RELEASE-v0.0.0.12.md` from root per the Single Active Manifest Invariant, drafted `RELEASE-v0.0.0.13.md`, compressed Play Store release notes to 459 characters, aligned version badges and changelog, and verified 100% green Python doc-drift audit across all anchors.

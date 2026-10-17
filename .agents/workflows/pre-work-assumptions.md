@@ -5,15 +5,15 @@ description: Anticipatory forward-planning protocol to project one stage ahead o
 # ⏩ Pre-Work Assumptions Protocol (/pre-work-assumptions)
 
 > **The Philosophical Stance:**
-> *"Ok this work we gave Jules is now done. What do we look at next?
-> `/work-stage-reflection`
+> *"Ok this work we gave Jules is now done. What do we look at next?  
+> `/work-stage-reflection`  
 > What can I do now, to get ahead of this work by basing my pattern matching in the work that is assumed to be complete?"*
 
 ---
 
 ## 🧭 Core Philosophy & Rationale
 
-In asynchronous multi-agent pairing and cloud-offloaded CI development (e.g., Jules implementing a task on a persistent stage branch, GitHub Actions running remote verification, or PR reviews in-flight), orchestrator and developer idle time represents high cognitive entropy.
+In asynchronous multi-agent pairing and cloud-offloaded CI development (e.g., Jules implementing a task on a persistent stage branch, GitHub Actions running remote verification, or PR reviews in-flight), orchestrator and developer idle time represents high cognitive entropy. 
 
 Sitting idle waiting for an in-flight stage to finish is a wasted opportunity. However, recklessly writing ungrounded code that races against an active branch creates merge collisions and phantom state.
 
@@ -49,7 +49,7 @@ flowchart TD
         Reflect["2. Trigger /work-stage-reflection<br/><b>Examine Phase N+1 Scope & Seams</b>"]:::future
         Match["3. Pattern-Match Downstream Seams<br/><b>Validate Consumer Contracts</b>"]:::future
         Artifacts["4. Pre-Stage Phase N+1 Dossier<br/><b>Plan, Oracles, Micro-Stages</b>"]:::future
-
+        
         Assume --> Reflect
         Reflect --> Match
         Match --> Artifacts

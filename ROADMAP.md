@@ -1,13 +1,13 @@
 ---
 roadmap_version: 2.0.0
-last_updated: 2026-10-11
+last_updated: 2026-10-17
 meta_phase: "Feature Verification and Polish"
-current_position: "Stage 2: Mental Flow & Ergonomic Form Polish (Task 03) — Active Focus"
-baseline_release: "v0.0.0.11 (Build 11) Published"
+current_position: "Stage 2: Mental Flow & Ergonomic Form Polish (Task 04) — Active Focus"
+baseline_release: "v0.0.0.12 (Build 12) Published"
 target_release: "v0.0.1.0 (Build 16) Production Release Candidate"
 statistics:
   description: "Meta-Phase roadmap for holistic feature verification, full server sync parity, mental flow ergonomics, and Android production polish."
-  stages_completed: "███░░░░░░░ 30%"
+  stages_completed: "████░░░░░░ 40%"
   stages_in_progress: "█░░░░░░░░░ 10%"
 ---
 
@@ -139,11 +139,11 @@ flowchart TD
 > **Stage Objective**:
 > Eliminate cognitive friction, latency, and layout quirks across the app's three primary views (Gateway, Dashboard, Universal Form). Ensure seamless transitions, instant search, and ergonomic keyboard and touch interactions.
 
-- [ ] **Task 03: [Functionality] Cold-Start Routing, Reconnect Recovery & Sub-16ms Search Performance**
+- [x] **Task 03: [Functionality] Cold-Start Routing, Reconnect Recovery & Sub-16ms Search Performance**
   - Benchmark and optimize `observeUnifiedItems` search filtering across 100+ items to guarantee sub-16ms frame times.
   - Harden Gateway cold-start routing: validate saved Base62 `hu-` sovereign key format, auto-fill server host/port, and transition immediately to local offline cache with an amber status banner if the server is unreachable.
   - Implement automated network reconnect recovery: seamlessly transition from `OFFLINE_READ_ONLY` to `SYNCING` ➔ `ONLINE_SYNCED` without UI stutter.
-  - *Success Criteria*: Cold launch with stored session navigates in <300ms; offline search responds instantaneously; reconnect syncs automatically.
+  - *Success Criteria*: Cold launch with stored session navigates in <300ms; offline search responds instantaneously; reconnect syncs automatically. (Verified 100% green on Cloud CI across 127 tests).
 
 - [ ] **Task 04: [UI/UX] Touch Targets (≥48dp), Haptic Feedback & Keyboard Insets**
   - Audit all interactive surfaces against `mobile-android-design`: ensure all buttons, toggles, icon buttons, and list items have touch targets ≥ 48dp.
