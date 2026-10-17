@@ -1,7 +1,5 @@
 # Decision Log
 
-## 2026-10-04 — circular dial countdown and fail-closed panic purge cascade
-Engineered interactive `CircularDialPicker` with trigonometric angle mapping (5s–60s clamp) and full-screen `PanicPurgeCountdownScreen` with 3 pulsing concentric red Canvas rings. Implemented a 4-step fail-closed destruction cascade in `executePanicPurge` wiping Room tables, clearing EncryptedSharedPreferences session, wiping DataStore preferences, and unlocking vault state, verified green via Robolectric unit tests.
 
 ## 2026-10-04 — dual-mode backup parity and test database isolation
 Engineered `VaultBackupEngine` supporting web-parity dual protection modes (`ACTIVE_KEY` via HKDF vs `CUSTOM_PASSPHRASE` with PBKDF2-SHA256 600,000 iterations), automatic format sniffing, and Bitwarden JSON ingestion. Resolved Robolectric `IllegalStateException` on main thread Room queries by initializing isolated in-memory test databases (`getInMemoryDatabase`) with explicit `.allowMainThreadQueries()`, passing 95/95 unit tests 100% green.
@@ -62,3 +60,6 @@ Executed final `/git-review-pr` pass on Jules PR #2 (commit `d62100b`). Verified
 
 ## 2026-10-17 — direct file writes, push clearance & hot-session chaining codification
 Re-mapped freshly updated `jules-cli` skill ecosystem and codified 4 durable invariants across rules and skills: (1) Direct File Writes Invariant (strictly banning `sed`/regex script mutations on nested source files), (2) Subagent Feature-Branch Push Pre-Clearance (authorizing non-destructive `git push origin HEAD` without stalling), (3) Hot-Session Multi-Phase Chaining under the Lucas Pattern, and (4) Compose IME & Scroll Redundancy Invariant.
+
+## 2026-10-17 — jules knowledge store migration & tier-2 architecture
+Deprecated legacy `.jules/JULES.md` and transitioned repository knowledge into `.jules/KNOWLEDGE.md` to complement root `AGENTS.md`. Established atomic declarative units for zero-knowledge decryption, CursorWindow limits, storage lifecycle parity, direct file writes, Compose keyboard scroll clearance, and subagent push pre-clearance.

@@ -6,7 +6,7 @@
 
 ## 🏛️ Invariants & Rules
 1. **Zero Raw BLOBs in Room**: Attachment files stream directly to `context.filesDir/vault_attachments/{id}.enc`. Room stores metadata only (`size_bytes`, `mime_type`, `file_name`).
-2. **Compose Modularity**: Follow the UI modularity standard in [JULES.md](../JULES.md). Decompose complex screen sections into dedicated sub-composables (`MultiUriEditorSection`, `AttachmentPickerSection`, etc.) to keep files below the 500-line ceiling.
+2. **Compose Modularity**: Follow the UI modularity standard in [KNOWLEDGE.md](../KNOWLEDGE.md). Decompose complex screen sections into dedicated sub-composables (`MultiUriEditorSection`, `AttachmentPickerSection`, etc.) to keep files below the 500-line ceiling.
 3. **⚠️ Invariant**: NEVER tag `@jules` in PR comments or commit messages. Plain text `Hey Jules` or `@google-labs-jules[bot]` only.
 4. **Attribution Format**: All commits must follow the two-layer format (`User: ...` / `AI: ...`).
 
