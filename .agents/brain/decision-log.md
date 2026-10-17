@@ -1,8 +1,5 @@
 # Decision Log
 
-## 2026-10-04 — settings appearance & sync sub-screen projection
-Designed and built dedicated `SettingsAppearanceScreen` and `SettingsSyncScreen` sub-screens in Reef Modernist styling with inline radio groups, dynamic Monet color toggle, and integrated manual delta sync actions. Bound all options reactively to `SettingsViewModel` and verified 13/13 unit tests 100% green in 4.3s.
-
 ## 2026-10-04 — circular dial countdown and fail-closed panic purge cascade
 Engineered interactive `CircularDialPicker` with trigonometric angle mapping (5s–60s clamp) and full-screen `PanicPurgeCountdownScreen` with 3 pulsing concentric red Canvas rings. Implemented a 4-step fail-closed destruction cascade in `executePanicPurge` wiping Room tables, clearing EncryptedSharedPreferences session, wiping DataStore preferences, and unlocking vault state, verified green via Robolectric unit tests.
 
@@ -62,3 +59,6 @@ Installed Cloud CI debug APK (`2b2f34c`) on physical Google Pixel (`sailfish`) o
 
 ## 2026-10-16 — finish package review & git-review-pr hard gate
 Executed final `/git-review-pr` pass on Jules PR #2 (commit `d62100b`). Verified all 7 completion criteria: 127/127 Cloud CI tests passing, zero-drift doc audit, deprecation migrations, and proactive `// TODO:` task anchors. Authored timestamped review artifact `pr_review_2_2026_10_16_1520.md` and established MERGE recommendation at the Phase 5 hard user gate.
+
+## 2026-10-17 — direct file writes, push clearance & hot-session chaining codification
+Re-mapped freshly updated `jules-cli` skill ecosystem and codified 4 durable invariants across rules and skills: (1) Direct File Writes Invariant (strictly banning `sed`/regex script mutations on nested source files), (2) Subagent Feature-Branch Push Pre-Clearance (authorizing non-destructive `git push origin HEAD` without stalling), (3) Hot-Session Multi-Phase Chaining under the Lucas Pattern, and (4) Compose IME & Scroll Redundancy Invariant.
