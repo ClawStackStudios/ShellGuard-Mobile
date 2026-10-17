@@ -41,7 +41,7 @@ data class DashboardUiState(
 
 class VaultDashboardViewModel(
     private val appContainer: AppContainer,
-    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
+    val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : ViewModel() {
 
     private val ownerUuid = appContainer.deviceVault.getOwnerUuid().orEmpty()
@@ -132,6 +132,7 @@ class VaultDashboardViewModel(
     fun lockVault(onLocked: () -> Unit) {
         _uiState.update { it.copy(searchQuery = "", selectedPod = PodFilter.ALL, errorMessage = null) }
         appContainer.vaultLockManager.lockVaultNow()
+        _uiState.value = _uiState.value.copy(searchQuery = "", selectedPod = PodFilter.ALL)
         appContainer.deviceVault.zeroizeMemory()
         try {
             appContainer.attachmentVaultManager.clearDecryptedCache()
