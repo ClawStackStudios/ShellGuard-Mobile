@@ -41,6 +41,7 @@ Welcome to **ShellGuard Mobile**, the native Android client for the ShellGuard Z
      ```
    - Before modifying files, verify repository files using `git ls-files`.
    - DO NOT force-reset, rebase root, or force-push `main`.
+   - **Feature-Branch Push Clearance**: You are explicitly authorized to push non-destructive commits to your assigned task/feature branch (`git push origin HEAD` or `git push origin <branch>`). Do NOT halt asking for permission to push to your own feature branch once tests pass!
 
 ---
 
@@ -52,6 +53,10 @@ Welcome to **ShellGuard Mobile**, the native Android client for the ShellGuard Z
    Robolectric tests must specify `@Config(sdk = [34])` to align with the supported Android 14 test runner target.
 3. **Markdown Documentation Exemption**:
    Markdown documentation updates are exempt from running Gradle builds and tests. However, Kotlin, XML, and Gradle modifications REQUIRE running unit tests to guarantee 100% green builds.
+4. **Direct File Writes Invariant (NO Script Patching)**:
+   - **NEVER use `sed`, `awk`, Python regex, or bash string replacement scripts to edit Kotlin, XML, or Gradle files**.
+   - String replacement scripts repeatedly introduce duplicate arguments (e.g. duplicate `modifier = `), unbalanced braces/parentheses, and invalid `@Composable` invocations inside loops.
+   - Always perform **direct file writes** or use targeted structural code replacement tools.
 
 ---
 
