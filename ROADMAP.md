@@ -139,14 +139,11 @@ flowchart TD
 > **Stage Objective**:
 > Eliminate cognitive friction, latency, and layout quirks across the app's three primary views (Gateway, Dashboard, Universal Form). Ensure seamless transitions, instant search, and ergonomic keyboard and touch interactions.
 
-- [x] **Task 03: [Functionality] Cold-Start Routing, Reconnect Recovery & Sub-16ms Search Performance**
-  - Benchmark and optimize `observeUnifiedItems` search filtering across 100+ items to guarantee sub-16ms frame times. (127 green tests and <0.5ms measured benchmark).
+- [ ] **Task 03: [Functionality] Cold-Start Routing, Reconnect Recovery & Sub-16ms Search Performance**
+  - Benchmark and optimize `observeUnifiedItems` search filtering across 100+ items to guarantee sub-16ms frame times.
   - Harden Gateway cold-start routing: validate saved Base62 `hu-` sovereign key format, auto-fill server host/port, and transition immediately to local offline cache with an amber status banner if the server is unreachable.
   - Implement automated network reconnect recovery: seamlessly transition from `OFFLINE_READ_ONLY` to `SYNCING` ➔ `ONLINE_SYNCED` without UI stutter.
   - *Success Criteria*: Cold launch with stored session navigates in <300ms; offline search responds instantaneously; reconnect syncs automatically.
-
-- [x] **Task 03.A: [Security] OWASP M1 IME Hardening & OWASP M2 Post-Lock Heap Zeroization**
-- [x] **Task 03.B: [UI/UX] Search Bar Clear Icon Button, Dismiss Keyboard on Enter & Empty Search State Quick-Action**
 
 - [ ] **Task 04: [UI/UX] Touch Targets (≥48dp), Haptic Feedback & Keyboard Insets**
   - Audit all interactive surfaces against `mobile-android-design`: ensure all buttons, toggles, icon buttons, and list items have touch targets ≥ 48dp.

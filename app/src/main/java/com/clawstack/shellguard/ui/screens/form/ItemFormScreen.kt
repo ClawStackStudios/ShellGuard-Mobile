@@ -196,7 +196,6 @@ fun ItemFormScreen(
                 }
 
                 // ── Scrollable Form Fields ────────────────────────────────────
-                // TODO(ux-keyboard): Ensure .imePadding() and auto-scroll to focused OutlinedTextField so Gboard never obscures input fields on physical devices (Task 04).
                 Column(
                     modifier = Modifier
                         .fillMaxSize()

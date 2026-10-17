@@ -25,9 +25,6 @@ flowchart TD
 
 All entities are strictly designed to hold ShellCryption opaque blobs for sensitive fields. The database never sees plaintext secrets.
 
-Note: `UnifiedVaultItem.normalizedSearchIndex` provides in-memory sub-0.5ms search querying.
-`CustomFieldSerializer.deserializeTags` tokenizes tags into lowercase search tokens at mapping time.
-
 ### A. `VaultPearlEntity` (Passwords / Logins)
 
 ```kotlin

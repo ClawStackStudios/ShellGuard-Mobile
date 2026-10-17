@@ -204,7 +204,6 @@ The core navigation hub for managing vault items.
 - **Grouped Sections:** Passwords, TOTP Codes, Secure Notes, SSH Keys.
 - **Search & Filtering:**
   - Unified search bar across all item types.
-  - Search ergonomics include: `KeyboardOptions(autoCorrect = false, capitalization = KeyboardCapitalization.None, imeAction = ImeAction.Search)` for dictionary security, `KeyboardActions(onSearch = { focusManager.clearFocus() })` for soft-keyboard dismissal, a trailing `(X)` clear icon button, and an Empty Search State quick-action button.
   - Pod/Category filter chips.
   - Tag filter bar with AND/OR logical operators.
 - **Action Dial & Mutation Guard:** FAB speed dial for quick access to (Add Password, Add Note, Add SSH Key, Scan QR, Enter TOTP Manually).

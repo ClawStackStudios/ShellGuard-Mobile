@@ -128,7 +128,6 @@ fun ItemDetailScreen(
     var clipboardProgress by remember { mutableFloatStateOf(1f) }
     var clipboardJob by remember { mutableStateOf<Job?>(null) }
 
-    // TODO(ux-haptics): Integrate tactile HapticFeedbackType.LongPress or performHapticFeedback on secret reveal and copy actions (Task 04).
     fun copyToClipboard(label: String, text: String, isSensitive: Boolean) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText(label, text).apply {

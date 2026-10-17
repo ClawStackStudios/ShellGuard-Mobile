@@ -40,7 +40,6 @@ class SettingsViewModel(
     private val appContainer: AppContainer
 ) : ViewModel() {
 
-    private val json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
     private val settingsRepo = appContainer.settingsRepository
     private val deviceVault = appContainer.deviceVault
     private val vaultLockManager = appContainer.vaultLockManager
@@ -249,7 +248,7 @@ class SettingsViewModel(
             }
             BackupFormatType.SHELLGUARD_PLAIN -> {
                 try {
-                    val payload = json.decodeFromString<com.clawstack.shellguard.data.backup.VaultBackupPayload>(rawContent)
+                    val payload = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }.decodeFromString<com.clawstack.shellguard.data.backup.VaultBackupPayload>(rawContent)
                     appContainer.backupEngine.importPayload(payload, ownerUuid)
                 } catch (t: Throwable) {
                     Result.failure(t)

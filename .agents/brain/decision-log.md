@@ -1,22 +1,5 @@
 # Decision Log
 
-## 2026-10-03 — splitting the autofill authentication stack
-While researching 2026 Autofill implementation patterns, discovered we must aggressively unlearn legacy `AutofillNode` structures. Confirmed that standard forms and passkey authentication now exist on two entirely separate architectural planes (`Modifier.semantics` vs `Credential Manager`). We will implement both independently rather than forcing one into the other.
-
-## 2026-10-04 — context-aware locked inline chips & add-item deep linking
-Transformed the Autofill suggestion pipeline: when locked, rather than hiding accounts or leaking titles, we present matched domain strings with 'Unlock Vault' inline above the keyboard. When 0 matches exist, we only show 'Add Item', which deep links directly to MainActivity's item form with the active URI pre-populated, preserving context via a global LockScreen overlay.
-
-## 2026-10-04 — datastore preferences isolation & test state reset
-Encountered test isolation cross-talk in `SettingsRepositoryTest` when tests mutated the singleton Application `context.dataStore` without resetting state between runs. Added explicit `clearAll()` method to `SettingsRepository` and invoked it inside `@Before setUp()`, ensuring pure deterministic state across all test passes.
-
-## 2026-10-04 — job-returning viewmodel mutations & unified test schedulers
-Hit 60-second coroutine timeouts in `SettingsViewModelTest` when testing DataStore mutations asynchronously. Returned `Job` from all ViewModel mutation functions, allowing tests to `.join()` before asserting downstream flow state, and bound `runTest(testDispatcher)` directly to `Dispatchers.Main`'s scheduler, reducing test suite time from 80s to 21s green.
-
-## 2026-10-04 — settings appearance & sync sub-screen projection
-Designed and built dedicated `SettingsAppearanceScreen` and `SettingsSyncScreen` sub-screens in Reef Modernist styling with inline radio groups, dynamic Monet color toggle, and integrated manual delta sync actions. Bound all options reactively to `SettingsViewModel` and verified 13/13 unit tests 100% green in 4.3s.
-
-## 2026-10-04 — circular dial countdown and fail-closed panic purge cascade
-Engineered interactive `CircularDialPicker` with trigonometric angle mapping (5s–60s clamp) and full-screen `PanicPurgeCountdownScreen` with 3 pulsing concentric red Canvas rings. Implemented a 4-step fail-closed destruction cascade in `executePanicPurge` wiping Room tables, clearing EncryptedSharedPreferences session, wiping DataStore preferences, and unlocking vault state, verified green via Robolectric unit tests.
 
 ## 2026-10-04 — dual-mode backup parity and test database isolation
 Engineered `VaultBackupEngine` supporting web-parity dual protection modes (`ACTIVE_KEY` via HKDF vs `CUSTOM_PASSPHRASE` with PBKDF2-SHA256 600,000 iterations), automatic format sniffing, and Bitwarden JSON ingestion. Resolved Robolectric `IllegalStateException` on main thread Room queries by initializing isolated in-memory test databases (`getInMemoryDatabase`) with explicit `.allowMainThreadQueries()`, passing 95/95 unit tests 100% green.
@@ -60,7 +43,23 @@ Purged legacy Build 11 release manifest to ensure only current release documenta
 ## 2026-10-12 — pre-draft alignment artifact gate & single manifest invariant
 Codified the Pre-Draft Alignment Artifact Gate into /draft-release and /walk-the-docs, mandating an interactive analysis artifact covering what needs alignment, how to align it, and a sequential roll-off checklist before mutating code or docs. Ratified the Single Active Root Manifest invariant and Cloud CI offload across hygiene rules.
 
+## 2026-10-12 — pre-work assumptions & jules cli dispatch
+Codified `.agents/workflows/pre-work-assumptions.md` to run anticipatory reflection while waiting for upstream Jules builds, surfacing the CWE-384 in-memory backgroundTimestamp lock bypass ahead of Stage 3. Dispatched Jules CLI session 1446424829708118836 on `feat/stage-2-mental-flow-and-ergonomics` with partitioned task cards and physical Pixel test readiness.
 
+## 2026-10-12 — pr #2 line-level code review & coroutine job-returning fix
+Conducted forensic review of Jules PR #2 on Cloud CI. Caught two structural seams: `GatewayViewModel` pre-populating `clawKey` with 64-char SHA-256 hashes instead of sovereign `hu-` keys (breaking `isValidClawKey` regex and double-hashing on login), and `VaultDashboardViewModel.triggerSync()` returning `Unit` instead of `Job` while relying on `allItems.value` under `WhileSubscribed` (racing on `Dispatchers.IO` network timeouts). Submitted line-level GitHub PR review comments with Room fallback and `.join()` testing patterns.
 
+## 2026-10-14 — disciplined pr review protocol & zero-tolerance security gate
+Executed formal `/git-review-pr` protocol on PR #2 (`.reviews/PR-2-review.md`). Verified commit `2c7aae1` healed the test synchronization race with 126 green tests on Cloud CI and scrubbed all 6 patch residue files. Closed duplicate PR #3. Enforced zero-tolerance security gate by isolating OWASP M2 post-lock memory retention in `VaultDashboardViewModel.lockVault()` (wiping `_searchQuery` and `uiState`), OWASP M1 IME keyboard hardening (`autoCorrect = false`), and `GatewayViewModel.init` 64-char hash pre-population guard, dispatching line-level fix guidance to Jules.
 
+## 2026-10-15 — pixel hardware verification & proactive proactivity seeding
+Installed Cloud CI debug APK (`2b2f34c`) on physical Google Pixel (`sailfish`) over TLS ADB, verifying sub-0.5ms search, OWASP M1 IME hardening, soft keyboard dismiss on Enter, (X) clear button, empty search state reset, and OWASP M2 post-lock memory zeroization on glass. Designed comprehensive finish package capitalizing on Jules's hot session: deep /walk-the-docs alignment, meta-prompt sub-phase spine, Android deprecation cleanup (`Icons.AutoMirrored.Filled.OpenInNew`), class-level Json instance hoisting, and proactive `// TODO:` code anchoring across UI components to seed Jules's background Suggested Tasks scanner for Task 04.
 
+## 2026-10-16 — finish package review & git-review-pr hard gate
+Executed final `/git-review-pr` pass on Jules PR #2 (commit `d62100b`). Verified all 7 completion criteria: 127/127 Cloud CI tests passing, zero-drift doc audit, deprecation migrations, and proactive `// TODO:` task anchors. Authored timestamped review artifact `pr_review_2_2026_10_16_1520.md` and established MERGE recommendation at the Phase 5 hard user gate.
+
+## 2026-10-17 — direct file writes, push clearance & hot-session chaining codification
+Re-mapped freshly updated `jules-cli` skill ecosystem and codified 4 durable invariants across rules and skills: (1) Direct File Writes Invariant (strictly banning `sed`/regex script mutations on nested source files), (2) Subagent Feature-Branch Push Pre-Clearance (authorizing non-destructive `git push origin HEAD` without stalling), (3) Hot-Session Multi-Phase Chaining under the Lucas Pattern, and (4) Compose IME & Scroll Redundancy Invariant.
+
+## 2026-10-17 — jules knowledge store migration & tier-2 architecture
+Deprecated legacy `.jules/JULES.md` and transitioned repository knowledge into `.jules/KNOWLEDGE.md` to complement root `AGENTS.md`. Established atomic declarative units for zero-knowledge decryption, CursorWindow limits, storage lifecycle parity, direct file writes, Compose keyboard scroll clearance, and subagent push pre-clearance.

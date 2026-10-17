@@ -422,7 +422,6 @@ fun VaultDashboardScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(filteredItems, key = { it.id }) { item ->
-                            // TODO(ui-touch): Audit and ensure all filter chips, pod buttons, and item rows meet the minimum 48dp touch target standard (Task 04).
                             VaultItemCard(
                                 item = item,
                                 onClick = { onItemClick(item) }

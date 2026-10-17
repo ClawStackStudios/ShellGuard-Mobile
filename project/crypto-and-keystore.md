@@ -230,8 +230,6 @@ object ClawCrypto {
 
 ## 6. Memory Hygiene & Secret Zeroing
 
-Note: `VaultDashboardViewModel.lockVault()` actively enforces heap zeroization by wiping the `searchQuery` and resetting `uiState` upon lock. `GatewayViewModel` enforces a Base62 key validation guard (`ClawCrypto.isValidClawKey`) preventing stored SHA-256 hashes from falsely failing format checks.
-
 ```kotlin
 package com.clawstack.shellguard.crypto
 
