@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.0.13] - 2026-10-17 (Build 13) — Stage 2: Mental Flow & Search Ergonomics (Sub-16ms Indexing & Cold-Start Resilience)
+### Added
+- **In-Memory Sub-16ms Tokenized Search (`VaultDashboardViewModel.kt`)**: Implemented pre-indexed tokenized search across all vault items with 80ms debouncing, achieving sub-16ms frame times across 150+ items without UI stutter.
+- **Search Bar Reset & Empty State Recovery (`VaultDashboardScreen.kt`)**: Added an explicit "Clear Search Filter" action button on empty search results and soft-keyboard dismiss on Search/Enter.
+- **Tier 1 & Tier 2 Repository Knowledge Store (`AGENTS.md`, `.jules/KNOWLEDGE.md`)**: Codified system invariants and empirical learnings across root `AGENTS.md` and `.jules/KNOWLEDGE.md`, deprecating legacy `.jules/JULES.md`.
+- **Cold-Start & Search Benchmark Test Suite (`VaultDashboardViewModelTest.kt`)**: Added tests verifying sub-16ms benchmark execution across 150 items, offline health probe suppression, and post-lock search query zeroization.
+
+### Changed
+- **Test Suite Expansion**: Test oracle expanded from 121 to **127 unit and Robolectric tests passing 100% green** on Cloud CI.
+- **Offline Probe Suppression**: Suppressed false network health probe alerts in `VaultDashboardViewModel` when valid cached items exist in Room SQLite memory.
+
+### Security
+- **OWASP M1 IME Keyboard Hardening (`VaultDashboardScreen.kt`)**: Enforced `KeyboardOptions(autoCorrect = false, capitalization = None, imeAction = Search)` on search inputs to prevent third-party keyboards from harvesting decrypted search terms.
+- **OWASP M2 Post-Lock Heap Drop (`VaultDashboardViewModel.kt`)**: Actively zeroizes active search queries and resets pod selection in `lockVault()` so decrypted search tokens do not linger in volatile heap memory.
+- **Gateway Key Pre-Fill Guard (`GatewayViewModel.kt`)**: Barricaded `clawKey` pre-population to validate genuine `hu-` sovereign key format, preventing 64-character SHA-256 hash pre-fills from triggering false login failures.
+
 ## [0.0.0.12] - 2026-10-12 (Build 12) — Stage 1: Full Server Parity (Encrypted Attachments & Multi-URI Bridge) & Stage 1.5 (In-Place Re-Auth & PIN Unlock)
 ### Added
 - **Automated GitHub Actions Cloud CI & Verification (`.github/workflows/ci.yml`)**: Continuous integration workflow running headless Zulu JDK 17, documentation drift validation, 121 unit/Robolectric tests, and debug APK compilation in the cloud with artifact retention, eliminating local development machine build strain.

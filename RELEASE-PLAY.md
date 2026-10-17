@@ -3,6 +3,23 @@
 > **Single Source of Truth for Google Play Store What's New Notes**  
 > *Google Play enforces a strict 500-character limit per localized language block.*
 
+## `v0.0.0.13` — Stage 2: Mental Flow & Search Ergonomics (Build 13)
+
+```xml
+<en-US>
+• Sub-16ms Search: In-memory token filter across 150+ items.
+• 80ms Debounce: Fluid query buffering for 60fps frame rate.
+• Offline Health Probe: Silent fallback suppresses false alerts.
+• OWASP M1 Hardening: autoCorrect disabled & Search action.
+• OWASP M2 Zeroization: Search query purged on vault lock.
+• Search Filter Reset: 1-tap clear button on empty states.
+• Gateway Guard: Prevents raw hash pre-fill on cold start.
+• 127 Tests 100% Green on Cloud CI.
+</en-US>
+```
+
+---
+
 ## `v0.0.0.12` — Stage 1 & 1.5: Server Parity & In-Place PIN Re-Auth (Build 12)
 
 ```xml
