@@ -1,8 +1,6 @@
 # Decision Log
 
 
-## 2026-10-04 — polymorphic payload schema and sovereign key alignment
-While auditing the backup engine for Web Parity, I identified that the initial implementation exported isolated lists (`pearls`, `notes`, `sshKeys`), whereas the ShellGuard Web counterpart requires a unified polymorphic `items` JSON array. I refactored `VaultBackupPayload` to serialize and deserialize polymorphic `BackupVaultItem` objects using a `type` discriminator, and enforced Base62 `hu-` Sovereign ClawKey validation.
 
 ## 2026-10-08 — autofill container hijacking defense and blast-radius co-presence gate
 Diagnosed missing username inline chips and single-field password autofill on device: pre-order traversal in `AutofillStructureParser` evaluated Rank 4 substring heuristics on non-input parent containers (`<form id="login-form">`) and password nodes (`id="login_password"`) before child `<input>` elements, stealing `usernameId`. Enforced editable-input gating (including `AutoCompleteTextView` browser URL bar exclusion), mutual exclusion between password and username nodes, a Co-Presence Gate suppressing weak Rank 4/5 heuristics when `passwordId == null` while permitting Case A `"Add Item"` chips on explicit Rank 1–3 two-step email-first login pages (`accounts.google.com`), non-blank username overwrite guards, and Option B masked username + category/tag disambiguation (`testOracle.md` § Redline 10).
@@ -63,3 +61,6 @@ Deprecated legacy `.jules/JULES.md` and transitioned repository knowledge into `
 
 ## 2026-10-17 — release v0.0.0.13 alignment & single active manifest rollout
 Executed formal `/draft-release` alignment for `v0.0.0.13 (Build 13)`. Purged legacy `RELEASE-v0.0.0.12.md` from root per the Single Active Manifest Invariant, drafted `RELEASE-v0.0.0.13.md`, compressed Play Store release notes to 459 characters, aligned version badges and changelog, and verified 100% green Python doc-drift audit across all anchors.
+
+## 2026-10-17 — proactive todo mapping & suggested tasks alignment
+Audited all inline code comments across repository, verifying zero stale comments from prior tasks. Seeded 11 domain-scoped proactive `// TODO:` anchors across `ItemDetailScreen.kt`, `VaultDashboardScreen.kt`, `ItemFormScreen.kt`, `VaultLockManager.kt`, `SyncRepository.kt`, `CircularDialPicker.kt`, `AutofillStructureParser.kt`, and `KtorClientProvider.kt` matching Task 04 UI/UX polish, Stage 3 security lifecycle, and future transport hardening. Jules's Suggested Tasks scanner can autonomously ingest these anchors to populate candidate tasks.

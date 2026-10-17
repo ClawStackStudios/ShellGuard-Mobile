@@ -756,8 +756,14 @@ Calibration is sharp with 0 over-confidence penalties across 8 ratified decision
 **Outcome**: Authored `stage_2_meta_plan.md` with stopwatch start tracking and launched Jules session `1446424829708118836` targeting the long-lived feature branch.
 **Pattern reference**: `long-term/patterns.md § pattern: dual-medium-jules-orchestration` (accumulating, weight 2/3).
 
+## proactive-todo-anchors-for-autonomous-jules-steering — 2026-10-17 10:25
 
-
-
-
-
+**Context**: Ensuring all `// TODO` annotations in the codebase are accurate, non-stale, and strategically placed for autonomous task discovery by Jules's Suggested Tasks scanner.
+**Options considered**:
+- Rely exclusively on manual task files in `.jules/tasks/` without code comments — Clear specifications, but leaves Jules's background Suggested Tasks scanner idle.
+- Audit and prune any stale comments, and place high-signal, domain-scoped inline `// TODO:` comments directly at architectural seams across active and upcoming roadmap tasks — Synergizes with Jules's proactivity engine, allowing developers to approve candidate tasks directly in the web UI.
+**Chosen**: Plant domain-scoped inline `// TODO:` comments at precise architectural seams.
+**Why**: Jules actively scans repository source code for inline TODO comments. By pairing structured task specs with inline code anchors, we give Jules multiple complementary pathways to ingest work autonomously without developer friction.
+**Confidence**: high — verified zero stale comments in codebase; seeded 11 actionable anchors.
+**Outcome**: Placed 11 proactive anchors across Task 04, Task 05, Task 06, Task 07, and Task 09.
+**Pattern reference**: Link to `references/suggested-tasks.md`.
