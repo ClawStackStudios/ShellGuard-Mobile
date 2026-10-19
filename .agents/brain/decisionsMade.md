@@ -767,3 +767,16 @@ Calibration is sharp with 0 over-confidence penalties across 8 ratified decision
 **Confidence**: high — verified zero stale comments in codebase; seeded 11 actionable anchors.
 **Outcome**: Placed 11 proactive anchors across Task 04, Task 05, Task 06, Task 07, and Task 09.
 **Pattern reference**: Link to `references/suggested-tasks.md`.
+
+## option-1-decade-version-spacing-and-hotfix-realignment — 2026-10-19 00:20
+
+**Context**: PR #4 (CWE-532 log redaction) and PR #5 (Consent-gated self-signed TLS trust) introduced security remediations requiring an immediate release (`v0.0.0.14 Build 14`), but the original roadmap tightly packed consecutive single-integer builds (`Build 14` Stage 2, `Build 15` Stage 4, `Build 16` Stage 5), leaving zero runway for intermediate hotfix patches.
+**Options considered**:
+- Option A: Single-step increments (`0.0.0.14` hotfix, `0.0.0.15` Stage 2, `0.0.0.16` Stage 3, etc.) — Preserves dense numbering, but whenever an unexpected security or bugfix hotfix lands, all downstream stages and documentation must be painstakingly shifted by +1 integer.
+- Option B: Option 1 Decade Spacing (`0.0.0.14` Build 14 Hotfix, `0.0.0.20` Build 20 Stage 2, `0.0.0.30` Build 30 Stage 3, `0.0.0.40` Build 40 Stage 4, `0.0.1.0` Build 50 Structural Completion) — Provides an explicit engineering runway of 5–10 revision numbers between stages for intermediate hotfixes while preserving `v0.0.1.0` as the fixed milestone destination.
+**Chosen**: Option B (Option 1 Decade Spacing).
+**Why**: Software in active physical testing always produces friction that demands targeted hotfixes. Squeezing stages into consecutive integers creates brittle version projections that fracture on every minor patch. Decade intervals give the roadmap breathing room without losing sight of the milestone target.
+**Confidence**: high — immediately confirmed by user preference and validated across all documentation anchors.
+**Outcome**: Realigned `ROADMAP.md`, `meta-prompt-ai-studio.md`, `productVersion.md`, and `app/build.gradle.kts`. Sub-second doc-drift audit passed 100% green.
+**Pattern reference**: Link to `project/productVersion.md § SemVer Calculus & Increment Rules`.
+

@@ -3,6 +3,22 @@
 > **Single Source of Truth for Google Play Store What's New Notes**  
 > *Google Play enforces a strict 500-character limit per localized language block.*
 
+## `v0.0.0.14` — Security & Transport Sovereignty Hotfix (Build 14)
+
+```xml
+<en-US>
+• TLS Sovereignty: Consent toggle for self-signed HTTPS.
+• Zero CA Burden: Connect homelabs without OS root installs.
+• Log Redaction: Barricades raw 400 responses against leaks.
+• Gateway Polish: 48dp touch target on TLS consent switch.
+• Protocol Reactivity: Toggle mounts strictly for HTTPS.
+• On-Glass Validated: Verified on physical Pixel hardware.
+• 127 Tests 100% Green on Cloud CI.
+</en-US>
+```
+
+---
+
 ## `v0.0.0.13` — Stage 2: Mental Flow & Search Ergonomics (Build 13)
 
 ```xml

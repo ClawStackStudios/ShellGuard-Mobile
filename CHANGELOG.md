@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.0.14] - 2026-10-19 (Build 14) — Security & Transport Sovereignty Hotfix
+### Added
+- **Consent-Gated Self-Signed TLS Trust Model (`KtorClientProvider.kt`, `GatewayScreen.kt`)**: Added an in-app user consent toggle (`trustSelfSignedCerts`) for homelab self-hosted HTTPS endpoints, enabling users to connect to self-signed deployments without forcing CA certificates into Android OS root stores.
+- **Physical Glass Verification Suite (`on_glass_pixel_verification_2026_10_19.md`)**: Conducted live on-glass verification on physical Google Pixel (`lineage_sailfish`) over wireless TLS ADB, verifying layout, responsive toggle animation, amber warning indicator (`⚠️ Strict HTTPS validation disabled.`), and protocol switching.
+
+### Changed
+- **Roadmap Realignment (Option 1 Decade Intervals)**: Re-versioned future roadmap stages with 10-build buffer intervals (`v0.0.0.20` Stage 2, `v0.0.0.30` Stage 3, `v0.0.0.40` Stage 4, `v0.0.1.0 Build 50` Structural Completion) to accommodate intermediate bugfix releases.
+
+### Fixed
+- **GatewayScreen Box Stacking Layout Defect (`GatewayScreen.kt`)**: Fixed Compose layout defect where the self-signed consent row stacked directly over the segmented URL bar. Reordered the row into the scrollable `Column` container with an accessible `≥ 48dp` touch target (`heightIn(min = 48.dp)`).
+
+### Security
+- **CWE-532 Sensitive Information Logging Redaction (`ShellGuardClient.kt`)**: Redacted raw unparseable 400 Bad Request error response bodies from log outputs to eliminate credential or plaintext leakage into logcat/telemetry.
+- **Fail-Closed Default TLS**: Self-signed certificate trust defaults to `false`; standard platform CA certificate validation is strictly enforced unless the user explicitly acknowledges and toggles self-signed trust for HTTPS connections.
+
 ## [0.0.0.13] - 2026-10-17 (Build 13) — Stage 2: Mental Flow & Search Ergonomics (Sub-16ms Indexing & Cold-Start Resilience)
 ### Added
 - **In-Memory Sub-16ms Tokenized Search (`VaultDashboardViewModel.kt`)**: Implemented pre-indexed tokenized search across all vault items with 80ms debouncing, achieving sub-16ms frame times across 150+ items without UI stutter.

@@ -1,9 +1,5 @@
 # Decision Log
 
-
-## 2026-10-09 — datastore combine initial emission & ci test determinism
-Diagnosed `AssertionError` in `SettingsViewModelTest.testTriggerManualSyncWithNoActiveSession` during GitHub Actions CI run `37897075874` (`v0.0.0.11`). Traced to `combine(settingsRepo.settingsFlow, _extraState)` in `SettingsViewModel` blocking `_extraState` emissions until AndroidX `DataStore` finished its asynchronous initial disk read on `Dispatchers.IO`. Seeded `settingsRepo.settingsFlow.onStart { emit(AppSettings()) }` and replaced nested `runTest` in `@Before setUp()` with `runBlocking`, verifying `114/114` unit tests 100% green.
-
 ## 2026-10-10 — dual feedback medium & jules pr comment orchestration
 Codified dual-medium iteration protocol into global jules-cli skill: Jules natively ingests feedback through either private Web UI chat prompts or public GitHub PR review threads (reacting with 👀 and pushing commits). Standardized an agent triage question ("Do you want a prompt to give to Jules in the Web UI, or should we make a comment on the pull request?"), and established the critical invariant to NEVER tag @jules on GitHub (as that handle pings an unrelated human account, not the bot).
 
@@ -66,4 +62,8 @@ Evaluated Jules PR #4 and PR #5 for `KtorClientProvider.kt`. While PR #4 (CWE-53
 
 ## 2026-10-19 — on-glass pixel verification & compose layout bounding
 Merged PR #4 & PR #5 into `feat/security-remediations-integration` and deployed to physical Google Pixel (`lineage_sailfish`) over TLS ADB. Caught a visual defect where `GatewayScreen.kt` placed the self-signed consent row inside `Box` rather than `Column`, causing direct stacking on top of the segmented URL bar. Reordered the row into the vertical `Column`, enforced an accessible 48dp clickable container (`heightIn(min = 48.dp)`), and verified clean layout rendering, dynamic amber warning feedback, and protocol unmounting on physical glass.
+
+## 2026-10-19 — option 1 decade spacing & v0.0.0.14 hotfix alignment
+Realigned roadmap to Option 1 decade spacing (`v0.0.0.14` Build 14 Hotfix ➔ `v0.0.0.20` Build 20 Stage 2 ➔ `v0.0.0.30` Build 30 Stage 3 ➔ `v0.0.0.40` Build 40 Stage 4 ➔ `v0.0.1.0` Build 50 Structural Completion). Re-versioned `app/build.gradle.kts`, `ROADMAP.md`, `project/meta-prompt-ai-studio.md`, `productVersion.md`, and cut `RELEASE-v0.0.0.14.md` with zero doc drift (<0.08s Python audit).
+
 

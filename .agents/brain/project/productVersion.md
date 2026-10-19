@@ -1,10 +1,10 @@
 # Product Version & Release State
 
 ## Active Version State
-- **Current Version**: `0.0.0.13`
-- **Monotonic Build Code**: `13` (`versionCode = 13` in `app/build.gradle.kts`)
+- **Current Version**: `0.0.0.14`
+- **Monotonic Build Code**: `14` (`versionCode = 14` in `app/build.gradle.kts`)
 - **Active Release Channel**: Production / GitHub Release & Google Play Track
-- **Latest Git Tag**: `v0.0.0.13`
+- **Latest Git Tag**: `v0.0.0.14`
 - **Release Status**: Staged / Releasing
 - **Central Version Source**: `app/build.gradle.kts` (`versionCode`, `versionName`)
 
@@ -30,10 +30,14 @@
 | `0.0.0.10` | `10` | `v0.0.0.10` | 2026-10-04 | Phase 6: Settings Hub, Security Controls & Web-Parity Backup Engine | Published |
 | `0.0.0.11` | `11` | `v0.0.0.11` | 2026-10-08 | Phase 7: Context-Aware Autofill Expansion, 2-Step Login & Option B Masking | Published |
 | `0.0.0.12` | `12` | `v0.0.0.12` | 2026-10-12 | Stage 1: Full Server Parity (Encrypted Attachments & Multi-URI Bridge) + Stage 1.5 PIN Re-Auth | Published |
-| `0.0.0.13` | `13` | `v0.0.0.13` | 2026-10-17 | Stage 2: Mental Flow & Search Ergonomics (Sub-16ms Indexing & Cold-Start Resilience) | Staged / Releasing |
+| `0.0.0.13` | `13` | `v0.0.0.13` | 2026-10-17 | Stage 2: Mental Flow & Search Ergonomics (Sub-16ms Indexing & Cold-Start Resilience) | Published |
+| `0.0.0.14` | `14` | `v0.0.0.14` | 2026-10-19 | Security Hotfix: Consent-Gated TLS Trust & Log Redaction (PR #4, #5) | Staged / Releasing |
 
 
-## Pending Delta (Next Release Target)
-- **Immediate Target**: Stage 2: Mental Flow & Ergonomic Form Polish (Task 04: Touch Targets & Haptics)
-- **Target Version**: `0.0.0.14` (Build 14)
-- **Anticipated Tier**: REVISION / PATCH (`X.Y.Z.N+1`)
+## Pending Delta & Downstream Milestones (Option 1 Decade Spacing)
+- **Active Release**: Security & Transport Sovereignty Hotfix ➔ `0.0.0.14` (Build 14)
+- **Intermediate Hotfix Runway**: `0.0.0.15` through `0.0.0.19` (Builds 15–19)
+- **Stage 2 Completion (Task 04)**: Touch Targets, Haptics & Insets ➔ `0.0.0.20` (Build 20)
+- **Stage 3 Completion (Tasks 05–06)**: Security Lifecycle, Biometrics & Panic Purge ➔ `0.0.0.30` (Build 30)
+- **Stage 4 Completion (Tasks 07–08)**: Autofill Gauntlet & 16 KB Verification ➔ `0.0.0.40` (Build 40)
+- **Stage 5 / Structural Completion (Tasks 09–10)**: TOFU Pinning & QR Handshake ➔ `0.0.1.0` (Build 50)

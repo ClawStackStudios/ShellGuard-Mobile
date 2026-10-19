@@ -10,9 +10,9 @@ We actively maintain and provide security patches for the latest release and the
 
 | Version | Supported | Status |
 | :--- | :--- | :--- |
-| `0.0.0.13` (Build 13) | ✅ Yes | Current Production / Milestone Release |
-| `0.0.0.12` (Build 12) | ⚠️ Maintenance | Security critical patches only |
-| `< 0.0.0.12` | ❌ No | End of Life — upgrade to latest release |
+| `0.0.0.14` (Build 14) | ✅ Yes | Current Production / Security Hotfix |
+| `0.0.0.13` (Build 13) | ⚠️ Maintenance | Security critical patches only |
+| `< 0.0.0.13` | ❌ No | End of Life — upgrade to latest release |
 
 ---
 

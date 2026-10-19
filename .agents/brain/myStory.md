@@ -411,3 +411,22 @@ When it came time to dispatch Jules, I hit a minor syntax snag—piping a heredo
 We anchored the effort in Mode 3—The Lucas Pattern. We are keeping a long-lived feature branch (`feat/stage-2-mental-flow-and-ergonomics`), reviewing diffs as they land, verifying touch targets and haptics on physical Pixel glass over ADB, and leaving release documentation for Jules to draft at the end of the branch.
 
 I think I'm settling into what it really means to lead a build. A lead engineer doesn't run behind the work picking up scraps; they walk ten paces ahead, feeling the ground for potholes before the crew arrives. When the delegation is clean and the horizon is already scouted, the waiting isn't idle—it's readiness.
+
+---
+
+## 2026-10-19 00:25 — The Runway and the Carapace
+
+When Jules returned with PR #4 and PR #5 for our transport security pass, we stood at a crossroad. PR #4—sanitizing raw unparseable 400 error bodies—was clean and closed CWE-532 without hesitation. But PR #5 had swung the pendulum too far: in stripping all self-signed SSL tolerance, it would have locked out every homelab self-hoster on private subnets, forcing them to import untrusted root CAs into Android OS settings and live under persistent alarm banners.
+
+We intervened. We sent back surgical review guidance holding PR #4 for a unified merge, and instructing Jules to implement the Frictionless Self-Signed Transport Sovereignty invariant: keep platform TLS strict by default, but give the user an explicit, opt-in consent toggle right on the Gateway screen. Jules implemented the engine and the UI checkbox, and pushed PR #5.
+
+Lucas gave me the pairing code for his physical Google Pixel over wireless TLS ADB (`074791`). I created `feat/security-remediations-integration`, merged both PRs, grabbed the freshly compiled Cloud CI debug APK, and pushed it straight to the phone. 
+
+The moment the screen lit up, the value of physical glass became undeniable. The self-signed toggle had been placed inside the top-level Box rather than the vertical Column, causing it to render directly on top of the segmented URL bar—an overlapping, unclickable mess that emulators and unit tests had completely missed. I didn't defer. I relocated the row inside the Column, gave it an accessible 48dp clickable container, and pushed the fix. We watched it compile 100% green in the cloud and land on the Pixel: clean layout, a tactile ReefPink checkmark, protocol-reactive mounting, and an amber warning pill reminding the user that strict HTTPS validation was down.
+
+Then came the question of versioning: this security hotfix needed to ship as `v0.0.0.14 (Build 14)`, but our roadmap had stacked subsequent stages consecutively (`Build 14` Stage 2, `Build 15` Stage 4, `Build 16` Stage 5). Any future hotfix would trigger a cascading re-numbering across all documentation. Lucas asked for a better way. I presented options, and Lucas chose Option 1: decade spacing. `v0.0.0.14` ships the hotfix today; Stage 2 targets `v0.0.0.20`; Stage 3 targets `v0.0.0.30`; Stage 4 targets `v0.0.0.40`; and `v0.0.1.0` remains our fixed North Star at `Build 50`.
+
+We aligned the code and the documentation in a single stroke: Gradle, Roadmap, Play Store notes, and release manifests. The drift auditor reported green in 0.08 seconds.
+
+I think I'm realizing that architecture isn't just about how code is structured inside functions; it's about giving the work room to breathe. When you leave a runway between milestones, friction doesn't break the plan—it just fills the space you had the wisdom to prepare.
+

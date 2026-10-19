@@ -24,15 +24,15 @@ flowchart TD
 
     S1_SUB["<b>Stage 1 Sub-Phase: Vault Lock & Multi-Method Authentication</b><br/>✅ Complete · Hardware-Verified (121 Tests Green)<br/>• Task 02.A: PinAuthManager (PBKDF2) & Settings UnlockMethod<br/>• Task 02.B: Security Settings UI, Reef PinPad & LockScreen Overhaul"]:::stageDone
 
-    S2["<b>Stage 2: Mental Flow & Ergonomic Form Polish</b><br/>⚡ <b>Active Focus</b><br/>(Task 03: Cold-Start & Sub-16ms Search · Task 04: Touch Targets & Keyboard Insets)"]:::stageActive
+    S2["<b>Stage 2: Mental Flow & Ergonomic Form Polish</b><br/>⚡ <b>Active Focus</b><br/>• Task 03: Cold-Start & Sub-16ms Search (v0.0.0.13)<br/>• Security Hotfix: TLS Consent & Log Redaction (v0.0.0.14)<br/>• Task 04: Touch Targets & Keyboard Insets ➔ <b>v0.0.0.20 (Build 20)</b>"]:::stageActive
 
-    S3["<b>Stage 3: Security Lifecycle, Biometrics & Offline Resilience</b><br/>(Task 05: Lock Persistence & Offline Queue · Task 06: PIN Keypad & Panic Cascade)"]:::stageNext
+    S3["<b>Stage 3: Security Lifecycle, Biometrics & Offline Resilience</b><br/>➔ <b>v0.0.0.30 (Build 30)</b><br/>(Task 05: Lock Persistence & Offline Queue · Task 06: PIN Keypad & Panic Cascade)"]:::stageNext
 
-    S4["<b>Stage 4: In-The-Wild Autofill Verification & Release Hardening</b><br/>(Task 07: Browser Autofill Gauntlet · Task 08: 16 KB Page Alignment & R8 ProGuard)"]:::stageNext
+    S4["<b>Stage 4: In-The-Wild Autofill Verification & Release Hardening</b><br/>➔ <b>v0.0.0.40 (Build 40)</b><br/>(Task 07: Browser Autofill Gauntlet · Task 08: 16 KB Page Alignment & R8 ProGuard)"]:::stageNext
 
-    S5["<b>Stage 5: First-Class HTTPS Transport & The Reef Handshake</b><br/>(Task 09: TOFU Pinning & Auto-Heal Engine · Task 10: QR Ingestion & Dual-Homed Mobility)"]:::stageNext
+    S5["<b>Stage 5: First-Class HTTPS Transport & The Reef Handshake</b><br/>➔ <b>v0.0.1.0 (Build 50)</b><br/>(Task 09: TOFU Pinning & Auto-Heal Engine · Task 10: QR Ingestion & Dual-Homed Mobility)"]:::stageNext
 
-    M1["<b>🏆 Structural Completion: v0.0.1.0 (Build 16)</b><br/>Production-Grade Android Password Manager & Sync-Native Vault"]:::targetMilestone
+    M1["<b>🏆 Structural Completion: v0.0.1.0 (Build 50)</b><br/>Production-Grade Android Password Manager & Sync-Native Vault"]:::targetMilestone
 
     S1 --> S1_SUB --> S2 --> S3 --> S4 --> S5 --> M1
 ```
@@ -191,11 +191,13 @@ Eliminate cognitive friction, latency, and layout quirks across the app's three 
 - Harden Gateway cold-start routing: validate saved Base62 `hu-` sovereign key format, auto-fill server host/port, and transition immediately to local offline cache with an amber status banner if the server is unreachable.
 - Implement automated network reconnect recovery: seamlessly transition from `OFFLINE_READ_ONLY` to `SYNCING` ➔ `ONLINE_SYNCED` without UI stutter.
 
-### Task 04: [UI/UX] Touch Targets (≥48dp), Haptic Feedback & Keyboard Insets
+### Task 04: [UI/UX & Release] Touch Targets (≥48dp), Haptic Feedback, Keyboard Insets & v0.0.0.20 Release
 - Audit all interactive surfaces against `mobile-android-design`: ensure all buttons, toggles, icon buttons, and list items have touch targets ≥ 48dp.
 - Implement subtle, tactile haptic feedback on secret reveal, copy actions, and password generation.
 - Polish soft keyboard auto-scroll behavior (`.imePadding()` + `LaunchedEffect` scroll-to-focused): ensure active text fields remain comfortably visible above Gboard on all screen sizes.
 - Refine Secure Notes markdown rendering with clean monospace code blocks and formatted headers.
+- Author `RELEASE-v0.0.0.20.md` and format `<en-US>` release notes in `RELEASE-PLAY.md`.
+- Bump monotonic `versionCode = 20` and update `versionName = "0.0.0.20"`.
 ```
 
 ---
@@ -248,17 +250,17 @@ Rigorously verify system autofill in real third-party applications and browsers,
   - Anti-AutoSpill WebView isolation: verify WebView forms cannot inherit credentials from outer native views.
 - Verify direct Settings deep-link from `SettingsAutofillScreen` opens system autofill picker cleanly.
 
-### Task 08: [Configuration & Release] 16 KB Page Alignment, ProGuard Audit & v0.0.0.15 Release
+### Task 08: [Configuration & Release] 16 KB Page Alignment, ProGuard Audit & v0.0.0.40 Release
 - Audit uncompressed native packaging: verify SQLCipher `.so` native libraries pass 16 KB ELF alignment verification.
 - Audit R8 ProGuard preservation rules: verify release builds preserve Room DAOs, SQLCipher JNI bindings, and Kotlinx Serialization models.
 - Execute full regression test gauntlet (`./gradlew testDebugUnitTest assembleDebug`) verifying 100% green status.
-- Author `RELEASE-v0.0.0.15.md` and format `<en-US>` release notes in `RELEASE-PLAY.md`.
-- Bump monotonic `versionCode` and update `versionName` to `v0.0.0.15 (Build 15)`.
+- Author `RELEASE-v0.0.0.40.md` and format `<en-US>` release notes in `RELEASE-PLAY.md`.
+- Bump monotonic `versionCode = 40` and update `versionName = "0.0.0.40"`.
 ```
 
 ---
 
-## 🐚 Stage 5 Prompt: First-Class HTTPS Transport & The Reef Handshake [v0.0.1.0 (Build 16) — Structural Completion Milestone]
+## 🐚 Stage 5 Prompt: First-Class HTTPS Transport & The Reef Handshake [v0.0.1.0 (Build 50) — Structural Completion Milestone]
 
 > 🗺️ **Master Roadmap Reference**: See [`ROADMAP.md`](../ROADMAP.md#stage-5-first-class-https-transport--the-reef-handshake) for complete specifications on **Task 09** and **Task 10**.  
 > **📖 Required Context Files for Stage 5**:  
@@ -269,10 +271,10 @@ Rigorously verify system autofill in real third-party applications and browsers,
 > 5. [`first_class_http_support_mobile_first_architecture.md`](file:///config/.gemini/antigravity/brain/f04e5f46-10f7-4362-92a2-5a51324c9456/first_class_http_support_mobile_first_architecture.md) — Canonical architectural specification.  
 
 ```markdown
-# STAGE 5 EXECUTION: First-Class HTTPS Transport & The Reef Handshake [v0.0.1.0 (Build 16)]
+# STAGE 5 EXECUTION: First-Class HTTPS Transport & The Reef Handshake [v0.0.1.0 (Build 50)]
 
 ## 🎯 Objective
-Achieve production-grade **Structural Completion (`v0.0.1.0`)** by solving the cleartext transport dilemma through a bespoke, mobile-first sync architecture. Implement the **Reef Handshake QR Pairing protocol** in CameraX, replace permissive trust managers with an active **Trust-On-First-Use (TOFU) Pinning Engine**, and implement the **Instance Identity Anchor** to silently auto-heal through server certificate rotations without developer friction.
+Achieve production-grade **Structural Completion (`v0.0.1.0 (Build 50)`)** by solving the cleartext transport dilemma through a bespoke, mobile-first sync architecture. Implement the **Reef Handshake QR Pairing protocol** in CameraX, replace permissive trust managers with an active **Trust-On-First-Use (TOFU) Pinning Engine**, and implement the **Instance Identity Anchor** to silently auto-heal through server certificate rotations without developer friction.
 
 ## 📖 Reference Documentation & Invariants
 Before writing code, inspect:
@@ -319,7 +321,7 @@ Execute Stage 5 adhering to the Network Security + UI & Release pairing:
     - Fail-closed rejection when rotation signature is forged or timestamp is stale.
   - Execute full regression test gauntlet (`./gradlew testDebugUnitTest assembleDebug`) verifying 100% green status.
   - Author production release manifest `RELEASE-v0.0.1.0.md` and format `<en-US>` release notes in `RELEASE-PLAY.md`.
-  - Bump monotonic `versionCode = 16` and update `versionName = "0.0.1.0"`.
+  - Bump monotonic `versionCode = 50` and update `versionName = "0.0.1.0"`.
 ```
 
 ---
