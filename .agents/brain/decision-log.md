@@ -1,10 +1,6 @@
 # Decision Log
 
 
-
-## 2026-10-08 — autofill container hijacking defense and blast-radius co-presence gate
-Diagnosed missing username inline chips and single-field password autofill on device: pre-order traversal in `AutofillStructureParser` evaluated Rank 4 substring heuristics on non-input parent containers (`<form id="login-form">`) and password nodes (`id="login_password"`) before child `<input>` elements, stealing `usernameId`. Enforced editable-input gating (including `AutoCompleteTextView` browser URL bar exclusion), mutual exclusion between password and username nodes, a Co-Presence Gate suppressing weak Rank 4/5 heuristics when `passwordId == null` while permitting Case A `"Add Item"` chips on explicit Rank 1–3 two-step email-first login pages (`accounts.google.com`), non-blank username overwrite guards, and Option B masked username + category/tag disambiguation (`testOracle.md` § Redline 10).
-
 ## 2026-10-09 — datastore combine initial emission & ci test determinism
 Diagnosed `AssertionError` in `SettingsViewModelTest.testTriggerManualSyncWithNoActiveSession` during GitHub Actions CI run `37897075874` (`v0.0.0.11`). Traced to `combine(settingsRepo.settingsFlow, _extraState)` in `SettingsViewModel` blocking `_extraState` emissions until AndroidX `DataStore` finished its asynchronous initial disk read on `Dispatchers.IO`. Seeded `settingsRepo.settingsFlow.onStart { emit(AppSettings()) }` and replaced nested `runTest` in `@Before setUp()` with `runBlocking`, verifying `114/114` unit tests 100% green.
 
@@ -64,3 +60,6 @@ Executed formal `/draft-release` alignment for `v0.0.0.13 (Build 13)`. Purged le
 
 ## 2026-10-17 — proactive todo mapping & suggested tasks alignment
 Audited all inline code comments across repository, verifying zero stale comments from prior tasks. Seeded 11 domain-scoped proactive `// TODO:` anchors across `ItemDetailScreen.kt`, `VaultDashboardScreen.kt`, `ItemFormScreen.kt`, `VaultLockManager.kt`, `SyncRepository.kt`, `CircularDialPicker.kt`, `AutofillStructureParser.kt`, and `KtorClientProvider.kt` matching Task 04 UI/UX polish, Stage 3 security lifecycle, and future transport hardening. Jules's Suggested Tasks scanner can autonomously ingest these anchors to populate candidate tasks.
+
+## 2026-10-18 — frictionless self-signed transport sovereignty & pr 5 refinement
+Evaluated Jules PR #4 and PR #5 for `KtorClientProvider.kt`. While PR #4 (CWE-532 log redaction) passed cleanly to MERGE, PR #5 unconditionally removed all self-signed SSL handling, which would break homelab self-hosters and force painful Android OS CA installation. Refined PR #5 verdict to REFINE-AND-RE-PR: mandated standard platform TLS by default, while gating self-signed trust behind an explicit user consent opt-in (`allowSelfSigned: Boolean = false`) to maintain symbiotic compatibility with Era 1 servers until Era 2 Stage 5 TOFU certificate pinning lands. Codified the invariant into root `AGENTS.md` and `.jules/KNOWLEDGE.md` (`e262231`).

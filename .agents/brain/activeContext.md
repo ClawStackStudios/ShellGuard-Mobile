@@ -4,7 +4,6 @@
 Stage 2 Completion & Transition to Stage 3 / Task 04 Polish. Release `v0.0.0.13 (Build 13)` tagged and published to `main`. Codebase verified 100% free of stale TODO comments; seeded 11 proactive, domain-scoped `// TODO:` anchors across roadmap tasks for autonomous Jules task discovery.
 
 ## Recent Events (Sliding Window of 10)
-1. **2026-10-12**: Configured Cloud CI verification workflow (`.github/workflows/ci.yml`), deterministic Python documentation drift auditor (`scripts/audit_docs_drift.py`), and updated `git-hygiene.md` and `walk-the-docs.md` to offload Gradle test and build execution to GitHub Actions Cloud runners.
 2. **2026-10-12**: Published Release `v0.0.0.12 (Build 12)`: purged legacy `RELEASE-v0.0.0.11.md`, merged Jules PR #1 and `feat/stage-1-...` into `main`, tagged `v0.0.0.12`, pushed to origin, and triggered Cloud CI release workflows.
 3. **2026-10-12**: Executed `/learn` to codify Pre-Draft Alignment Artifact Gate, Single Active Root Manifest Invariant, Sub-Second Drift Auditing, and Dual-Branch PR Merge Rollout across `.agents/workflows/` and `.agents/rules/`.
 4. **2026-10-12**: Executed `/deep-plan` for Stage 2 (Mental Flow & Ergonomic Form Polish). Authored task specs in `.jules/tasks/` (`task-3` & `task-4`), pushed `feat/stage-2-mental-flow-and-ergonomics`, and dispatched Jules session under Long-Lived Co-Pilot mode.
@@ -14,8 +13,9 @@ Stage 2 Completion & Transition to Stage 3 / Task 04 Polish. Release `v0.0.0.13 
 8. **2026-10-17**: Executed `/learn` codifying Direct File Writes Invariant (banning `sed`/regex scripts), Subagent Push Pre-Clearance, Hot-Session Multi-Phase Chaining, and Compose IME Redundancy Invariant. Replaced `.jules/JULES.md` with Root `AGENTS.md` and `.jules/KNOWLEDGE.md`.
 9. **2026-10-17**: Published Release `v0.0.0.13 (Build 13)`: bumped `app/build.gradle.kts` to `versionCode = 13`, `versionName = "0.0.0.13"`, deleted legacy `RELEASE-v0.0.0.12.md`, drafted `RELEASE-v0.0.0.13.md`, compressed Play Store release notes to 459 characters, merged PR #2 into `main` (`a35a7b0`), merged feature branch into `main` (`1ab14ea`), and pushed tag `v0.0.0.13`.
 10. **2026-10-17**: Audited all inline code comments across repository, verifying zero stale TODOs. Seeded 11 domain-scoped proactive `// TODO:` anchors across `ItemDetailScreen.kt`, `VaultDashboardScreen.kt`, `ItemFormScreen.kt`, `VaultLockManager.kt`, `SyncRepository.kt`, `CircularDialPicker.kt`, `AutofillStructureParser.kt`, and `KtorClientProvider.kt` for autonomous Suggested Tasks discovery by Jules. Pushed cleanly to `main` (`89d9928`).
+11. **2026-10-18**: Paired with Jules on `KtorClientProvider.kt` security fixes. Reviewed PR #4 (CWE-532 log redaction: MERGE) and PR #5 (CWE-295/297 TLS: REFINE-AND-RE-PR). Ratified Frictionless Self-Signed Transport Sovereignty invariant in `AGENTS.md` and `.jules/KNOWLEDGE.md` (`e262231`), dispatched refinement guidance comment to PR #5, and held PR #4 for unified merge.
 
 ## Next Steps
-- Verify Cloud CI build pipeline for tag `v0.0.0.13` and commit `89d9928`.
-- Dispatch or pair with Jules on Task 04 (UI/UX Touch Targets, Haptic Feedback & Markdown) or Stage 3 Task 05 (Security Lifecycle).
-- Verify on-device behavior on Google Pixel glass when user reconnects hardware.
+- Await Jules commit on PR #5 implementing `allowSelfSigned: Boolean = false` consent-gated TLS.
+- Re-review PR #5 upon update and merge PR #4 and PR #5 into `main`.
+- Verify Cloud CI builds for merged security patches.
