@@ -63,3 +63,7 @@ Audited all inline code comments across repository, verifying zero stale comment
 
 ## 2026-10-18 — frictionless self-signed transport sovereignty & pr 5 refinement
 Evaluated Jules PR #4 and PR #5 for `KtorClientProvider.kt`. While PR #4 (CWE-532 log redaction) passed cleanly to MERGE, PR #5 unconditionally removed all self-signed SSL handling, which would break homelab self-hosters and force painful Android OS CA installation. Refined PR #5 verdict to REFINE-AND-RE-PR: mandated standard platform TLS by default, while gating self-signed trust behind an explicit user consent opt-in (`allowSelfSigned: Boolean = false`) to maintain symbiotic compatibility with Era 1 servers until Era 2 Stage 5 TOFU certificate pinning lands. Codified the invariant into root `AGENTS.md` and `.jules/KNOWLEDGE.md` (`e262231`).
+
+## 2026-10-19 — on-glass pixel verification & compose layout bounding
+Merged PR #4 & PR #5 into `feat/security-remediations-integration` and deployed to physical Google Pixel (`lineage_sailfish`) over TLS ADB. Caught a visual defect where `GatewayScreen.kt` placed the self-signed consent row inside `Box` rather than `Column`, causing direct stacking on top of the segmented URL bar. Reordered the row into the vertical `Column`, enforced an accessible 48dp clickable container (`heightIn(min = 48.dp)`), and verified clean layout rendering, dynamic amber warning feedback, and protocol unmounting on physical glass.
+
