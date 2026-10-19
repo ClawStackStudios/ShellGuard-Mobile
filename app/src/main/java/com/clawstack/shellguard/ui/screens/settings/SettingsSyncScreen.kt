@@ -298,6 +298,7 @@ fun SettingsSyncScreen(
                             )
                             Spacer(modifier = Modifier.height(14.dp))
 
+                            val isHttps = uiState.serverUrl.startsWith("https://", ignoreCase = true)
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -308,7 +309,6 @@ fun SettingsSyncScreen(
                                     color = TextMuted,
                                     fontSize = 12.sp
                                 )
-                                val isHttps = uiState.serverUrl.startsWith("https://", ignoreCase = true)
                                 Text(
                                     text = if (isHttps) "TLS Encrypted (HTTPS)" else "Cleartext LAN / Tailscale (HTTP)",
                                     color = if (isHttps) BrandClawCyan else Color(0xFFF59E0B),
@@ -336,6 +336,32 @@ fun SettingsSyncScreen(
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         text = "Unencrypted HTTP — Session tokens and item metadata are exposed on local network.",
+                                        color = Color(0xFFFBBF24),
+                                        fontSize = 11.sp,
+                                        lineHeight = 15.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+
+                            if (isHttps && settings.allowSelfSignedCerts) {
+                                Spacer(modifier = Modifier.height(10.dp))
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(Color(0xFFD97706).copy(alpha = 0.15f))
+                                        .border(1.dp, Color(0xFFD97706).copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "⚠️",
+                                        fontSize = 12.sp
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = "Self-Signed Trust Override Active — Verify your server identity; strict HTTPS validation is disabled.",
                                         color = Color(0xFFFBBF24),
                                         fontSize = 11.sp,
                                         lineHeight = 15.sp,
@@ -492,6 +518,23 @@ fun SettingsSyncScreen(
                                 iconColor = BrandClawCyan,
                                 checked = settings.pullToRefreshEnabled,
                                 onCheckedChange = { viewModel.updatePullToRefreshEnabled(it) }
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp)
+                                    .height(1.dp)
+                                    .background(BorderSubtle.copy(alpha = 0.5f))
+                            )
+
+                            SyncToggleRow(
+                                title = "Trust self-signed certificates",
+                                subtitle = "Disable strict HTTPS verification for homelab compatibility",
+                                icon = Icons.Default.Security,
+                                iconColor = Color(0xFFF59E0B),
+                                checked = settings.allowSelfSignedCerts,
+                                onCheckedChange = { viewModel.updateAllowSelfSignedCerts(it) }
                             )
                         }
                     }

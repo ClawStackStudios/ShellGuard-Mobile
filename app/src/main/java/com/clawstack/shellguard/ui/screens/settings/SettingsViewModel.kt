@@ -134,6 +134,10 @@ class SettingsViewModel(
         settingsRepo.setPullToRefreshEnabled(enabled)
     }
 
+    fun updateAllowSelfSignedCerts(enabled: Boolean): Job = viewModelScope.launch {
+        settingsRepo.setAllowSelfSignedCerts(enabled)
+    }
+
     fun triggerManualSync(): Job = viewModelScope.launch {
         val ownerUuid = deviceVault.getOwnerUuid().orEmpty()
         if (ownerUuid.isBlank()) {
