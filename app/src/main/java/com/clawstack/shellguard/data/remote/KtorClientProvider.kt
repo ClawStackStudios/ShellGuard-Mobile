@@ -37,7 +37,7 @@ object NetworkSecurityHelper {
         }
     }
 
-    fun configureOkHttpClient(builder: OkHttpClient.Builder) {
+    fun configureOkHttpClient(builder: OkHttpClient.Builder, allowSelfSigned: Boolean = false) {
         builder.connectionSpecs(
             listOf(
                 ConnectionSpec.MODERN_TLS,
@@ -46,8 +46,10 @@ object NetworkSecurityHelper {
             )
         )
         // TODO(transport-tofu): Replace relaxed TrustManager with TOFU PinningTrustManager and Instance Anchor auto-heal validation (Task 09).
-        builder.sslSocketFactory(relaxedSslContext.socketFactory, relaxedTrustManager)
-        builder.hostnameVerifier { _, _ -> true }
+        if (allowSelfSigned) {
+            builder.sslSocketFactory(relaxedSslContext.socketFactory, relaxedTrustManager)
+            builder.hostnameVerifier { _, _ -> true }
+        }
         builder.connectTimeout(15, TimeUnit.SECONDS)
         builder.readTimeout(20, TimeUnit.SECONDS)
         builder.writeTimeout(20, TimeUnit.SECONDS)
@@ -83,12 +85,13 @@ object KtorClientProvider {
 
     fun createClient(
         baseUrl: String? = null,
+        allowSelfSigned: Boolean = false,
         onUnauthorized: (() -> Unit)? = null
     ): HttpClient {
         return HttpClient(OkHttp) {
             engine {
                 config {
-                    NetworkSecurityHelper.configureOkHttpClient(this)
+                    NetworkSecurityHelper.configureOkHttpClient(this, allowSelfSigned)
                 }
             }
 

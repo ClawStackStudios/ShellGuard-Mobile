@@ -11,6 +11,8 @@ import com.clawstack.shellguard.data.local.ShellGuardDatabase
 import com.clawstack.shellguard.data.remote.ShellGuardClient
 import com.clawstack.shellguard.data.repository.ConnectivityMonitor
 import com.clawstack.shellguard.data.repository.SyncRepository
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 /**
  * Top-level dependency container scoped to the Application lifecycle.
@@ -93,8 +95,12 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
     }
 
     override fun getClient(baseUrl: String): ShellGuardClient {
+        val allowSelfSigned = runBlocking {
+            settingsRepository.settingsFlow.first().allowSelfSignedCerts
+        }
         return ShellGuardClient(
             baseUrl = baseUrl,
+            allowSelfSigned = allowSelfSigned,
             onUnauthorized = {
                 deviceVault.clearSession()
             }

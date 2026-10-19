@@ -42,11 +42,13 @@ import io.ktor.http.Headers
 
 open class ShellGuardClient(
     val baseUrl: String,
+    val allowSelfSigned: Boolean = false,
     val onUnauthorized: (() -> Unit)? = null,
     injectedClient: HttpClient? = null
 ) {
     val client: HttpClient = injectedClient ?: KtorClientProvider.createClient(
         baseUrl = baseUrl,
+        allowSelfSigned = allowSelfSigned,
         onUnauthorized = onUnauthorized
     )
 
