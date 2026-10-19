@@ -65,7 +65,7 @@ suspend fun handleNetworkDiagnostics(response: HttpResponse) {
                 Log.e("ShellGuardClient", "  → Field [${issue.path}]: ${issue.message}")
             }
         } catch (e: Exception) {
-            Log.e("ShellGuardClient", "🚨 [HTTP 400 RAW]: $responseBody", e)
+            Log.e("ShellGuardClient", "🚨 [HTTP 400 RAW UNPARSEABLE ERROR]", e)
         }
     }
 }
