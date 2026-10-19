@@ -494,6 +494,43 @@ fun GatewayScreen(
                         }
                     }
                 }
+
+                if (uiState.protocol == "https") {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        androidx.compose.material3.Checkbox(
+                            checked = uiState.allowSelfSignedCerts,
+                            onCheckedChange = { viewModel.updateAllowSelfSignedCerts(it) },
+                            colors = androidx.compose.material3.CheckboxDefaults.colors(
+                                checkedColor = ReefPink,
+                                uncheckedColor = BorderSubtle,
+                                checkmarkColor = Color.White
+                            ),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                                Text(
+                                text = "Trust self-signed certificates",
+                                color = TextPrimary,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium
+                                )
+                            if (uiState.allowSelfSignedCerts) {
+                                Text(
+                                    text = "⚠️ Strict HTTPS validation disabled.",
+                                    color = Color(0xFFFBBF24),
+                                    fontSize = 11.sp
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(18.dp))
