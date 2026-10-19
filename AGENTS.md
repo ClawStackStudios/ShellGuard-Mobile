@@ -35,13 +35,14 @@
 - **Topology**: Clean Architecture MVI (`presentation -> domain <- data`). Feature-first decomposition.
 - **Dependency Injection**: Application-scoped lazy DI (`AppContainer`). No KAPT/Hilt annotation overhead.
 - **File Discipline**: Target ~250 lines per `.kt` file; 500 lines hard ceiling. One primary unit per file.
-- **Network Mobility**: Cleartext HTTP allowed for local LAN (`<base-config cleartextTrafficPermitted="true">`); TLS required for WAN/Tailscale; amber UI warning pills enforced on HTTP endpoints.
+- **Network Mobility & Transport Sovereignty**: Cleartext HTTP permitted for local LAN (`<base-config cleartextTrafficPermitted="true">`). Strict platform TLS enforced by default on WAN/HTTPS. Self-signed HTTPS certificates must be supported frictionlessly via explicit in-app user consent ("Trust self-signed certificates" toggle) without forcing users to install root CAs into Android OS settings. Amber UI warning pills enforced on all unverified or cleartext endpoints.
 
 ### Invariant Redlines
 | Boundary | Invariant Constraint | Observable Failure If Violated |
 | :--- | :--- | :--- |
 | **Heap Memory** | `zeroizeMemory()` on lock clears plaintext & keys | Plaintext secrets extractable via process heap dump (OWASP M2) |
 | **Network Config** | `<base-config>` cleartext, never CIDR notation | App crashes on boot: Android rejects CIDR masks in domain tags |
+| **Transport Trust** | In-app user consent toggle for self-signed TLS; never mandate OS CA installation | Homelab operators locked out of self-hosted HTTPS or burdened by alarming OS credential warnings |
 | **IME Keyboards** | `KeyboardOptions(autoCorrect = false)` on inputs | Custom keyboards cache secrets to disk dictionary (OWASP M1) |
 | **Ergonomics** | Minimum 48dp touch targets; `.imePadding()` on inputs | Clipped buttons; software keyboard covers active form inputs |
 | **Build Economy** | Fast Python drift gate locally; offload Gradle to CI | Local workstation CPU exhaustion; build freezes during dev loops |
@@ -80,7 +81,7 @@ Parser inspects child inputs directly. Suppresses weak username heuristics (Rank
 | :--- | :--- | :--- |
 | **Crypto** | `ShellCryptionEngine`, `PinAuthManager`, `VaultLockManager` | Constant-time PIN equality; zeroize volatile RAM on lock |
 | **Storage** | `ShellGuardDatabase`, `AttachmentVaultManager` | SQLCipher encryption at rest; 64KB chunked stream buffer |
-| **Network** | `ShellGuardClient`, `KtorClientProvider` | Cleartext HTTP permitted on LAN; amber UI warning pills |
+| **Network** | `ShellGuardClient`, `KtorClientProvider` | Cleartext HTTP on LAN; user-consent self-signed TLS; amber UI warning pills |
 | **Sync** | `SyncRepository`, `ConnectivityMonitor` | Mutex-serialized delta reconciliation; offline-first |
 | **Autofill** | `ShellGuardAutofillService`, `AutofillStructureParser` | AssistStructure child traversal; Co-Presence Gate |
 | **UI** | `*ViewModel`, `*Screen`, `ui/theme/` | 0dp elevation, 1dp borders, 48dp targets, `.imePadding()` |

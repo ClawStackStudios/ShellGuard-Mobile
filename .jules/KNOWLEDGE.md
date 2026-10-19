@@ -11,6 +11,7 @@
 - **CursorWindow Limit Defense (CWE-400)**: Android Room SQLite has a strict 2MB CursorWindow Binder limit per query. NEVER store attachment payloads as inline Room BLOBs. Store metadata only in Room (`size_bytes`, `mime_type`, `file_name`, `local_file_path`) and stream encrypted payloads to `context.filesDir/vault_attachments/{id}.enc` using 64KB buffers.
 - **Storage Lifecycle Parity**: When vault items or attachments are purged, deleted, or wiped during Panic Purge, the physical ciphertext file on disk (`vault_attachments/{id}.enc`) and any temporary plaintext preview files (`cacheDir/decrypted_attachments/*`) MUST be zeroized and deleted. Never orphan encrypted artifacts on disk.
 - **Session Decoupling & In-Place Re-Auth**: Vault lock zeroizes volatile RAM secrets and derived HKDF keys, but preserves KeyStore-sealed session tokens and PBKDF2 PIN state in encrypted storage so users re-authenticate in-place without remote server round-trips.
+- **Frictionless Self-Signed Transport Sovereignty**: ShellGuard is engineered for homelab operators where self-signed certificates are the default reality. Enforce strict platform TLS by default on WAN/HTTPS, but support self-signed certificates via explicit in-app user consent ("Trust self-signed certs" toggle) without forcing users to install root CAs into Android OS settings. Always retain `ConnectionSpec.CLEARTEXT` for local LAN HTTP.
 
 ---
 
