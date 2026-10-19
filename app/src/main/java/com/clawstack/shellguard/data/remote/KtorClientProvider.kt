@@ -16,11 +16,28 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import okhttp3.ConnectionSpec
 import okhttp3.OkHttpClient
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 object NetworkSecurityHelper {
 
-    fun configureOkHttpClient(builder: OkHttpClient.Builder) {
+    val relaxedTrustManager = object : X509TrustManager {
+        override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+        override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+        override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+    }
+
+    val relaxedSslContext: SSLContext by lazy {
+        SSLContext.getInstance("TLS").apply {
+            init(null, arrayOf<TrustManager>(relaxedTrustManager), SecureRandom())
+        }
+    }
+
+    fun configureOkHttpClient(builder: OkHttpClient.Builder, allowSelfSigned: Boolean = false) {
         builder.connectionSpecs(
             listOf(
                 ConnectionSpec.MODERN_TLS,
@@ -29,6 +46,10 @@ object NetworkSecurityHelper {
             )
         )
         // TODO(transport-tofu): Replace relaxed TrustManager with TOFU PinningTrustManager and Instance Anchor auto-heal validation (Task 09).
+        if (allowSelfSigned) {
+            builder.sslSocketFactory(relaxedSslContext.socketFactory, relaxedTrustManager)
+            builder.hostnameVerifier { _, _ -> true }
+        }
         builder.connectTimeout(15, TimeUnit.SECONDS)
         builder.readTimeout(20, TimeUnit.SECONDS)
         builder.writeTimeout(20, TimeUnit.SECONDS)
@@ -64,12 +85,13 @@ object KtorClientProvider {
 
     fun createClient(
         baseUrl: String? = null,
+        allowSelfSigned: Boolean = false,
         onUnauthorized: (() -> Unit)? = null
     ): HttpClient {
         return HttpClient(OkHttp) {
             engine {
                 config {
-                    NetworkSecurityHelper.configureOkHttpClient(this)
+                    NetworkSecurityHelper.configureOkHttpClient(this, allowSelfSigned)
                 }
             }
 
