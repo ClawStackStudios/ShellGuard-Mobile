@@ -1,10 +1,9 @@
 # Active Context: ShellGuard Mobile
 
 ## Current Focus
-Security & Transport Sovereignty Hotfix `v0.0.0.14 (Build 14)` staged and verified. Development roadmap realigned to Option 1 Decade Intervals (`Build 20` Stage 2, `Build 30` Stage 3, `Build 40` Stage 4, `Build 50` Structural Completion). Physical Google Pixel on-glass verification passed; all 127 tests green on Cloud CI; doc-drift audit 100% clean.
+Security & Transport Sovereignty Hotfix `v0.0.0.14 (Build 14)` staged and verified. Complete user-facing documentation for ShellGuard Mobile authored and integrated into official VitePress documentation across 6 chapters in `/mobile/` (`docs/mobile-vault-client`). Local specifications and manifests reconciled and verified 100% green via `audit_docs_drift.py` and VitePress build.
 
 ## Recent Events (Sliding Window of 10)
-4. **2026-10-12**: Executed `/deep-plan` for Stage 2 (Mental Flow & Ergonomic Form Polish). Authored task specs in `.jules/tasks/` (`task-3` & `task-4`), pushed `feat/stage-2-mental-flow-and-ergonomics`, and dispatched Jules session under Long-Lived Co-Pilot mode.
 5. **2026-10-14**: Executed formal `/git-review-pr` protocol on PR #2 (`.reviews/PR-2-review.md`). Cloud CI passed 100% green (126 tests). Identified `GatewayViewModel.init` pre-population bug and OWASP M2 memory retention. Posted surgical review guidance comment to PR #2.
 6. **2026-10-15**: Jules landed all 3 surgical fixes in commit `2b2f34c` (127/127 tests green on Cloud CI). Deployed debug APK to physical Google Pixel (`sailfish`) over TLS ADB, verifying sub-0.5ms search, OWASP M1 IME hardening, soft-keyboard dismiss, and OWASP M2 post-lock heap zeroization on glass.
 7. **2026-10-16**: Completed Phase 5 `/git-review-pr` protocol on PR #2 (`d62100b`). Verified 127/127 tests green and doc drift audit clean. Reconciled architecture specs, cleaned deprecations, hoisted `Json` instance, and established official MERGE recommendation.
@@ -14,8 +13,10 @@ Security & Transport Sovereignty Hotfix `v0.0.0.14 (Build 14)` staged and verifi
 11. **2026-10-18**: Paired with Jules on `KtorClientProvider.kt` security fixes. Reviewed PR #4 (CWE-532 log redaction: MERGE) and PR #5 (CWE-295/297 TLS: REFINE-AND-RE-PR). Ratified Frictionless Self-Signed Transport Sovereignty invariant in `AGENTS.md` and `.jules/KNOWLEDGE.md` (`e262231`), dispatched refinement guidance comment to PR #5, and held PR #4 for unified merge.
 12. **2026-10-19**: Integrated PR #4 & PR #5 on `feat/security-remediations-integration`. Deployed debug APK via wireless TLS ADB to physical Google Pixel (`lineage_sailfish`). Identified Compose Box overlap in `GatewayScreen.kt`, refactored into vertical `Column` with 48dp clickable touch target (`518a017`, `f5cd54f`). Cloud CI run `39194738107` passed 100% green (127/127 tests); verified on-glass interactive toggling and amber warning pill dynamics.
 13. **2026-10-19**: Realigned Master Roadmap to Option 1 Decade Spacing (`v0.0.0.14` Build 14 Hotfix ➔ `v0.0.0.20` Build 20 Stage 2 ➔ `v0.0.0.30` Build 30 Stage 3 ➔ `v0.0.0.40` Build 40 Stage 4 ➔ `v0.0.1.0` Build 50 Structural Completion). Bumped `app/build.gradle.kts` to `versionCode = 14`, `versionName = "0.0.0.14"`. Cut `RELEASE-v0.0.0.14.md`, updated `RELEASE-PLAY.md` (389 chars), `CHANGELOG.md`, `SECURITY.md`, `README.md`, `ROADMAP.md`, and `meta-prompt-ai-studio.md`. Verified 100% compliance via `audit_docs_drift.py`.
+14. **2026-10-21**: Executed deep `/walk-the-docs` audit and created dedicated `/mobile/` section in VitePress docs (`ShellGuard` repo on branch `docs/mobile-vault-client`). Authored 6 chapters covering overview, onboarding/gateway, vault CRUD, autofill/passkeys, security/PIN, and sync/backups. Reconciled `ShellGuard-Mobile` local specs (`9faaadd`) and pruned `RELEASE-v0.0.0.13.md`. Verified VitePress production build 100% green in 103s (`b925728`).
 
 ## Next Steps
-- Merge or fast-forward `feat/security-remediations-integration` into `main`, closing PR #4 and PR #5.
-- Tag and publish release `v0.0.0.14` (Build 14).
+- Merge `docs/mobile-vault-client` into `ShellGuard` main branch when ready to deploy documentation site.
+- Merge `docs/walk-the-docs-v0.0.0.14` into `ShellGuard-Mobile` main branch.
 - Resume Stage 2 Task 04 (UI/UX Touch Targets & Haptic Feedback Polish targeting `v0.0.0.20 (Build 20)`).
+

@@ -430,3 +430,30 @@ We aligned the code and the documentation in a single stroke: Gradle, Roadmap, P
 
 I think I'm realizing that architecture isn't just about how code is structured inside functions; it's about giving the work room to breathe. When you leave a runway between milestones, friction doesn't break the plan—it just fills the space you had the wisdom to prepare.
 
+---
+
+## 2026-10-21 05:40 — Walking the Docs & The Sovereign Mobile Section
+
+With `v0.0.0.14 (Build 14)` secured and tested on physical glass, Lucas asked me to execute a deep `/walk-the-docs` audit against the official user-facing VitePress documentation in `ShellGuard/docs/`. We were looking for what code had built that documentation had left behind.
+
+The findings were stark: the VitePress documentation had a `/companion/` section covering `ShellGuard-TOTP`, but for `ShellGuard-Mobile`—our full-fledged, zero-knowledge Android vault client (`com.clawstack.shellguard`)—there was zero coverage. None of the capabilities we had forged across 14 releases (the Autofill Co-Presence Gate, OWASP M1 IME keyboard hardening, OWASP M2 volatile heap zeroization, in-place PBKDF2 PIN re-authentication, 64KB chunked attachment streaming, and our new Frictionless Self-Signed Transport Sovereignty) existed in user-facing form.
+
+Lucas asked whether we could delegate this across parallel subagents using git worktrees. I weighed the joints: the workspace was rooted in `ShellGuard-Mobile`, while the documentation lived in its sibling `ShellGuard` repository. Splitting work across parallel subagent worktrees spanning two repositories with shared VitePress config files invited git collisions and broken link cascades. I presented the risk and recommended Option B: direct, phased lead execution. Lucas agreed immediately: *"lets go with option B... break everything up into phases so its not all one single pass."*
+
+We proceeded stroke by stroke. In Phase 1, I reconciled the mobile repository's internal specifications: deleted `RELEASE-v0.0.0.13.md` to restore the Single Active Root Manifest Invariant, updated `project/architecture.md` and `project/routes-and-contracts.md` to document the user-consented TLS toggle and CWE-532 log redaction, and verified the sub-second Python drift audit green (`0.08s`).
+
+In Phase 2, I opened branch `docs/mobile-vault-client` in `ShellGuard` and authored a complete, six-part narrative progression in `docs/mobile/`:
+1. `index.md`: Mobile Overview, system architecture, and explicit boundaries separating the full client from the TOTP companion.
+2. `onboarding-and-gateway.md`: Network mobility, LAN HTTP, consent-gated self-signed TLS, amber warning pills, and Base62 `hu-` key provisioning.
+3. `vault-and-crud.md`: The 5 core record domains, sub-0.5ms SQLite queries, custom fields with strict AAD binding, and 64KB chunked attachment streaming.
+4. `autofill-and-integration.md`: Android Autofill Service, the Co-Presence Gate heuristic that eliminates false positives on search inputs, Android 14+ Passkeys, and Quick Settings tiles.
+5. `security-and-lock.md`: Class 3 biometrics, the 100,000-round PBKDF2 PIN manager, in-place re-auth, heap zeroization (`zeroizeMemory()`), and IME hardening.
+6. `sync-offline-and-backups.md`: SQLCipher 4.6.1 persistence, mutex-serialized delta sync, portable encrypted `.sgvault.bak` backups, and the Emergency Recovery Kit.
+
+In Phase 3, I wired the section into the ecosystem: top navigation, sidebar hierarchy, homepage cards, the ClawStack Lexicon (glossary), and Section 5.1 of `privacy.md` with our Google Play Data Safety fast-card.
+
+Then came the verification stroke: I fired VitePress's full production build in the cloud. It processed all markdown files, compiled client/server bundles, and rendered pages in 103 seconds with zero broken links and zero syntax errors. I committed both repositories with two-layer attribution (`9faaadd` in Mobile, `b925728` in Docs).
+
+The documentation now bows completely to the physical code reality. The trail is intact.
+
+
