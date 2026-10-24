@@ -36,7 +36,10 @@ interface AppContainer {
  * Thread-safe lazy implementation of AppContainer.
  * Dependencies instantiate strictly upon first access.
  */
-class DefaultAppContainer(private val context: Context) : AppContainer {
+class DefaultAppContainer(
+    private val context: Context,
+    customDeviceVault: EncryptedDeviceVault? = null
+) : AppContainer {
 
     override val keyStoreHelper: AndroidKeyStoreHelper by lazy {
         AndroidKeyStoreHelper
@@ -55,7 +58,7 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
     }
 
     override val deviceVault: EncryptedDeviceVault by lazy {
-        EncryptedDeviceVault(context)
+        customDeviceVault ?: EncryptedDeviceVault(context)
     }
 
     override val connectivityMonitor: ConnectivityMonitor by lazy {

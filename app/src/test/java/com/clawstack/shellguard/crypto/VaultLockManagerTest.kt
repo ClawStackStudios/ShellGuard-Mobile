@@ -22,7 +22,9 @@ class VaultLockManagerTest {
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
-        deviceVault = EncryptedDeviceVault(context)
+        val prefs = context.getSharedPreferences("test_vault_lock_mgr", Context.MODE_PRIVATE)
+        prefs.edit().clear().commit()
+        deviceVault = EncryptedDeviceVault(context, prefs)
         deviceVault.clearSession()
 
         // Establish an active session

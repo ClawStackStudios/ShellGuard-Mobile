@@ -113,7 +113,9 @@ class SyncReconciliationAdversarialTest {
         database = Room.inMemoryDatabaseBuilder(context, ShellGuardDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        deviceVault = EncryptedDeviceVault(context)
+        val prefs = context.getSharedPreferences("test_sync_reconcil_prefs", Context.MODE_PRIVATE)
+        prefs.edit().clear().commit()
+        deviceVault = EncryptedDeviceVault(context, prefs)
         shellKey = ShellCryptionEngine.deriveShellKey(testHuKey, testOwnerUuid)
         deviceVault.saveSession(
             token = "session-token-xyz",
@@ -140,7 +142,7 @@ class SyncReconciliationAdversarialTest {
     fun tearDown() {
         syncRepository.cancelScope()
         database.close()
-        context.getSharedPreferences("shellguard_device_vault_test", Context.MODE_PRIVATE).edit().clear().commit()
+        context.getSharedPreferences("test_sync_reconcil_prefs", Context.MODE_PRIVATE).edit().clear().commit()
     }
 
     /**

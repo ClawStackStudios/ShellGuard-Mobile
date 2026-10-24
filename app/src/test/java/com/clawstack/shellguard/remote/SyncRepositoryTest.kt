@@ -49,7 +49,9 @@ class SyncRepositoryTest {
         database = Room.inMemoryDatabaseBuilder(context, ShellGuardDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        deviceVault = EncryptedDeviceVault(context)
+        val prefs = context.getSharedPreferences("test_sync_repo_prefs", Context.MODE_PRIVATE)
+        prefs.edit().clear().commit()
+        deviceVault = EncryptedDeviceVault(context, prefs)
         val testHuKey = "hu-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
         val shellKey = ShellCryptionEngine.deriveShellKey(testHuKey, testOwnerUuid)
         deviceVault.saveSession(
@@ -74,7 +76,7 @@ class SyncRepositoryTest {
     fun tearDown() {
         syncRepository.cancelScope()
         database.close()
-        context.getSharedPreferences("shellguard_device_vault_test", Context.MODE_PRIVATE).edit().clear().commit()
+        context.getSharedPreferences("test_sync_repo_prefs", Context.MODE_PRIVATE).edit().clear().commit()
     }
 
     @Test

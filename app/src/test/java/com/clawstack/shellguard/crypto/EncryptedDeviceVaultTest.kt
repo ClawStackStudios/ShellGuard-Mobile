@@ -7,12 +7,14 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -24,7 +26,9 @@ class EncryptedDeviceVaultTest {
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
-        deviceVault = EncryptedDeviceVault(context)
+        val prefs = context.getSharedPreferences("test_encrypted_device_vault", Context.MODE_PRIVATE)
+        prefs.edit().clear().commit()
+        deviceVault = EncryptedDeviceVault(context, prefs)
         deviceVault.clearSession()
     }
 
@@ -73,7 +77,8 @@ class EncryptedDeviceVaultTest {
         )
 
         // Simulate a new process instance or cold boot where RAM was cleared
-        val coldVault = EncryptedDeviceVault(context)
+        val prefs = context.getSharedPreferences("test_encrypted_device_vault", Context.MODE_PRIVATE)
+        val coldVault = EncryptedDeviceVault(context, prefs)
         assertTrue(coldVault.hasActiveSession())
         val restoredKey = coldVault.getInMemoryShellKey()
         assertNotNull(restoredKey)
@@ -93,6 +98,27 @@ class EncryptedDeviceVaultTest {
 
         assertFalse(deviceVault.hasActiveSession())
         assertNull(deviceVault.getInMemoryShellKey())
+    }
+
+    @Test
+    fun testInitializationFailureThrowsSecurityExceptionAndDoesNotCreateFallbackFile() {
+        val mockContext = object : android.content.ContextWrapper(ApplicationProvider.getApplicationContext()) {
+            override fun getSharedPreferences(name: String?, mode: Int): android.content.SharedPreferences {
+                if (name == "shellguard_device_vault") {
+                    throw RuntimeException("Simulated KeyStore / EncryptedSharedPreferences failure")
+                }
+                return super.getSharedPreferences(name, mode)
+            }
+        }
+        val testVault = EncryptedDeviceVault(mockContext)
+
+        val exception = assertThrows(SecurityException::class.java) {
+            testVault.getSessionToken()
+        }
+        assertTrue(exception.message?.contains("Failed to initialize EncryptedSharedPreferences") == true)
+
+        val testPrefsFile = File(mockContext.filesDir.parentFile, "shared_prefs/shellguard_device_vault_test.xml")
+        assertFalse(testPrefsFile.exists())
     }
 
     @Test

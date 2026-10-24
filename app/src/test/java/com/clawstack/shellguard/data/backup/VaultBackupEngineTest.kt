@@ -38,7 +38,9 @@ class VaultBackupEngineTest {
         context = ApplicationProvider.getApplicationContext()
         database = ShellGuardDatabase.getInMemoryDatabase(context)
 
-        deviceVault = EncryptedDeviceVault(context)
+        val prefs = context.getSharedPreferences("test_backup_engine_prefs", Context.MODE_PRIVATE)
+        prefs.edit().clear().commit()
+        deviceVault = EncryptedDeviceVault(context, prefs)
         deviceVault.clearSession()
         testShellKey = ShellCryptionEngine.deriveShellKey(testHuKey, testOwnerUuid)
         deviceVault.saveSession("token-test", "http://127.0.0.1:6464", testOwnerUuid, "tester", "hashedKey", testShellKey)

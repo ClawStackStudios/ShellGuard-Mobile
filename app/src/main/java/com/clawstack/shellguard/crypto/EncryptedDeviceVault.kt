@@ -6,10 +6,13 @@ import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
-class EncryptedDeviceVault(private val context: Context) {
+class EncryptedDeviceVault(
+    private val context: Context,
+    customPrefs: SharedPreferences? = null
+) {
 
     private val prefs: SharedPreferences by lazy {
-        try {
+        customPrefs ?: try {
             val masterKey = MasterKey.Builder(context)
                 .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
                 .build()
@@ -21,9 +24,11 @@ class EncryptedDeviceVault(private val context: Context) {
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
-        } catch (e: Throwable) {
-            Log.w("EncryptedDeviceVault", "Fallback to standard preferences (headless/test mode): ${e.message}")
-            context.getSharedPreferences("shellguard_device_vault_test", Context.MODE_PRIVATE)
+        } catch (e: Exception) {
+            throw SecurityException(
+                "Failed to initialize EncryptedSharedPreferences: hardware keystore or encryption unavailable",
+                e
+            )
         }
     }
 

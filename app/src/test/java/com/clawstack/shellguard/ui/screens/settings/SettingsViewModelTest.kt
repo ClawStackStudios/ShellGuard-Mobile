@@ -39,7 +39,10 @@ class SettingsViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         context = ApplicationProvider.getApplicationContext()
-        appContainer = DefaultAppContainer(context)
+        val prefs = context.getSharedPreferences("test_settings_vm_prefs", Context.MODE_PRIVATE)
+        prefs.edit().clear().commit()
+        val testDeviceVault = com.clawstack.shellguard.crypto.EncryptedDeviceVault(context, prefs)
+        appContainer = DefaultAppContainer(context, testDeviceVault)
         runBlocking {
             appContainer.settingsRepository.clearAll()
         }

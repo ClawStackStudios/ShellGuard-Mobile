@@ -25,7 +25,9 @@ class PinAuthManagerTest {
     @Before
     fun setUp() = runBlocking {
         context = ApplicationProvider.getApplicationContext()
-        deviceVault = EncryptedDeviceVault(context)
+        val prefs = context.getSharedPreferences("test_pin_auth_mgr", Context.MODE_PRIVATE)
+        prefs.edit().clear().commit()
+        deviceVault = EncryptedDeviceVault(context, prefs)
         deviceVault.clearSession()
         deviceVault.clearPin()
 

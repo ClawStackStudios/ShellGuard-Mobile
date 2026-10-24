@@ -77,7 +77,9 @@ class VaultDashboardViewModelTest {
             .allowMainThreadQueries()
             .build()
 
-        deviceVault = EncryptedDeviceVault(context).apply {
+        val prefs = context.getSharedPreferences("test_dashboard_vm_prefs", Context.MODE_PRIVATE)
+        prefs.edit().clear().commit()
+        deviceVault = EncryptedDeviceVault(context, prefs).apply {
             saveSession("test", "https://test.com", testOwnerUuid, "testuser", "hashedkey")
         }
 
