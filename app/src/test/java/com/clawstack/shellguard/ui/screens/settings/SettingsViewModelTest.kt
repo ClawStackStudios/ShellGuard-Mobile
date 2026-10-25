@@ -192,10 +192,12 @@ class SettingsViewModelTest {
         // When no active session is authenticated, triggerManualSync outputs error
         viewModel.triggerManualSync().join()
 
-        assertEquals("No active session to sync.", viewModel.uiState.value.errorMessage)
+        val state = viewModel.uiState.filter { it.errorMessage != null }.first()
+        assertEquals("No active session to sync.", state.errorMessage)
 
         viewModel.clearMessages()
-        assertEquals(null, viewModel.uiState.value.errorMessage)
+        val clearedState = viewModel.uiState.filter { it.errorMessage == null }.first()
+        assertEquals(null, clearedState.errorMessage)
     }
 
     @Test
