@@ -6,7 +6,7 @@ import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
-class EncryptedDeviceVault(private val context: Context) {
+class EncryptedDeviceVault(private val context: Context) : DeviceVault {
 
     private val prefs: SharedPreferences by lazy {
         try {
@@ -21,22 +21,24 @@ class EncryptedDeviceVault(private val context: Context) {
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
-        } catch (e: Throwable) {
-            Log.w("EncryptedDeviceVault", "Fallback to standard preferences (headless/test mode): ${e.message}")
-            context.getSharedPreferences("shellguard_device_vault_test", Context.MODE_PRIVATE)
+        } catch (e: Exception) {
+            throw SecurityException(
+                "Failed to initialize EncryptedSharedPreferences: hardware keystore or encryption unavailable",
+                e
+            )
         }
     }
 
     @Volatile
     private var inMemoryShellKey: ByteArray? = null
 
-    fun saveSession(
+    override fun saveSession(
         token: String,
         serverUrl: String,
         ownerUuid: String,
         username: String,
         hashedKey: String,
-        shellKey: ByteArray? = null
+        shellKey: ByteArray?
     ) {
         val editor = prefs.edit()
             .putString(KEY_SESSION_TOKEN, token)
@@ -54,17 +56,17 @@ class EncryptedDeviceVault(private val context: Context) {
         editor.apply()
     }
 
-    fun getSessionToken(): String? = prefs.getString(KEY_SESSION_TOKEN, null)
+    override fun getSessionToken(): String? = prefs.getString(KEY_SESSION_TOKEN, null)
 
-    fun getServerUrl(): String? = prefs.getString(KEY_SERVER_URL, null)
+    override fun getServerUrl(): String? = prefs.getString(KEY_SERVER_URL, null)
 
-    fun getOwnerUuid(): String? = prefs.getString(KEY_OWNER_UUID, null)
+    override fun getOwnerUuid(): String? = prefs.getString(KEY_OWNER_UUID, null)
 
-    fun getUsername(): String? = prefs.getString(KEY_USERNAME, null)
+    override fun getUsername(): String? = prefs.getString(KEY_USERNAME, null)
 
-    fun getHashedKey(): String? = prefs.getString(KEY_HASHED_KEY, null)
+    override fun getHashedKey(): String? = prefs.getString(KEY_HASHED_KEY, null)
 
-    fun hasActiveSession(): Boolean {
+    override fun hasActiveSession(): Boolean {
         val token = getSessionToken()
         val server = getServerUrl()
         val owner = getOwnerUuid()
@@ -72,12 +74,12 @@ class EncryptedDeviceVault(private val context: Context) {
         return !token.isNullOrBlank() && !server.isNullOrBlank() && !owner.isNullOrBlank() && key != null
     }
 
-    fun setInMemoryShellKey(key: ByteArray) {
+    override fun setInMemoryShellKey(key: ByteArray) {
         inMemoryShellKey = key.copyOf()
         prefs.edit().putString(KEY_SHELL_KEY, android.util.Base64.encodeToString(key, android.util.Base64.NO_WRAP)).apply()
     }
 
-    fun getInMemoryShellKey(): ByteArray? {
+    override fun getInMemoryShellKey(): ByteArray? {
         inMemoryShellKey?.let { return it }
         val stored = prefs.getString(KEY_SHELL_KEY, null)
         if (!stored.isNullOrBlank()) {
@@ -92,22 +94,22 @@ class EncryptedDeviceVault(private val context: Context) {
         return null
     }
 
-    fun zeroizeMemory() {
+    override fun zeroizeMemory() {
         inMemoryShellKey?.fill(0.toByte())
         inMemoryShellKey = null
     }
 
-    fun clearPersistentShellKey() {
+    override fun clearPersistentShellKey() {
         prefs.edit().remove(KEY_SHELL_KEY).apply()
     }
 
-    fun clearSession() {
+    override fun clearSession() {
         zeroizeMemory()
         clearPersistentShellKey()
         prefs.edit().clear().apply()
     }
 
-    fun savePinHash(saltBase64: String, hashBase64: String) {
+    override fun savePinHash(saltBase64: String, hashBase64: String) {
         prefs.edit()
             .putString(KEY_PIN_SALT, saltBase64)
             .putString(KEY_PIN_HASH, hashBase64)
@@ -115,10 +117,10 @@ class EncryptedDeviceVault(private val context: Context) {
             .apply()
     }
 
-    fun getPinSalt(): String? = prefs.getString(KEY_PIN_SALT, null)
-    fun getPinHash(): String? = prefs.getString(KEY_PIN_HASH, null)
+    override fun getPinSalt(): String? = prefs.getString(KEY_PIN_SALT, null)
+    override fun getPinHash(): String? = prefs.getString(KEY_PIN_HASH, null)
 
-    fun clearPin() {
+    override fun clearPin() {
         prefs.edit()
             .remove(KEY_PIN_SALT)
             .remove(KEY_PIN_HASH)
@@ -126,21 +128,21 @@ class EncryptedDeviceVault(private val context: Context) {
             .apply()
     }
 
-    fun hasPinConfigured(): Boolean = !getPinSalt().isNullOrBlank() && !getPinHash().isNullOrBlank()
+    override fun hasPinConfigured(): Boolean = !getPinSalt().isNullOrBlank() && !getPinHash().isNullOrBlank()
 
-    fun getFailedPinAttempts(): Int = prefs.getInt(KEY_FAILED_PIN_ATTEMPTS, 0)
+    override fun getFailedPinAttempts(): Int = prefs.getInt(KEY_FAILED_PIN_ATTEMPTS, 0)
 
-    fun incrementFailedPinAttempts(): Int {
+    override fun incrementFailedPinAttempts(): Int {
         val attempts = getFailedPinAttempts() + 1
         prefs.edit().putInt(KEY_FAILED_PIN_ATTEMPTS, attempts).apply()
         return attempts
     }
 
-    fun resetFailedPinAttempts() {
+    override fun resetFailedPinAttempts() {
         prefs.edit().putInt(KEY_FAILED_PIN_ATTEMPTS, 0).apply()
     }
 
-    fun verifyMasterKey(huKey: String): Boolean {
+    override fun verifyMasterKey(huKey: String): Boolean {
         val storedHash = getHashedKey() ?: return false
         val computedHash = ClawCrypto.hashHumanKey(huKey)
         return java.security.MessageDigest.isEqual(
@@ -149,7 +151,7 @@ class EncryptedDeviceVault(private val context: Context) {
         )
     }
 
-    fun verifyClawKeyJson(jsonContent: String): Boolean {
+    override fun verifyClawKeyJson(jsonContent: String): Boolean {
         val extractedKey = ClawCrypto.extractKey(jsonContent) ?: return false
         return verifyMasterKey(extractedKey)
     }

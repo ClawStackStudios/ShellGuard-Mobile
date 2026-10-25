@@ -2,7 +2,8 @@ package com.clawstack.shellguard.data.backup
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import com.clawstack.shellguard.crypto.EncryptedDeviceVault
+import com.clawstack.shellguard.crypto.DeviceVault
+import com.clawstack.shellguard.crypto.FakeDeviceVault
 import com.clawstack.shellguard.crypto.ShellCryptionEngine
 import com.clawstack.shellguard.data.local.ShellGuardDatabase
 import com.clawstack.shellguard.data.local.entities.SecureNoteEntity
@@ -26,7 +27,7 @@ class VaultBackupEngineTest {
 
     private lateinit var context: Context
     private lateinit var database: ShellGuardDatabase
-    private lateinit var deviceVault: EncryptedDeviceVault
+    private lateinit var deviceVault: DeviceVault
     private lateinit var backupEngine: VaultBackupEngine
 
     private val testHuKey = "hu-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
@@ -38,7 +39,7 @@ class VaultBackupEngineTest {
         context = ApplicationProvider.getApplicationContext()
         database = ShellGuardDatabase.getInMemoryDatabase(context)
 
-        deviceVault = EncryptedDeviceVault(context)
+        deviceVault = FakeDeviceVault()
         deviceVault.clearSession()
         testShellKey = ShellCryptionEngine.deriveShellKey(testHuKey, testOwnerUuid)
         deviceVault.saveSession("token-test", "http://127.0.0.1:6464", testOwnerUuid, "tester", "hashedKey", testShellKey)

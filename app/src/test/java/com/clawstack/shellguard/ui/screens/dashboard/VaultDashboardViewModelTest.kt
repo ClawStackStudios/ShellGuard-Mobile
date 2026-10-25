@@ -3,7 +3,8 @@ package com.clawstack.shellguard.ui.screens.dashboard
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import com.clawstack.shellguard.crypto.EncryptedDeviceVault
+import com.clawstack.shellguard.crypto.DeviceVault
+import com.clawstack.shellguard.crypto.FakeDeviceVault
 import com.clawstack.shellguard.crypto.ShellCryptionEngine
 import com.clawstack.shellguard.crypto.VaultLockManager
 import com.clawstack.shellguard.data.local.AttachmentVaultManager
@@ -39,7 +40,7 @@ import kotlin.system.measureNanoTime
 
 class TestAppContainer(
     override val database: ShellGuardDatabase,
-    override val deviceVault: EncryptedDeviceVault,
+    override val deviceVault: DeviceVault,
     override val syncRepository: SyncRepository,
     override val attachmentVaultManager: AttachmentVaultManager,
     override val connectivityMonitor: ConnectivityMonitor,
@@ -65,7 +66,7 @@ class VaultDashboardViewModelTest {
     private lateinit var appContainer: AppContainer
     private lateinit var context: Context
     private lateinit var database: ShellGuardDatabase
-    private lateinit var deviceVault: EncryptedDeviceVault
+    private lateinit var deviceVault: DeviceVault
     private lateinit var syncRepository: SyncRepository
 
     @Before
@@ -77,7 +78,7 @@ class VaultDashboardViewModelTest {
             .allowMainThreadQueries()
             .build()
 
-        deviceVault = EncryptedDeviceVault(context).apply {
+        deviceVault = FakeDeviceVault().apply {
             saveSession("test", "https://test.com", testOwnerUuid, "testuser", "hashedkey")
         }
 

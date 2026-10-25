@@ -3,7 +3,8 @@ package com.clawstack.shellguard.remote
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import com.clawstack.shellguard.crypto.EncryptedDeviceVault
+import com.clawstack.shellguard.crypto.DeviceVault
+import com.clawstack.shellguard.crypto.FakeDeviceVault
 import com.clawstack.shellguard.crypto.ShellCryptionEngine
 import com.clawstack.shellguard.data.local.ShellGuardDatabase
 import com.clawstack.shellguard.data.local.entities.VaultPearlEntity
@@ -35,7 +36,7 @@ class SyncReconciliationAdversarialTest {
 
     private lateinit var context: Context
     private lateinit var database: ShellGuardDatabase
-    private lateinit var deviceVault: EncryptedDeviceVault
+    private lateinit var deviceVault: DeviceVault
     private lateinit var connectivityMonitor: ConnectivityMonitor
     private lateinit var fakeClient: FakeShellGuardClient
     private lateinit var syncRepository: SyncRepository
@@ -113,7 +114,7 @@ class SyncReconciliationAdversarialTest {
         database = Room.inMemoryDatabaseBuilder(context, ShellGuardDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        deviceVault = EncryptedDeviceVault(context)
+        deviceVault = FakeDeviceVault()
         shellKey = ShellCryptionEngine.deriveShellKey(testHuKey, testOwnerUuid)
         deviceVault.saveSession(
             token = "session-token-xyz",
@@ -140,7 +141,6 @@ class SyncReconciliationAdversarialTest {
     fun tearDown() {
         syncRepository.cancelScope()
         database.close()
-        context.getSharedPreferences("shellguard_device_vault_test", Context.MODE_PRIVATE).edit().clear().commit()
     }
 
     /**

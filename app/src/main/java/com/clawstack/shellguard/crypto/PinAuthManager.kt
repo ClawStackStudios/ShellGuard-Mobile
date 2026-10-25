@@ -12,7 +12,7 @@ import javax.crypto.spec.PBEKeySpec
  * and failed attempt lockout tracking.
  */
 class PinAuthManager(
-    private val deviceVault: EncryptedDeviceVault,
+    private val deviceVault: DeviceVault,
     private val settingsRepository: SettingsRepository
 ) {
     private val secureRandom = SecureRandom()

@@ -18,14 +18,14 @@ import org.robolectric.annotation.Config
 class PinAuthManagerTest {
 
     private lateinit var context: Context
-    private lateinit var deviceVault: EncryptedDeviceVault
+    private lateinit var deviceVault: DeviceVault
     private lateinit var settingsRepository: SettingsRepository
     private lateinit var pinAuthManager: PinAuthManager
 
     @Before
     fun setUp() = runBlocking {
         context = ApplicationProvider.getApplicationContext()
-        deviceVault = EncryptedDeviceVault(context)
+        deviceVault = FakeDeviceVault()
         deviceVault.clearSession()
         deviceVault.clearPin()
 

@@ -1,7 +1,7 @@
 package com.clawstack.shellguard.data.repository
 
 import android.util.Log
-import com.clawstack.shellguard.crypto.EncryptedDeviceVault
+import com.clawstack.shellguard.crypto.DeviceVault
 import com.clawstack.shellguard.crypto.ShellCryptionEngine
 import com.clawstack.shellguard.data.local.ShellGuardDatabase
 import com.clawstack.shellguard.data.local.AttachmentVaultManager
@@ -81,7 +81,7 @@ data class UnifiedVaultItem(
 class SyncRepository(
     private val database: ShellGuardDatabase,
     private val clientProvider: (baseUrl: String) -> ShellGuardClient,
-    private val deviceVault: EncryptedDeviceVault,
+    private val deviceVault: DeviceVault,
     private val connectivityMonitor: ConnectivityMonitor,
     private val cryptoEngine: ShellCryptionEngine = ShellCryptionEngine,
     val attachmentVaultManager: AttachmentVaultManager? = null,
