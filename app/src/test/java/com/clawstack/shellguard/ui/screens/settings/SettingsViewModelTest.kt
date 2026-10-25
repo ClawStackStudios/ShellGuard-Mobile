@@ -2,9 +2,11 @@ package com.clawstack.shellguard.ui.screens.settings
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.clawstack.shellguard.crypto.DeviceVault
+import com.clawstack.shellguard.crypto.FakeDeviceVault
 import com.clawstack.shellguard.crypto.LockTimeout
 import com.clawstack.shellguard.data.local.ThemeMode
-import com.clawstack.shellguard.di.DefaultAppContainer
+import com.clawstack.shellguard.di.AppContainer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.filter
@@ -30,19 +32,44 @@ import org.robolectric.annotation.Config
 @Config(sdk = [34])
 class SettingsViewModelTest {
 
+    private class FakeSettingsAppContainer(
+        private val context: Context,
+        override val deviceVault: DeviceVault = FakeDeviceVault()
+    ) : AppContainer {
+        override val keyStoreHelper get() = com.clawstack.shellguard.crypto.AndroidKeyStoreHelper
+        override val clawCrypto get() = com.clawstack.shellguard.crypto.ClawCrypto
+        override val cryptoEngine get() = com.clawstack.shellguard.crypto.ShellCryptionEngine
+        override val database by lazy { com.clawstack.shellguard.data.local.ShellGuardDatabase.getInstance(context) }
+        override val connectivityMonitor by lazy { com.clawstack.shellguard.data.repository.ConnectivityMonitor(context) }
+        override val vaultLockManager by lazy { com.clawstack.shellguard.crypto.VaultLockManager(context, deviceVault) }
+        override val settingsRepository by lazy { com.clawstack.shellguard.data.local.SettingsRepositoryImpl(context) }
+        override val pinAuthManager by lazy { com.clawstack.shellguard.crypto.PinAuthManager(deviceVault, settingsRepository) }
+        override val backupEngine by lazy { com.clawstack.shellguard.data.backup.VaultBackupEngine(database, deviceVault) }
+        override val attachmentVaultManager by lazy { com.clawstack.shellguard.data.local.AttachmentVaultManager(context) }
+        override val syncRepository by lazy {
+            com.clawstack.shellguard.data.repository.SyncRepository(
+                database = database,
+                clientProvider = { baseUrl -> getClient(baseUrl) },
+                deviceVault = deviceVault,
+                connectivityMonitor = connectivityMonitor,
+                attachmentVaultManager = attachmentVaultManager
+            )
+        }
+        override fun getClient(baseUrl: String) = com.clawstack.shellguard.data.remote.ShellGuardClient(
+            if (baseUrl.isBlank()) "http://localhost:6565" else baseUrl
+        )
+    }
+
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var context: Context
-    private lateinit var appContainer: DefaultAppContainer
+    private lateinit var appContainer: AppContainer
     private lateinit var viewModel: SettingsViewModel
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         context = ApplicationProvider.getApplicationContext()
-        val prefs = context.getSharedPreferences("test_settings_vm_prefs", Context.MODE_PRIVATE)
-        prefs.edit().clear().commit()
-        val testDeviceVault = com.clawstack.shellguard.crypto.EncryptedDeviceVault(context, prefs)
-        appContainer = DefaultAppContainer(context, testDeviceVault)
+        appContainer = FakeSettingsAppContainer(context)
         runBlocking {
             appContainer.settingsRepository.clearAll()
         }

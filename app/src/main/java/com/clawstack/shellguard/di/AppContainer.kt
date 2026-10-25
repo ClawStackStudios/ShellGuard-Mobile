@@ -3,6 +3,7 @@ package com.clawstack.shellguard.di
 import android.content.Context
 import com.clawstack.shellguard.crypto.AndroidKeyStoreHelper
 import com.clawstack.shellguard.crypto.ClawCrypto
+import com.clawstack.shellguard.crypto.DeviceVault
 import com.clawstack.shellguard.crypto.EncryptedDeviceVault
 import com.clawstack.shellguard.crypto.ShellCryptionEngine
 import com.clawstack.shellguard.data.local.SettingsRepository
@@ -21,7 +22,7 @@ interface AppContainer {
     val clawCrypto: ClawCrypto
     val cryptoEngine: ShellCryptionEngine
     val database: ShellGuardDatabase
-    val deviceVault: EncryptedDeviceVault
+    val deviceVault: DeviceVault
     val connectivityMonitor: ConnectivityMonitor
     val syncRepository: SyncRepository
     val attachmentVaultManager: com.clawstack.shellguard.data.local.AttachmentVaultManager
@@ -36,10 +37,7 @@ interface AppContainer {
  * Thread-safe lazy implementation of AppContainer.
  * Dependencies instantiate strictly upon first access.
  */
-class DefaultAppContainer(
-    private val context: Context,
-    customDeviceVault: EncryptedDeviceVault? = null
-) : AppContainer {
+class DefaultAppContainer(private val context: Context) : AppContainer {
 
     override val keyStoreHelper: AndroidKeyStoreHelper by lazy {
         AndroidKeyStoreHelper
@@ -57,8 +55,8 @@ class DefaultAppContainer(
         ShellGuardDatabase.getInstance(context)
     }
 
-    override val deviceVault: EncryptedDeviceVault by lazy {
-        customDeviceVault ?: EncryptedDeviceVault(context)
+    override val deviceVault: DeviceVault by lazy {
+        EncryptedDeviceVault(context)
     }
 
     override val connectivityMonitor: ConnectivityMonitor by lazy {

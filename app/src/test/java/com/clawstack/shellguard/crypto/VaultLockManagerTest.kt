@@ -16,15 +16,13 @@ import org.robolectric.annotation.Config
 class VaultLockManagerTest {
 
     private lateinit var context: Context
-    private lateinit var deviceVault: EncryptedDeviceVault
+    private lateinit var deviceVault: DeviceVault
     private lateinit var lockManager: VaultLockManager
 
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
-        val prefs = context.getSharedPreferences("test_vault_lock_mgr", Context.MODE_PRIVATE)
-        prefs.edit().clear().commit()
-        deviceVault = EncryptedDeviceVault(context, prefs)
+        deviceVault = FakeDeviceVault()
         deviceVault.clearSession()
 
         // Establish an active session

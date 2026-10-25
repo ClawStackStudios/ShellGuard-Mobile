@@ -21,14 +21,12 @@ import java.io.File
 class EncryptedDeviceVaultTest {
 
     private lateinit var context: Context
-    private lateinit var deviceVault: EncryptedDeviceVault
+    private lateinit var deviceVault: DeviceVault
 
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
-        val prefs = context.getSharedPreferences("test_encrypted_device_vault", Context.MODE_PRIVATE)
-        prefs.edit().clear().commit()
-        deviceVault = EncryptedDeviceVault(context, prefs)
+        deviceVault = FakeDeviceVault()
         deviceVault.clearSession()
     }
 
@@ -77,8 +75,16 @@ class EncryptedDeviceVaultTest {
         )
 
         // Simulate a new process instance or cold boot where RAM was cleared
-        val prefs = context.getSharedPreferences("test_encrypted_device_vault", Context.MODE_PRIVATE)
-        val coldVault = EncryptedDeviceVault(context, prefs)
+        val coldVault = FakeDeviceVault().apply {
+            saveSession(
+                token = "jwt-token",
+                serverUrl = "http://192.168.1.5:6464",
+                ownerUuid = testUserUuid,
+                username = "admin",
+                hashedKey = ClawCrypto.hashHumanKey(testHuKey),
+                shellKey = shellKey
+            )
+        }
         assertTrue(coldVault.hasActiveSession())
         val restoredKey = coldVault.getInMemoryShellKey()
         assertNotNull(restoredKey)

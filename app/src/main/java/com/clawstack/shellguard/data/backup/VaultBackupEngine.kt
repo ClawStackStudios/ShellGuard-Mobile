@@ -1,6 +1,6 @@
 package com.clawstack.shellguard.data.backup
 
-import com.clawstack.shellguard.crypto.EncryptedDeviceVault
+import com.clawstack.shellguard.crypto.DeviceVault
 import com.clawstack.shellguard.crypto.ShellCryptionEngine
 import com.clawstack.shellguard.data.local.ShellGuardDatabase
 import com.clawstack.shellguard.data.local.entities.SecureNoteEntity
@@ -222,7 +222,7 @@ data class BitwardenItem(
 
 class VaultBackupEngine(
     private val database: ShellGuardDatabase,
-    private val deviceVault: EncryptedDeviceVault
+    private val deviceVault: DeviceVault
 ) {
     private val json = Json {
         ignoreUnknownKeys = true

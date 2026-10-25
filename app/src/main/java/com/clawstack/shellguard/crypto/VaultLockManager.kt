@@ -21,7 +21,7 @@ enum class LockTimeout(val label: String, val millis: Long) {
 
 class VaultLockManager(
     private val context: Context,
-    private val deviceVault: EncryptedDeviceVault
+    private val deviceVault: DeviceVault
 ) {
     private val prefs by lazy {
         context.getSharedPreferences("shellguard_lock_prefs", Context.MODE_PRIVATE)
