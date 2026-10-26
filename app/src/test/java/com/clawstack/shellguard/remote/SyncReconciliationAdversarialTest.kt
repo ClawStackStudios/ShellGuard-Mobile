@@ -6,6 +6,8 @@ import androidx.test.core.app.ApplicationProvider
 import com.clawstack.shellguard.crypto.EncryptedDeviceVault
 import com.clawstack.shellguard.crypto.ShellCryptionEngine
 import com.clawstack.shellguard.data.local.ShellGuardDatabase
+import com.clawstack.shellguard.data.local.entities.SecureNoteEntity
+import com.clawstack.shellguard.data.local.entities.SshKeyEntity
 import com.clawstack.shellguard.data.local.entities.VaultPearlEntity
 import com.clawstack.shellguard.data.remote.ShellGuardClient
 import com.clawstack.shellguard.data.remote.models.CreateVaultItemRequest
@@ -70,9 +72,26 @@ class SyncReconciliationAdversarialTest {
         override suspend fun fetchKeys(sessionToken: String): Result<List<SshKeyDto>> =
             Result.success(remoteKeys.toList())
 
+        var deletePearlResultForId: ((String) -> Result<Boolean>)? = null
+        var deleteNoteResultForId: ((String) -> Result<Boolean>)? = null
+        var deleteKeyResultForId: ((String) -> Result<Boolean>)? = null
+
+        val deletedNoteIds = mutableListOf<String>()
+        val deletedKeyIds = mutableListOf<String>()
+
         override suspend fun deleteVaultItem(sessionToken: String, id: String): Result<Boolean> {
             deletedPearlIds.add(id)
-            return deletePearlResult
+            return deletePearlResultForId?.invoke(id) ?: deletePearlResult
+        }
+
+        override suspend fun deleteNote(sessionToken: String, id: String): Result<Boolean> {
+            deletedNoteIds.add(id)
+            return deleteNoteResultForId?.invoke(id) ?: Result.success(true)
+        }
+
+        override suspend fun deleteSshKey(sessionToken: String, id: String): Result<Boolean> {
+            deletedKeyIds.add(id)
+            return deleteKeyResultForId?.invoke(id) ?: Result.success(true)
         }
 
         override suspend fun createVaultItem(sessionToken: String, request: CreateVaultItemRequest): Result<PearlDto> {
@@ -392,5 +411,68 @@ class SyncReconciliationAdversarialTest {
             ShellCryptionEngine.AadNamespace.pearlSecret(serverAssignedId)
         )
         assertEquals("ProtonPassword456!", serverDecrypted)
+    }
+
+    /**
+     * Test batch deletion of pending delete items for Pearls, Secure Notes, and SSH Keys.
+     * Seed 3 items for each type marked as PENDING_DELETE.
+     * Simulate success for 2 items and failure for 1 item.
+     * Verify successful items are purged from Room while failed item remains in PENDING_DELETE.
+     */
+    @Test
+    fun testBatchDeletionOfPendingDeletesForPearlsNotesAndKeys() = runBlocking {
+        // Seed 3 pearls in PENDING_DELETE
+        val pearl1 = VaultPearlEntity(id = "p1", ownerUuid = testOwnerUuid, title = "Pearl 1", secret = "enc", type = "password", syncState = "PENDING_DELETE", createdAt = "100", remoteUpdatedAt = 100L)
+        val pearl2 = VaultPearlEntity(id = "p2", ownerUuid = testOwnerUuid, title = "Pearl 2", secret = "enc", type = "password", syncState = "PENDING_DELETE", createdAt = "100", remoteUpdatedAt = 100L)
+        val pearl3 = VaultPearlEntity(id = "p3", ownerUuid = testOwnerUuid, title = "Pearl 3", secret = "enc", type = "password", syncState = "PENDING_DELETE", createdAt = "100", remoteUpdatedAt = 100L)
+        database.vaultPearlDao().upsertAll(listOf(pearl1, pearl2, pearl3))
+
+        // Seed 3 notes in PENDING_DELETE
+        val note1 = SecureNoteEntity(id = "n1", ownerUuid = testOwnerUuid, title = "Note 1", content = "enc", syncState = "PENDING_DELETE", createdAt = "100", remoteUpdatedAt = 100L)
+        val note2 = SecureNoteEntity(id = "n2", ownerUuid = testOwnerUuid, title = "Note 2", content = "enc", syncState = "PENDING_DELETE", createdAt = "100", remoteUpdatedAt = 100L)
+        val note3 = SecureNoteEntity(id = "n3", ownerUuid = testOwnerUuid, title = "Note 3", content = "enc", syncState = "PENDING_DELETE", createdAt = "100", remoteUpdatedAt = 100L)
+        database.secureNoteDao().upsertAll(listOf(note1, note2, note3))
+
+        // Seed 3 ssh keys in PENDING_DELETE
+        val key1 = SshKeyEntity(id = "k1", ownerUuid = testOwnerUuid, title = "Key 1", keyValue = "enc", syncState = "PENDING_DELETE", createdAt = "100", remoteUpdatedAt = 100L)
+        val key2 = SshKeyEntity(id = "k2", ownerUuid = testOwnerUuid, title = "Key 2", keyValue = "enc", syncState = "PENDING_DELETE", createdAt = "100", remoteUpdatedAt = 100L)
+        val key3 = SshKeyEntity(id = "k3", ownerUuid = testOwnerUuid, title = "Key 3", keyValue = "enc", syncState = "PENDING_DELETE", createdAt = "100", remoteUpdatedAt = 100L)
+        database.sshKeyDao().upsertAll(listOf(key1, key2, key3))
+
+        // Remote delete succeeds for p1, p2; fails for p3
+        fakeClient.deletePearlResultForId = { id ->
+            if (id == "p3") Result.failure(Exception("Network error")) else Result.success(true)
+        }
+        // Remote delete succeeds for n1, n2; fails for n3
+        fakeClient.deleteNoteResultForId = { id ->
+            if (id == "n3") Result.failure(Exception("Network error")) else Result.success(true)
+        }
+        // Remote delete succeeds for k1, k2; fails for k3
+        fakeClient.deleteKeyResultForId = { id ->
+            if (id == "k3") Result.failure(Exception("Network error")) else Result.success(true)
+        }
+
+        syncRepository.syncAll(testOwnerUuid)
+
+        // Verify Pearls: p1, p2 deleted from Room, p3 preserved as PENDING_DELETE
+        assertNull(database.vaultPearlDao().getById(testOwnerUuid, "p1"))
+        assertNull(database.vaultPearlDao().getById(testOwnerUuid, "p2"))
+        val remainingPearl = database.vaultPearlDao().getById(testOwnerUuid, "p3")
+        assertNotNull(remainingPearl)
+        assertEquals("PENDING_DELETE", remainingPearl?.syncState)
+
+        // Verify Notes: n1, n2 deleted from Room, n3 preserved as PENDING_DELETE
+        assertNull(database.secureNoteDao().getById(testOwnerUuid, "n1"))
+        assertNull(database.secureNoteDao().getById(testOwnerUuid, "n2"))
+        val remainingNote = database.secureNoteDao().getById(testOwnerUuid, "n3")
+        assertNotNull(remainingNote)
+        assertEquals("PENDING_DELETE", remainingNote?.syncState)
+
+        // Verify Keys: k1, k2 deleted from Room, k3 preserved as PENDING_DELETE
+        assertNull(database.sshKeyDao().getById(testOwnerUuid, "k1"))
+        assertNull(database.sshKeyDao().getById(testOwnerUuid, "k2"))
+        val remainingKey = database.sshKeyDao().getById(testOwnerUuid, "k3")
+        assertNotNull(remainingKey)
+        assertEquals("PENDING_DELETE", remainingKey?.syncState)
     }
 }
