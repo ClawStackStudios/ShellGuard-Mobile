@@ -61,7 +61,7 @@ class SyncRepositoryTest {
             shellKey = shellKey
         )
 
-        connectivityMonitor = ConnectivityMonitor(context)
+        connectivityMonitor = ConnectivityMonitor(context, initialOnlineOverride = true)
         syncRepository = SyncRepository(
             database = database,
             clientProvider = { baseUrl -> com.clawstack.shellguard.data.remote.ShellGuardClient(baseUrl) },
@@ -142,6 +142,91 @@ class SyncRepositoryTest {
         assertEquals("AWS Console", items[2].title)
         assertEquals(VaultItemDomain.PASSWORD, items[2].domain)
         assertTrue(items[2].reprompt)
+    }
+
+    @Test
+    fun testPushPendingChangesBatchDeletesNotesPearlsKeys() = runBlocking {
+        // Seed 3 pending delete notes:
+        // note-1: remoteUpdatedAt = 0L (never synced remotely -> immediately deleted locally)
+        // note-2: remoteUpdatedAt = 1000L (synced remotely -> client.deleteNote succeeds -> deleted locally)
+        // note-3: remoteUpdatedAt = 2000L (synced remotely -> client.deleteNote fails -> remains PENDING_DELETE in Room)
+        val note1 = SecureNoteEntity(
+            id = "note-del-1",
+            ownerUuid = testOwnerUuid,
+            title = "Note Local Only",
+            content = "enc_1",
+            syncState = "PENDING_DELETE",
+            createdAt = "100",
+            localUpdatedAt = 100L,
+            remoteUpdatedAt = 0L
+        )
+        val note2 = SecureNoteEntity(
+            id = "note-del-2",
+            ownerUuid = testOwnerUuid,
+            title = "Note Synced Remote Success",
+            content = "enc_2",
+            syncState = "PENDING_DELETE",
+            createdAt = "200",
+            localUpdatedAt = 200L,
+            remoteUpdatedAt = 1000L
+        )
+        val note3 = SecureNoteEntity(
+            id = "note-del-3",
+            ownerUuid = testOwnerUuid,
+            title = "Note Synced Remote Fail",
+            content = "enc_3",
+            syncState = "PENDING_DELETE",
+            createdAt = "300",
+            localUpdatedAt = 300L,
+            remoteUpdatedAt = 2000L
+        )
+        database.secureNoteDao().upsertAll(listOf(note1, note2, note3))
+
+        var deleteNote2Called = false
+        var deleteNote3Called = false
+
+        val customClientProvider = { baseUrl: String ->
+            object : com.clawstack.shellguard.data.remote.ShellGuardClient(baseUrl) {
+                override suspend fun getHealth(): Result<Boolean> = Result.success(true)
+                override suspend fun fetchVault(token: String): Result<List<com.clawstack.shellguard.data.remote.models.PearlDto>> = Result.success(emptyList())
+                override suspend fun fetchNotes(token: String): Result<List<com.clawstack.shellguard.data.remote.models.SecureNoteDto>> = Result.success(emptyList())
+                override suspend fun fetchKeys(token: String): Result<List<com.clawstack.shellguard.data.remote.models.SshKeyDto>> = Result.success(emptyList())
+                override suspend fun fetchAttachments(token: String): Result<List<com.clawstack.shellguard.data.remote.models.AttachmentDto>> = Result.success(emptyList())
+                override suspend fun deleteNote(token: String, id: String): Result<Boolean> {
+                    return if (id == "note-del-2") {
+                        deleteNote2Called = true
+                        Result.success(true)
+                    } else if (id == "note-del-3") {
+                        deleteNote3Called = true
+                        Result.failure(Exception("Remote delete note-3 network error"))
+                    } else {
+                        Result.success(true)
+                    }
+                }
+            }
+        }
+
+        val testRepo = SyncRepository(
+            database = database,
+            clientProvider = customClientProvider,
+            deviceVault = deviceVault,
+            connectivityMonitor = connectivityMonitor
+        )
+
+        testRepo.syncAll(testOwnerUuid)
+
+        assertTrue("deleteNote for note-2 should have been called", deleteNote2Called)
+        assertTrue("deleteNote for note-3 should have been called", deleteNote3Called)
+
+        // Verify note1 and note2 were purged via batch delete, while note3 remains in Room
+        assertNull("note-del-1 should be deleted from Room", database.secureNoteDao().getById(testOwnerUuid, "note-del-1"))
+        assertNull("note-del-2 should be deleted from Room", database.secureNoteDao().getById(testOwnerUuid, "note-del-2"))
+
+        val remainingNote3 = database.secureNoteDao().getById(testOwnerUuid, "note-del-3")
+        assertNotNull("note-del-3 should remain in Room after remote delete failure", remainingNote3)
+        assertEquals("PENDING_DELETE", remainingNote3?.syncState)
+
+        testRepo.cancelScope()
     }
 
     @Test
