@@ -416,6 +416,7 @@ class SyncRepository(
     ) {
         // 1. Drain pending deletes first - only remove local tombstone if remote delete succeeded
         val pendingDeletePearls = database.vaultPearlDao().getPendingDeleteItems(ownerUuid)
+        val deletedPearlIds = mutableListOf<String>()
         for (item in pendingDeletePearls) {
             var remoteDeleted = true
             if (item.remoteUpdatedAt > 0L) {
@@ -428,11 +429,17 @@ class SyncRepository(
                 }
             }
             if (remoteDeleted) {
-                database.vaultPearlDao().deleteById(ownerUuid, item.id)
+                deletedPearlIds.add(item.id)
+            }
+        }
+        if (deletedPearlIds.isNotEmpty()) {
+            deletedPearlIds.chunked(500).forEach { batch ->
+                database.vaultPearlDao().deleteBatch(ownerUuid, batch)
             }
         }
 
         val pendingDeleteNotes = database.secureNoteDao().getPendingDeleteItems(ownerUuid)
+        val deletedNoteIds = mutableListOf<String>()
         for (item in pendingDeleteNotes) {
             var remoteDeleted = true
             if (item.remoteUpdatedAt > 0L) {
@@ -445,11 +452,17 @@ class SyncRepository(
                 }
             }
             if (remoteDeleted) {
-                database.secureNoteDao().deleteById(ownerUuid, item.id)
+                deletedNoteIds.add(item.id)
+            }
+        }
+        if (deletedNoteIds.isNotEmpty()) {
+            deletedNoteIds.chunked(500).forEach { batch ->
+                database.secureNoteDao().deleteBatch(ownerUuid, batch)
             }
         }
 
         val pendingDeleteKeys = database.sshKeyDao().getPendingDeleteItems(ownerUuid)
+        val deletedKeyIds = mutableListOf<String>()
         for (item in pendingDeleteKeys) {
             var remoteDeleted = true
             if (item.remoteUpdatedAt > 0L) {
@@ -462,7 +475,12 @@ class SyncRepository(
                 }
             }
             if (remoteDeleted) {
-                database.sshKeyDao().deleteById(ownerUuid, item.id)
+                deletedKeyIds.add(item.id)
+            }
+        }
+        if (deletedKeyIds.isNotEmpty()) {
+            deletedKeyIds.chunked(500).forEach { batch ->
+                database.sshKeyDao().deleteBatch(ownerUuid, batch)
             }
         }
 
