@@ -63,5 +63,8 @@ Reviewed Jules PR #6 eliminating the cleartext `SharedPreferences` fallback in `
 ## 2026-10-27 — cross-repository sync reconnaissance & stage 2 sub-phase integration
 Mapped the main ShellGuard repository against mobile sync pathways using elite Ponytail scout. Uncovered two breaking upstream sync seams: missing default `owner_uuid` in mobile DTOs throwing `MissingFieldException` on trimmed server mutation receipts, and missing `parent_id`/`parent_type` breaking attachment uploads under the server's Phase 23 Bitwarden Item Integrity model. Wrapped findings into Stage 2 Sub-Phase (Task 04.A) in `ROADMAP.md` and `meta-prompt-ai-studio.md` alongside Task 04.B, scheduling Room `MIGRATION_1_2` and wire parity fixes ahead of release `v0.0.0.20`.
 
+## 2026-11-07 — github native control plane offload
+Offloaded repository roadmap tracking, release anchors, and surgical task orders from flat markdown into native GitHub primitives. Provisioned 5 GitHub Milestones (Build 12 closed, Builds 20, 30, 40, 50 open), created stage and domain labels, and ingested Issues #9–#21 into GitHub Project #1 ('ShellGuard Core & Distributed Roadmap') without deleting original meta-prompt lines.
+
 
 
