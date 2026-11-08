@@ -34,7 +34,7 @@ flowchart TD
 
     S1_SUB["<b>Stage 1 Sub-Phase: Vault Lock & Multi-Method Authentication</b><br/>✅ Complete · Hardware-Verified (121 Tests Green)<br/>• Task 02.A: PinAuthManager (PBKDF2) & Settings UnlockMethod<br/>• Task 02.B: Security Settings UI, Reef PinPad & LockScreen Overhaul"]:::completedStage
 
-    S2["<b>Stage 2: Mental Flow & Ergonomic Form Polish</b><br/>⚡ <b>Active Focus</b><br/>• Task 03: [Functionality] Cold-Start Routing & Sub-16ms Search (v0.0.0.13)<br/>• Security Hotfix: TLS Consent & Log Redaction (v0.0.0.14)<br/>• Task 04: [UI/UX] Touch Targets (≥48dp) & Keyboard Insets ➔ <b>v0.0.0.20 (Build 20)</b>"]:::activeStage
+    S2["<b>Stage 2: Mental Flow & Ergonomic Form Polish</b><br/>⚡ <b>Active Focus</b><br/>• Task 03: [Functionality] Cold-Start Routing & Sub-16ms Search (v0.0.0.13)<br/>• Security Hotfix: TLS Consent & Log Redaction (v0.0.0.14)<br/>• <b>Stage 2 Sub-Phase (Task 04.A)</b>: Upstream Sync & Item Integrity<br/>• <b>Task 04.B</b>: [UI/UX] Touch Targets & Insets ➔ <b>v0.0.0.20 (Build 20)</b>"]:::activeStage
 
     S3["<b>Stage 3: Security Lifecycle, Biometrics & Offline Resilience</b><br/>➔ <b>v0.0.0.30 (Build 30)</b><br/>• Task 05: [Functionality] Lock Persistence & Offline Mutation Queue<br/>• Task 06: [UI/UX] PIN Keypad Polish & Panic Destruction"]:::futureStage
 
@@ -141,9 +141,20 @@ flowchart TD
   - Benchmark and optimize `observeUnifiedItems` search filtering across 100+ items to guarantee sub-16ms frame times.
   - Harden Gateway cold-start routing: validate saved Base62 `hu-` sovereign key format, auto-fill server host/port, and transition immediately to local offline cache with an amber status banner if the server is unreachable.
   - Implement automated network reconnect recovery: seamlessly transition from `OFFLINE_READ_ONLY` to `SYNCING` ➔ `ONLINE_SYNCED` without UI stutter.
-  - *Success Criteria*: Cold launch with stored session navigates in <300ms; offline search responds instantaneously; reconnect syncs automatically. (Verified 100% green on Cloud CI across 127 tests).
+- [ ] **Task 04.A: [Stage 2 Sub-Phase: Sync & Storage Engine] DTO Deserialization Resiliency, Password History Parity & Attachment Parent Linkage**
+  - Fix DTO Deserialization Seam (`owner_uuid`):
+    - In `ShellResponse.kt`: Add `= ""` default value to `owner_uuid` in `PearlDto`, `SecureNoteDto`, and `SshKeyDto` to gracefully ingest trimmed server mutation receipts (`POST /api/vault`, `PUT /api/vault/:id`, `POST /api/notes`, etc.).
+  - Fix Upstream Password History Parity:
+    - Add `val password_history: String? = null` to `CreateVaultItemRequest`.
+    - Pass `password_history = item.passwordHistory.ifBlank { null }` in `SyncRepository.kt` during item creation and editing.
+  - Implement Bitwarden Item Integrity for Attachments:
+    - Add `parentId: String = ""` and `parentType: String = ""` to `SecureAttachmentEntity`.
+    - Update `ShellGuardDatabase.kt`: bump Room `version = 2`, define `MIGRATION_1_2` (`ALTER TABLE vault_secure_attachments ADD COLUMN parent_id ...` and `parent_type ...`), and register in migration list.
+    - In `ShellGuardClient.kt`: update `uploadAttachmentMultipart` to accept `parentId: String` and `parentType: String`, appending `parent_id` and `parent_type` to multipart form data.
+    - In `SyncRepository.kt`: ensure staged attachments drain with valid parent references.
+  - *Success Criteria*: Unit tests in `SyncRepositoryTest.kt` verify mutation response deserialization without `owner_uuid`, Room schema migration 1->2 passes, and parent-linked multipart uploads succeed.
 
-- [ ] **Task 04: [UI/UX & Release] Touch Targets (≥48dp), Haptic Feedback, Keyboard Insets & v0.0.0.20 Release**
+- [ ] **Task 04.B: [UI/UX & Release] Touch Targets (≥48dp), Haptic Feedback, Keyboard Insets & v0.0.0.20 Release**
   - *Versioning Note*: `v0.0.0.14 (Build 14)` ships the immediate security and transport sovereignty hotfix; `v0.0.0.15` through `v0.0.0.19` are reserved for intermediate hotfixes.
   - Audit all interactive surfaces against `mobile-android-design`: ensure all buttons, toggles, icon buttons, and list items have touch targets ≥ 48dp.
   - Implement subtle, tactile haptic feedback on secret reveal, copy actions, and password generation.

@@ -1,14 +1,5 @@
 # Decision Log
 
-## 2026-10-10 — dual feedback medium & jules pr comment orchestration
-Codified dual-medium iteration protocol into global jules-cli skill: Jules natively ingests feedback through either private Web UI chat prompts or public GitHub PR review threads (reacting with 👀 and pushing commits). Standardized an agent triage question ("Do you want a prompt to give to Jules in the Web UI, or should we make a comment on the pull request?"), and established the critical invariant to NEVER tag @jules on GitHub (as that handle pings an unrelated human account, not the bot).
-
-## 2026-10-10 — post-creation attachment persistence & room entity fidelity
-Caught data-drop bug during live physical Pixel testing: adding attachments or secondary URIs when editing an existing vault item failed to persist across reloads. Traced to `SyncRepository.kt` (`savePearlDetail` and `saveNoteDetail`), which serialized `attachmentsJson` and `urisJson` for the network payload but hardcoded `"[]"` for `attachments` and `uris` in Room entities (`VaultPearlEntity` and `SecureNoteEntity`). Drafted architectural fix and dispatched hotfix review guidance comment #6104587759 to Jules on PR #1.
-
-## 2026-10-10 — orthogonal task partitioning & jules pr kickoff
-Audited codebase seams across UI, Autofill, and Settings/Storage debt for Stage 1 completion. To prevent merge conflicts in Jules sessions, partitioned remaining scope into two strictly orthogonal tasks (Task 1 for UI & Autofill, Task 2 for DI, Storage, Settings debt, and FileProvider) with zero file overlap, updated JULES.md with Compose line limits and bot tagging rules, and triggered Task 1 execution via GitHub PR comment on PR #1.
-
 ## 2026-10-11 — systemic transport security vs. security theatre
 Addressed user challenge on cleartext HTTP over Tailscale. Uncovered that static `SHA-256(hu-)` transmission and unencrypted metadata over HTTP permit session hijacking and vault destruction, while `relaxedTrustManager` nullifies TLS integrity. Ratified the Systemic Zero-Knowledge Transport Invariant in `android-development.md` § 5, mandated UI amber transport warning pills, scheduled TOFU certificate pinning, and set roadmap trajectory toward zero-knowledge PAKE/SRP-6a authentication.
 
@@ -65,5 +56,12 @@ Merged PR #4 & PR #5 into `feat/security-remediations-integration` and deployed 
 
 ## 2026-10-19 — option 1 decade spacing & v0.0.0.14 hotfix alignment
 Realigned roadmap to Option 1 decade spacing (`v0.0.0.14` Build 14 Hotfix ➔ `v0.0.0.20` Build 20 Stage 2 ➔ `v0.0.0.30` Build 30 Stage 3 ➔ `v0.0.0.40` Build 40 Stage 4 ➔ `v0.0.1.0` Build 50 Structural Completion). Re-versioned `app/build.gradle.kts`, `ROADMAP.md`, `project/meta-prompt-ai-studio.md`, `productVersion.md`, and cut `RELEASE-v0.0.0.14.md` with zero doc drift (<0.08s Python audit).
+
+## 2026-10-24 — encrypted device vault test ergonomics & constructor sealing
+Reviewed Jules PR #6 eliminating the cleartext `SharedPreferences` fallback in `EncryptedDeviceVault`. While the fail-closed `SecurityException` was 100% verified, constructor parameter pollution (`customPrefs: SharedPreferences? = null`) and `settings.gradle.kts` plugin deletion introduced architectural friction. Isolated the smooth path: sealing the constructor to private, exposing `@VisibleForTesting fun createForTesting(context, testPrefs)` to protect production callers from unencrypted storage, and holding merge for unified integration.
+
+## 2026-10-27 — cross-repository sync reconnaissance & stage 2 sub-phase integration
+Mapped the main ShellGuard repository against mobile sync pathways using elite Ponytail scout. Uncovered two breaking upstream sync seams: missing default `owner_uuid` in mobile DTOs throwing `MissingFieldException` on trimmed server mutation receipts, and missing `parent_id`/`parent_type` breaking attachment uploads under the server's Phase 23 Bitwarden Item Integrity model. Wrapped findings into Stage 2 Sub-Phase (Task 04.A) in `ROADMAP.md` and `meta-prompt-ai-studio.md` alongside Task 04.B, scheduling Room `MIGRATION_1_2` and wire parity fixes ahead of release `v0.0.0.20`.
+
 
 
