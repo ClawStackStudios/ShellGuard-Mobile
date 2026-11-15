@@ -73,6 +73,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
@@ -128,8 +130,9 @@ fun ItemDetailScreen(
     var clipboardProgress by remember { mutableFloatStateOf(1f) }
     var clipboardJob by remember { mutableStateOf<Job?>(null) }
 
-    // TODO(ux-haptics): Integrate tactile HapticFeedbackType.LongPress on copyToClipboard and secret visibility reveal (Task 04).
+    val haptic = LocalHapticFeedback.current
     fun copyToClipboard(label: String, text: String, isSensitive: Boolean) {
+        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText(label, text).apply {
             if (isSensitive && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -491,7 +494,6 @@ fun ItemDetailScreen(
                                                     fontWeight = FontWeight.Bold,
                                                     letterSpacing = 0.5.sp
                                                 )
-                                                // TODO(ui-touch): Audit and enforce minimum 48dp touch targets on reveal and copy IconButtons in action rows (Task 04).
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                                     IconButton(
                                                         onClick = {
@@ -502,7 +504,7 @@ fun ItemDetailScreen(
                                                                 viewModel.toggleSecretVisibility()
                                                             }
                                                         },
-                                                        modifier = Modifier.size(32.dp)
+                                                        modifier = Modifier.size(48.dp)
                                                     ) {
                                                         Icon(
                                                             imageVector = if (state.isSecretRevealed) Icons.Default.VisibilityOff else Icons.Default.Visibility,
@@ -520,7 +522,7 @@ fun ItemDetailScreen(
                                                                 copyToClipboard("Note", state.secret, isSensitive = true)
                                                             }
                                                         },
-                                                        modifier = Modifier.size(32.dp)
+                                                        modifier = Modifier.size(48.dp)
                                                     ) {
                                                         Icon(
                                                             imageVector = Icons.Default.ContentCopy,
@@ -1000,7 +1002,7 @@ fun DetailTextRow(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
             )
-            IconButton(onClick = onCopy, modifier = Modifier.size(32.dp)) {
+            IconButton(onClick = onCopy, modifier = Modifier.size(48.dp)) {
                 Icon(
                     imageVector = Icons.Default.ContentCopy,
                     contentDescription = "Copy $label",
@@ -1045,7 +1047,7 @@ fun DetailUrlRow(
                     .clickable { onOpenUrl() }
             )
             Row {
-                IconButton(onClick = onOpenUrl, modifier = Modifier.size(32.dp)) {
+                IconButton(onClick = onOpenUrl, modifier = Modifier.size(48.dp)) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.OpenInNew,
                         contentDescription = "Open Link",
@@ -1053,7 +1055,7 @@ fun DetailUrlRow(
                         modifier = Modifier.size(16.dp)
                     )
                 }
-                IconButton(onClick = onCopy, modifier = Modifier.size(32.dp)) {
+                IconButton(onClick = onCopy, modifier = Modifier.size(48.dp)) {
                     Icon(
                         imageVector = Icons.Default.ContentCopy,
                         contentDescription = "Copy URL",
@@ -1100,7 +1102,7 @@ fun DetailSecretRow(
                 modifier = Modifier.weight(1f)
             )
             Row {
-                IconButton(onClick = onToggleReveal, modifier = Modifier.size(32.dp)) {
+                IconButton(onClick = onToggleReveal, modifier = Modifier.size(48.dp)) {
                     Icon(
                         imageVector = if (isRevealed) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                         contentDescription = "Toggle Visibility",
@@ -1108,7 +1110,7 @@ fun DetailSecretRow(
                         modifier = Modifier.size(18.dp)
                     )
                 }
-                IconButton(onClick = onCopy, modifier = Modifier.size(32.dp)) {
+                IconButton(onClick = onCopy, modifier = Modifier.size(48.dp)) {
                     Icon(
                         imageVector = Icons.Default.ContentCopy,
                         contentDescription = "Copy $label",

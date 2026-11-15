@@ -3,6 +3,21 @@
 > **Single Source of Truth for Google Play Store What's New Notes**  
 > *Google Play enforces a strict 500-character limit per localized language block.*
 
+## `v0.0.0.20` — Stage 2: Sync Resilience, SAF Import & Ergonomics (Build 20)
+
+```xml
+<en-US>
+• Sync Bridge Fix: Resilient DTO parsing & isolated domain pulls.
+• Mutation Safety: Transactional sync & ID re-keying recovery.
+• Attachment Linkage: Room v2 migration with parent item parity.
+• Zero-Clipboard Import: SAF file picker replaces JSON paste.
+• Ergonomic Polish: ≥48dp touch targets & tactile copy haptics.
+• Sanitized Errors: Actionable retry banner on sync failures.
+</en-US>
+```
+
+---
+
 ## `v0.0.0.14` — Security & Transport Sovereignty Hotfix (Build 14)
 
 ```xml

@@ -388,7 +388,9 @@ open class ShellGuardClient(
         fileName: String,
         mimeType: String,
         category: String,
-        ciphertextBytes: ByteArray
+        ciphertextBytes: ByteArray,
+        parentId: String = "",
+        parentType: String = ""
     ): Result<AttachmentUploadData> = withContext(Dispatchers.IO) {
         runCatching {
             val response: HttpResponse = client.submitFormWithBinaryData(
@@ -399,6 +401,12 @@ open class ShellGuardClient(
                     append("file_name", fileName)
                     append("mime_type", mimeType)
                     append("category", category)
+                    if (parentId.isNotBlank()) {
+                        append("parent_id", parentId)
+                    }
+                    if (parentType.isNotBlank()) {
+                        append("parent_type", parentType)
+                    }
                     append("file_data", ciphertextBytes, Headers.build {
                         append(HttpHeaders.ContentType, "application/octet-stream")
                         append(HttpHeaders.ContentDisposition, "filename=\"$fileName\"")

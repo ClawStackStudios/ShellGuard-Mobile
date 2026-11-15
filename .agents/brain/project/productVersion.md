@@ -1,10 +1,10 @@
 # Product Version & Release State
 
 ## Active Version State
-- **Current Version**: `0.0.0.14`
-- **Monotonic Build Code**: `14` (`versionCode = 14` in `app/build.gradle.kts`)
+- **Current Version**: `0.0.0.20`
+- **Monotonic Build Code**: `20` (`versionCode = 20` in `app/build.gradle.kts`)
 - **Active Release Channel**: Production / GitHub Release & Google Play Track
-- **Latest Git Tag**: `v0.0.0.14`
+- **Latest Git Tag**: `v0.0.0.20`
 - **Release Status**: Staged / Releasing
 - **Central Version Source**: `app/build.gradle.kts` (`versionCode`, `versionName`)
 

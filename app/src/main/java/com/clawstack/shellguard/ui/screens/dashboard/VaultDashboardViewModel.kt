@@ -120,12 +120,36 @@ class VaultDashboardViewModel(
             val result = appContainer.syncRepository.syncAll(ownerUuid)
             _uiState.update { current ->
                 val hasCachedItems = allItems.value.isNotEmpty()
-                val isOfflineProbeFailure = result.isFailure && result.exceptionOrNull()?.message?.contains("health probe") == true
+                val failure = result.exceptionOrNull()
+                val isOfflineProbeFailure = failure?.message?.contains("health probe", ignoreCase = true) == true
                 current.copy(
                     isSyncing = false,
-                    errorMessage = if (isOfflineProbeFailure && hasCachedItems) null else result.exceptionOrNull()?.message
+                    errorMessage = when {
+                        failure == null -> null
+                        isOfflineProbeFailure && hasCachedItems -> null
+                        else -> sanitizeSyncErrorMessage(failure)
+                    }
                 )
             }
+        }
+    }
+
+    fun dismissError() {
+        _uiState.update { it.copy(errorMessage = null) }
+    }
+
+    private fun sanitizeSyncErrorMessage(error: Throwable): String {
+        val msg = error.message.orEmpty()
+        return when {
+            msg.contains("401") || msg.contains("403") || msg.contains("Unauthorized", ignoreCase = true) ->
+                "Session expired or unauthorized. Please re-authenticate."
+            msg.contains("health probe", ignoreCase = true) || msg.contains("offline", ignoreCase = true) ->
+                "Server unreachable. Showing offline vault."
+            msg.contains("TLS", ignoreCase = true) || msg.contains("SSL", ignoreCase = true) || msg.contains("Cert", ignoreCase = true) ->
+                "Secure connection failed. Check server TLS settings."
+            msg.contains("MissingField", ignoreCase = true) || msg.contains("Serialization", ignoreCase = true) ->
+                "Sync failed due to an incompatible server response."
+            else -> "Unable to sync with server. Tap Retry to try again."
         }
     }
 

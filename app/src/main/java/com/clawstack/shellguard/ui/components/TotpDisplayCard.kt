@@ -146,7 +146,7 @@ fun TotpDisplayCard(
                     IconButton(
                         onClick = { copyCode() },
                         modifier = Modifier
-                            .size(38.dp)
+                            .size(48.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .background(OceanDark)
                             .border(1.dp, BorderSubtle, RoundedCornerShape(8.dp))

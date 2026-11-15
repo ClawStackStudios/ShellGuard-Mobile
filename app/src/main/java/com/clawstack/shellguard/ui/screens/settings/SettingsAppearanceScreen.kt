@@ -91,7 +91,7 @@ fun SettingsAppearanceScreen(
             ) {
                 IconButton(
                     onClick = onBackClick,
-                    modifier = Modifier.size(38.dp)
+                    modifier = Modifier.size(48.dp)
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,

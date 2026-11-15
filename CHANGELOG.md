@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.0.20] - 2026-11-15 (Build 20) — Stage 2: Sync Bridge Resilience, SAF Import & Ergonomic Form Polish
+### Added
+- **SAF File-Upload Vault Import (`SettingsBackupScreen.kt`, `SettingsViewModel.kt`)**: Replaced raw JSON clipboard-paste import with `ActivityResultContracts.OpenDocument` + bounded `InputStream` reading (`importVaultBackupFromStream`), preventing vault secrets from hitting the system clipboard (#23).
+- **Room Schema Migration 1→2 & Attachment Parent Linkage (`ShellGuardDatabase.kt`, `SecureAttachmentEntity.kt`, `ShellGuardClient.kt`)**: Added `parent_id` and `parent_type` columns with `MIGRATION_1_2` and multipart upload support (#13).
+- **Retryable Sync Error Banner & Haptic Copy (`VaultDashboardScreen.kt`, `ItemDetailScreen.kt`)**: Added a dismissible/retryable sync error banner and `LocalHapticFeedback` on clipboard copy (#22, #14).
+
+### Changed
+- **Accessible Touch Targets (`>= 48.dp`)**: Upgraded `PodFilter` chips, dashboard/settings top-bar `IconButton`s, detail action row buttons, TOTP copy button, and secondary URL controls to `>= 48.dp` (#14).
+- **Password History Push Parity (`ShellResponse.kt`, `SyncRepository.kt`)**: Added `password_history` to `CreateVaultItemRequest` (#13).
+
+### Fixed
+- **Sync Bridge Deserialization & Mutation Edge Cases (`ShellResponse.kt`, `SyncRepository.kt`)**: Defaulted `owner_uuid = ""` on `PearlDto`/`SecureNoteDto`/`SshKeyDto` with `ownerUuid` fallback, isolated per-domain pulls inside `database.withTransaction`, serialized `deleteItem()` with `syncMutex`, and hardened server-ID re-keying + `409 Conflict` recovery (#22, #13).
+
+### Security
+- **Sanitized UI Sync Errors (CWE-532)**: Replaced raw `exception.message` rendering in `VaultDashboardViewModel` with sanitized user-facing error descriptors (#22).
+
 ## [0.0.0.14] - 2026-10-19 (Build 14) — Security & Transport Sovereignty Hotfix
 ### Added
 - **Consent-Gated Self-Signed TLS Trust Model (`KtorClientProvider.kt`, `GatewayScreen.kt`)**: Added an in-app user consent toggle (`trustSelfSignedCerts`) for homelab self-hosted HTTPS endpoints, enabling users to connect to self-signed deployments without forcing CA certificates into Android OS root stores.

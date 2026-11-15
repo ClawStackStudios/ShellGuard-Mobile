@@ -190,4 +190,36 @@ class SettingsViewModelTest {
         assertTrue(result?.isFailure == true)
         assertEquals("No active session to export.", viewModel.uiState.value.errorMessage)
     }
+
+    @Test
+    fun testImportVaultBackupFromStreamNullErrorsCleanly() = runTest(testDispatcher) {
+        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect {} }
+
+        var result: Result<com.clawstack.shellguard.data.backup.ImportResult>? = null
+        viewModel.importVaultBackupFromStream(
+            inputStreamProvider = { null }
+        ) {
+            result = it
+        }.join()
+
+        assertTrue(result?.isFailure == true)
+        assertEquals("Unable to open selected backup file.", viewModel.uiState.value.errorMessage)
+    }
+
+    @Test
+    fun testImportVaultBackupFromStreamRejectsOversizedFile() = runTest(testDispatcher) {
+        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect {} }
+
+        var result: Result<com.clawstack.shellguard.data.backup.ImportResult>? = null
+        val oversized = ByteArray(1024) { 'a'.code.toByte() }
+        viewModel.importVaultBackupFromStream(
+            inputStreamProvider = { java.io.ByteArrayInputStream(oversized) },
+            maxBytes = 128
+        ) {
+            result = it
+        }.join()
+
+        assertTrue(result?.isFailure == true)
+        assertTrue(viewModel.uiState.value.errorMessage?.contains("maximum supported size") == true)
+    }
 }

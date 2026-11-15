@@ -52,7 +52,7 @@ data class TokenResponse(
 @Serializable
 data class PearlDto(
     val id: String,
-    val owner_uuid: String,
+    val owner_uuid: String = "",
     val title: String,
     val username: String? = null,
     val url: String? = null,
@@ -86,6 +86,7 @@ data class CreateVaultItemRequest(
     val attachments: String? = null,
     val tags: String? = null,
     val uris: String? = null,
+    val password_history: String? = null,
     val reprompt: Boolean = false
 )
 
@@ -106,7 +107,7 @@ data class VaultResponse(
 @Serializable
 data class SecureNoteDto(
     val id: String,
-    val owner_uuid: String,
+    val owner_uuid: String = "",
     val title: String,
     val content: String = "",
     val category: String? = null,
@@ -147,7 +148,7 @@ data class NoteItemResponse(
 @Serializable
 data class SshKeyDto(
     val id: String,
-    val owner_uuid: String,
+    val owner_uuid: String = "",
     val title: String,
     val key_value: String = "",
     val username: String? = null,
@@ -194,6 +195,8 @@ data class AttachmentDto(
     val file_name: String = "",
     val mime_type: String = "application/octet-stream",
     val category: String? = null,
+    val parent_id: String? = null,
+    val parent_type: String? = null,
     val created_at: String = ""
 )
 

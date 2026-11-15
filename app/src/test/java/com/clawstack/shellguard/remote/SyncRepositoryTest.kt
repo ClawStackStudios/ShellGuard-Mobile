@@ -393,5 +393,56 @@ class SyncRepositoryTest {
         val retrievedNote = retrievedNoteResult.getOrNull()!!
         assertEquals("Note attachments should match", listOf("att-uuid-3"), retrievedNote.attachments)
     }
+
+    @Test
+    fun testTrimmedDtoDeserializationWithoutOwnerUuid() {
+        val json = com.clawstack.shellguard.data.remote.KtorClientProvider.jsonConfig
+        val pearlJson = """{"id":"p-1","title":"GitHub","secret":"enc"}"""
+        val noteJson = """{"id":"n-1","title":"Recovery","content":"enc"}"""
+        val keyJson = """{"id":"k-1","title":"Prod SSH","key_value":"enc"}"""
+
+        val pearl = json.decodeFromString<com.clawstack.shellguard.data.remote.models.PearlDto>(pearlJson)
+        val note = json.decodeFromString<com.clawstack.shellguard.data.remote.models.SecureNoteDto>(noteJson)
+        val key = json.decodeFromString<com.clawstack.shellguard.data.remote.models.SshKeyDto>(keyJson)
+
+        assertEquals("", pearl.owner_uuid)
+        assertEquals("", note.owner_uuid)
+        assertEquals("", key.owner_uuid)
+    }
+
+    @Test
+    fun testCreateVaultItemRequestIncludesPasswordHistory() {
+        val json = com.clawstack.shellguard.data.remote.KtorClientProvider.jsonConfig
+        val req = com.clawstack.shellguard.data.remote.models.CreateVaultItemRequest(
+            id = "p-hist",
+            title = "Bank",
+            secret = "enc",
+            password_history = """{"v":1,"ct":"hist"}"""
+        )
+        val encoded = json.encodeToString(com.clawstack.shellguard.data.remote.models.CreateVaultItemRequest.serializer(), req)
+        assertTrue("Serialized request must include password_history", encoded.contains("password_history"))
+    }
+
+    @Test
+    fun testStageAttachmentPersistsParentLinkage() = runBlocking {
+        val result = syncRepository.stageAttachment(
+            ownerUuid = testOwnerUuid,
+            title = "SSH Cert",
+            fileName = "id_ed25519.pub",
+            mimeType = "text/plain",
+            category = "SSH",
+            rawPlaintextBytes = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5".toByteArray(),
+            parentId = "parent-pearl-123",
+            parentType = "pearl"
+        )
+        assertTrue("stageAttachment should succeed", result.isSuccess)
+        val entity = result.getOrThrow()
+        assertEquals("parent-pearl-123", entity.parentId)
+        assertEquals("pearl", entity.parentType)
+
+        val loaded = database.secureAttachmentDao().getById(testOwnerUuid, entity.id)
+        assertEquals("parent-pearl-123", loaded?.parentId)
+        assertEquals("pearl", loaded?.parentType)
+    }
 }
 

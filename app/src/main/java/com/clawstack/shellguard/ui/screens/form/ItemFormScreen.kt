@@ -824,8 +824,10 @@ fun MultiUriEditorSection(
                         shape = RoundedCornerShape(8.dp),
                         colors = fieldColors
                     )
-                    // TODO(ui-touch): Enforce minimum 48dp touch targets on secondary URL and attachment remove buttons (Task 04).
-                    androidx.compose.material3.IconButton(onClick = { onRemoveUri(index) }) {
+                    androidx.compose.material3.IconButton(
+                        onClick = { onRemoveUri(index) },
+                        modifier = Modifier.size(48.dp)
+                    ) {
                         Icon(imageVector = Icons.Default.Close, contentDescription = "Remove URL", tint = TextSecondary)
                     }
                 }
@@ -833,7 +835,9 @@ fun MultiUriEditorSection(
 
             androidx.compose.material3.OutlinedButton(
                 onClick = onAddUri,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp),
                 shape = RoundedCornerShape(8.dp),
                 border = BorderStroke(1.dp, ReefPink.copy(alpha = 0.5f)),
                 colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = ReefPink)
