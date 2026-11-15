@@ -301,6 +301,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Single Active Root Manifest Invariant (`docs-hygiene.md`, `draft-release.md`)**: Enforced strictly one active version manifest at repository root (`RELEASE-vX.Y.Z.N.md`) alongside store notes, pruning historical manifests to maintain clean storefronts and zero broken links.
 - **Subagent PR & Dual-Branch Merge Rollout Protocol (`git-hygiene.md`)**: Formally codified the 5-step integration sequence for merging external subagent PRs alongside downstream lead feature branches.
 
+## [0.0.0.20] - 2026-11-15 (Build 20 — Stage 2)
 
-
-
+### Added & Fixed
+- **Sync Bridge & Mutation Hardening (`#13`, `#22`)**: Defaulted `owner_uuid = ""` on `PearlDto`/`SecureNoteDto`/`SshKeyDto` with `ownerUuid` Room projection fallback, isolated per-domain pulls in `database.withTransaction`, serialized `deleteItem()` with `syncMutex`, hardened `pushPendingChanges()` re-keying and `409 Conflict` fallback, added `password_history` to `CreateVaultItemRequest`, and bumped Room to `v2` (`MIGRATION_1_2`) with `parent_id`/`parent_type` attachment linkage.
+- **Zero-Clipboard SAF Vault Import (`#23`)**: Replaced raw JSON paste in `SettingsBackupScreen` with `ActivityResultContracts.OpenDocument` + `importVaultBackupFromStream` (25 MB cap).
+- **Attachment SAF Download-Only Flow (`#24`)**: Removed `View` (`ACTION_VIEW` + `cacheDir/decrypted_attachments/` plaintext write) in favor of `ActivityResultContracts.CreateDocument` streaming and non-destructive `Toast` errors, covered by `ItemDetailViewModelTest.kt`.
+- **Ergonomics & Security (`#14`, `#22`)**: Upgraded interactive touch targets to `>= 48.dp`, added tactile copy/reveal haptics, and sanitized `VaultDashboardViewModel` sync error messages (CWE-532).
+- **Verification**: 136/136 unit & Robolectric tests passing on Cloud CI (Run `43771352373`).

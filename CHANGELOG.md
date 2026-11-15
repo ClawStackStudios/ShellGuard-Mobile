@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 - **Sanitized UI Sync Errors (CWE-532)**: Replaced raw `exception.message` rendering in `VaultDashboardViewModel` with sanitized user-facing error descriptors (#22).
+- **Attachment Download-Only Flow & Zero Cache Spill (`ItemDetailScreen.kt`, `ItemDetailViewModel.kt`)**: Removed the `View` button, `Intent.ACTION_VIEW` external launcher, and `cacheDir/decrypted_attachments/` plaintext disk writes; replaced with an Android SAF (`CreateDocument`) **Download**-only action and non-destructive `Toast` error handling (#24).
+
+### Verified
+- **Cloud CI Test Suite**: **136/136 unit and Robolectric tests passing green** on GitHub Actions (`Continuous Integration & Verification`).
 
 ## [0.0.0.14] - 2026-10-19 (Build 14) — Security & Transport Sovereignty Hotfix
 ### Added

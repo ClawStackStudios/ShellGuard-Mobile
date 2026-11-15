@@ -187,7 +187,7 @@ export GRADLE_OPTS="-XX:-UsePerfData -Djava.io.tmpdir=$PWD/app/build/tmp"
 
 ### Verification & Testing
 ```bash
-# Run the complete unit test suite (127/127 tests passing green)
+# Run the complete unit test suite (136/136 tests passing green)
 ./gradlew testDebugUnitTest
 
 # Assemble debug APK
@@ -214,7 +214,7 @@ adb shell am start -n com.clawstack.shellguard/.MainActivity
 | [**`ROADMAP.md`**](ROADMAP.md) | Multi-phase development roadmap tracking completed features and upcoming milestones. |
 | [**`CHANGELOG.md`**](CHANGELOG.md) | Chronological version release history adhering to Keep a Changelog standards. |
 | [**`RELEASE-PLAY.md`**](RELEASE-PLAY.md) | Google Play Store release notes single source of truth across all published versions. |
-| [**`RELEASE-v0.0.0.14.md`**](RELEASE-v0.0.0.14.md) | Dedicated release manifest and architecture notes for v0.0.0.14 (Build 14). |
+| [**`RELEASE-v0.0.0.20.md`**](RELEASE-v0.0.0.20.md) | Dedicated release manifest and architecture notes for v0.0.0.20 (Build 20). |
 | [**`project/architecture.md`**](project/architecture.md) | Deep architectural specification and system role boundaries. |
 | [**`project/routes-and-contracts.md`**](project/routes-and-contracts.md) | REST API endpoints, DTO models, and delta sync reconciliation contracts. |
 | [**`project/crypto-and-keystore.md`**](project/crypto-and-keystore.md) | Complete ShellCryption specification, KeyStore derivation, and biometric integration. |

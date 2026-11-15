@@ -17,4 +17,6 @@
 3. **Zero-Clipboard SAF Vault Import (`SettingsBackupScreen.kt`, `SettingsViewModel.kt`)**:
    - Removed the raw JSON paste field (`importInputText`) and replaced it with `ActivityResultContracts.OpenDocument` + bounded `InputStream` reading (`importVaultBackupFromStream`) so vault backups never hit the system clipboard.
 4. **Ergonomics & Accessibility (`>= 48.dp` Touch Targets & Haptics)**:
-   - Upgraded action `IconButton`s, `PodFilter` chips, secondary URL controls, TOTP copy button, and Settings back buttons to `>= 48.dp` touch targets and added `LocalHapticFeedback` on `copyToClipboard`.
+   - Upgraded action `IconButton`s, `PodFilter` chips, secondary URL controls, TOTP copy button, and Settings back buttons to `>= 48.dp` touch targets and added `LocalHapticFeedback` on `copyToClipboard` and secret reveal.
+5. **SAF Attachment Download-Only Flow (`ItemDetailScreen.kt`, `ItemDetailViewModel.kt`)**:
+   - Removed the `View` button and `cacheDir/decrypted_attachments/` plaintext spill; replaced with `ActivityResultContracts.CreateDocument` **Download**-only streaming and non-destructive `Toast` error handling (#24).

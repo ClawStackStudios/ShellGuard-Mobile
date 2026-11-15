@@ -181,6 +181,8 @@ data class SecureAttachmentEntity(
     @ColumnInfo(name = "size_bytes") val sizeBytes: Long = 0,
     @ColumnInfo(name = "sha256_checksum") val sha256Checksum: String = "",
     @ColumnInfo(name = "category") val category: String = "",
+    @ColumnInfo(name = "parent_id") val parentId: String = "",
+    @ColumnInfo(name = "parent_type") val parentType: String = "",
     @ColumnInfo(name = "sync_state") val syncState: String = "SYNCED",
     @ColumnInfo(name = "created_at") val createdAt: String,
     @ColumnInfo(name = "local_updated_at") val localUpdatedAt: Long = System.currentTimeMillis()
@@ -339,7 +341,7 @@ import net.sqlcipher.database.SupportFactory
         AuditLogEntity::class,
         AgentKeyEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class ShellGuardDatabase : RoomDatabase() {
