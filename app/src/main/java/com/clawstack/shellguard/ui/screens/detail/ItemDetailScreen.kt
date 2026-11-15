@@ -9,6 +9,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.PersistableBundle
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -22,6 +24,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -122,6 +125,27 @@ fun ItemDetailScreen(
     var pendingSensitiveAction by remember { mutableStateOf<(() -> Unit)?>(null) }
     var isRepromptPassed by remember { mutableStateOf(false) }
     var isHistoryExpanded by remember { mutableStateOf(false) }
+    var pendingDownloadAttachmentId by remember { mutableStateOf<String?>(null) }
+
+    val saveAttachmentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("*/*")
+    ) { destUri ->
+        val targetId = pendingDownloadAttachmentId
+        pendingDownloadAttachmentId = null
+        if (destUri != null && targetId != null) {
+            viewModel.downloadAttachmentToUri(
+                context = context,
+                attachmentId = targetId,
+                destinationUri = destUri,
+                onSuccess = {
+                    Toast.makeText(context, "Attachment saved", Toast.LENGTH_SHORT).show()
+                },
+                onError = { err ->
+                    Toast.makeText(context, err, Toast.LENGTH_LONG).show()
+                }
+            )
+        }
+    }
 
     // Clipboard auto-clear state machine
     var clipboardToastVisible by remember { mutableStateOf(false) }
@@ -815,21 +839,16 @@ fun ItemDetailScreen(
                                 Spacer(modifier = Modifier.height(16.dp))
                                 AttachmentListSection(
                                     attachments = state.attachments,
-                                    onOpenAttachment = { attId ->
-                                        val openAction = {
-                                            viewModel.openAttachment(context, attId) { uri, mime ->
-                                                try {
-                                                    context.startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri, mime).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))
-                                                } catch (e: android.content.ActivityNotFoundException) {
-                                                    Toast.makeText(context, "No app found to open this file type", Toast.LENGTH_SHORT).show()
-                                                }
-                                            }
+                                    onDownloadAttachment = { att ->
+                                        val downloadAction = {
+                                            pendingDownloadAttachmentId = att.id
+                                            saveAttachmentLauncher.launch(att.fileName.ifBlank { "attachment" })
                                         }
                                         if (state.reprompt && !isRepromptPassed) {
-                                            pendingSensitiveAction = openAction
+                                            pendingSensitiveAction = downloadAction
                                             showRepromptDialog = true
                                         } else {
-                                            openAction()
+                                            downloadAction()
                                         }
                                     }
                                 )
@@ -938,7 +957,7 @@ fun ItemDetailScreen(
 @Composable
 fun AttachmentListSection(
     attachments: List<AttachmentItemDetail>,
-    onOpenAttachment: (String) -> Unit
+    onDownloadAttachment: (AttachmentItemDetail) -> Unit
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = SurfaceContainerDark),
@@ -962,8 +981,11 @@ fun AttachmentListSection(
                             Text("${att.sizeBytes / 1024} KB • ${att.mimeType}", color = TextMuted, fontSize = 12.sp)
                         }
                     }
-                    androidx.compose.material3.TextButton(onClick = { onOpenAttachment(att.id) }) {
-                        Text("View", color = BrandClawCyan, fontSize = 14.sp)
+                    androidx.compose.material3.TextButton(
+                        onClick = { onDownloadAttachment(att) },
+                        modifier = Modifier.heightIn(min = 48.dp)
+                    ) {
+                        Text("Download", color = BrandClawCyan, fontSize = 14.sp)
                     }
                 }
                 if (index < attachments.size - 1) {
