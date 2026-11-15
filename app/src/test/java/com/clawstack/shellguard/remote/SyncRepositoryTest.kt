@@ -66,7 +66,8 @@ class SyncRepositoryTest {
             database = database,
             clientProvider = { baseUrl -> com.clawstack.shellguard.data.remote.ShellGuardClient(baseUrl) },
             deviceVault = deviceVault,
-            connectivityMonitor = connectivityMonitor
+            connectivityMonitor = connectivityMonitor,
+            attachmentVaultManager = com.clawstack.shellguard.data.local.AttachmentVaultManager(context)
         )
     }
 

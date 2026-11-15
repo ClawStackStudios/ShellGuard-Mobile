@@ -70,6 +70,9 @@ class SyncReconciliationAdversarialTest {
         override suspend fun fetchKeys(sessionToken: String): Result<List<SshKeyDto>> =
             Result.success(remoteKeys.toList())
 
+        override suspend fun fetchAttachments(sessionToken: String): Result<List<com.clawstack.shellguard.data.remote.models.AttachmentDto>> =
+            Result.success(emptyList())
+
         override suspend fun deleteVaultItem(sessionToken: String, id: String): Result<Boolean> {
             deletedPearlIds.add(id)
             return deletePearlResult

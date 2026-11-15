@@ -203,7 +203,8 @@ class SettingsViewModelTest {
         }.join()
 
         assertTrue(result?.isFailure == true)
-        assertEquals("Unable to open selected backup file.", viewModel.uiState.value.errorMessage)
+        val errNull = viewModel.uiState.first { it.errorMessage != null }.errorMessage
+        assertEquals("Unable to open selected backup file.", errNull)
     }
 
     @Test
@@ -220,6 +221,7 @@ class SettingsViewModelTest {
         }.join()
 
         assertTrue(result?.isFailure == true)
-        assertTrue(viewModel.uiState.value.errorMessage?.contains("maximum supported size") == true)
+        val errMsg = viewModel.uiState.first { it.errorMessage != null }.errorMessage
+        assertTrue(errMsg?.contains("maximum supported size") == true)
     }
 }
