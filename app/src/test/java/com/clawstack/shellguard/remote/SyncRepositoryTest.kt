@@ -444,5 +444,62 @@ class SyncRepositoryTest {
         assertEquals("parent-pearl-123", loaded?.parentId)
         assertEquals("pearl", loaded?.parentType)
     }
+
+    @Test
+    fun testSyncAllIngestsTrimmedDtosWithOwnerUuidFallback() = runBlocking {
+        val mockEngine = io.ktor.client.engine.mock.MockEngine { request ->
+            val path = request.url.encodedPath
+            val payload = when {
+                path.endsWith("/api/health") -> """{"status":"ok"}"""
+                path.endsWith("/api/vault") -> """{"success":true,"data":[{"id":"p-trimmed","title":"Trimmed Pearl","secret":"enc"}]}"""
+                path.endsWith("/api/notes") -> """{"success":true,"data":[{"id":"n-trimmed","title":"Trimmed Note","content":"enc"}]}"""
+                path.endsWith("/api/keys") -> """{"success":true,"data":[{"id":"k-trimmed","title":"Trimmed Key","key_value":"enc"}]}"""
+                path.endsWith("/api/attachments") -> """{"success":true,"data":[]}"""
+                else -> """{"success":true,"data":[]}"""
+            }
+            io.ktor.client.engine.mock.respond(
+                content = payload,
+                status = io.ktor.http.HttpStatusCode.OK,
+                headers = io.ktor.http.headersOf(io.ktor.http.HttpHeaders.ContentType, "application/json")
+            )
+        }
+        val httpClient = io.ktor.client.HttpClient(mockEngine) {
+            install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+                io.ktor.serialization.kotlinx.json.json(com.clawstack.shellguard.data.remote.KtorClientProvider.jsonConfig)
+            }
+        }
+        val testRepo = SyncRepository(
+            database = database,
+            deviceVault = deviceVault,
+            cryptoEngine = ShellCryptionEngine,
+            connectivityMonitor = connectivityMonitor,
+            clientProvider = { com.clawstack.shellguard.data.remote.ShellGuardClient(httpClient) }
+        )
+        connectivityMonitor.setOnlineForTest(true)
+
+        val syncResult = testRepo.syncAll(testOwnerUuid)
+        assertTrue("syncAll should succeed with trimmed DTOs: ${syncResult.exceptionOrNull()}", syncResult.isSuccess)
+
+        val items = testRepo.observeUnifiedItems(testOwnerUuid).first()
+        assertEquals("All 3 domains should project to UI with ownerUuid fallback", 3, items.size)
+        assertTrue(items.any { it.id == "p-trimmed" && it.title == "Trimmed Pearl" })
+        assertTrue(items.any { it.id == "n-trimmed" && it.title == "Trimmed Note" })
+        assertTrue(items.any { it.id == "k-trimmed" && it.title == "Trimmed Key" })
+    }
+
+    @Test
+    fun testMigration1To2AddsAttachmentParentColumns() {
+        val db = database.openHelper.writableDatabase
+        // Verify schema columns exist on v2 database
+        db.query("PRAGMA table_info(vault_secure_attachments)").use { cursor ->
+            val columns = mutableSetOf<String>()
+            val nameIdx = cursor.getColumnIndex("name")
+            while (cursor.moveToNext()) {
+                if (nameIdx >= 0) columns.add(cursor.getString(nameIdx))
+            }
+            assertTrue("parent_id column must exist", columns.contains("parent_id"))
+            assertTrue("parent_type column must exist", columns.contains("parent_type"))
+        }
+    }
 }
 

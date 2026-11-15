@@ -497,6 +497,7 @@ fun ItemDetailScreen(
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                                     IconButton(
                                                         onClick = {
+                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                             if (state.reprompt && !isRepromptPassed && !state.isSecretRevealed) {
                                                                 pendingSensitiveAction = { viewModel.toggleSecretVisibility() }
                                                                 showRepromptDialog = true

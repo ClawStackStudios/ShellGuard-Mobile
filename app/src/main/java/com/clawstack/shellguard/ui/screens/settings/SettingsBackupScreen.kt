@@ -87,6 +87,9 @@ import com.clawstack.shellguard.ui.theme.TextMuted
 import com.clawstack.shellguard.ui.theme.TextPrimary
 import com.clawstack.shellguard.ui.theme.TextSecondary
 import com.clawstack.shellguard.ui.theme.WarningText
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun SettingsBackupScreen(
@@ -96,6 +99,7 @@ fun SettingsBackupScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
 
     // Export State
     var selectedProtectionMode by remember { mutableStateOf(BackupProtectionMode.ACTIVE_KEY) }
@@ -119,31 +123,37 @@ fun SettingsBackupScreen(
     ) { uri: Uri? ->
         if (uri != null) {
             selectedImportUri = uri
-            var resolvedName = "Selected backup file"
-            var resolvedSize: Long? = null
-            runCatching {
-                context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-                    if (cursor.moveToFirst()) {
-                        val nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                        if (nameIdx >= 0) resolvedName = cursor.getString(nameIdx) ?: resolvedName
-                        val sizeIdx = cursor.getColumnIndex(OpenableColumns.SIZE)
-                        if (sizeIdx >= 0 && !cursor.isNull(sizeIdx)) resolvedSize = cursor.getLong(sizeIdx)
+            coroutineScope.launch {
+                val (resolvedName, resolvedSize, previewFormat) = withContext(Dispatchers.IO) {
+                    var name = "Selected backup file"
+                    var size: Long? = null
+                    runCatching {
+                        context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                            if (cursor.moveToFirst()) {
+                                val nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                                if (nameIdx >= 0) name = cursor.getString(nameIdx) ?: name
+                                val sizeIdx = cursor.getColumnIndex(OpenableColumns.SIZE)
+                                if (sizeIdx >= 0 && !cursor.isNull(sizeIdx)) size = cursor.getLong(sizeIdx)
+                            }
+                        }
                     }
+                    val format = runCatching {
+                        context.contentResolver.openInputStream(uri)?.use { stream ->
+                            val previewBytes = ByteArray(16384)
+                            val read = stream.read(previewBytes)
+                            if (read > 0) {
+                                viewModel.detectBackupFormat(String(previewBytes, 0, read, Charsets.UTF_8))
+                            } else {
+                                BackupFormatType.UNKNOWN
+                            }
+                        } ?: BackupFormatType.UNKNOWN
+                    }.getOrDefault(BackupFormatType.UNKNOWN)
+                    Triple(name, size, format)
                 }
+                selectedFileName = resolvedName
+                selectedFileSizeBytes = resolvedSize
+                detectedFormat = previewFormat
             }
-            selectedFileName = resolvedName
-            selectedFileSizeBytes = resolvedSize
-            detectedFormat = runCatching {
-                context.contentResolver.openInputStream(uri)?.use { stream ->
-                    val previewBytes = ByteArray(16384)
-                    val read = stream.read(previewBytes)
-                    if (read > 0) {
-                        viewModel.detectBackupFormat(String(previewBytes, 0, read, Charsets.UTF_8))
-                    } else {
-                        BackupFormatType.UNKNOWN
-                    }
-                } ?: BackupFormatType.UNKNOWN
-            }.getOrDefault(BackupFormatType.UNKNOWN)
         }
     }
 

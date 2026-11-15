@@ -4,8 +4,8 @@
 > *Aligned with ClawStack Mobile Standards and Native GitHub Control Tower.*
 >
 > **Historical Provenance**:
-> - **Genesis MVP (Stages 0–8 / Phases 1–7)**: Archived at [`meta-prompt-ai-studio_MVP_GENESIS.md`](../.agents/internal/meta-prompt-ai-studio_MVP_GENESIS.md) (`v0.0.0.11 Build 11`).
-> - **Feature Polish Baseline (Stages 1–5 Full Prompts)**: Archived verbatim at [`meta-prompt-ai-studio_FEATURE_POLISH_ARCHIVE.md`](../.agents/internal/meta-prompt-ai-studio_FEATURE_POLISH_ARCHIVE.md).
+> - **Genesis MVP (Stages 0–8 / Phases 1–7)**: Archived locally at `.agents/internal/meta-prompt-ai-studio_MVP_GENESIS.md` (`v0.0.0.11 Build 11`).
+> - **Feature Polish Baseline (Stages 1–5 Full Prompts)**: Archived locally at `.agents/internal/meta-prompt-ai-studio_FEATURE_POLISH_ARCHIVE.md`.
 >
 > **Live Source of Truth**: Granular task cards, acceptance criteria, and milestone tracking now live natively in **[GitHub Issues](https://github.com/ClawStackStudios/ShellGuard-Mobile/issues)** and **[GitHub Project #1](https://github.com/orgs/ClawStackStudios/projects/1)**.
 

@@ -1,9 +1,9 @@
 ---
 roadmap_version: 2.0.0
-last_updated: 2026-10-17
+last_updated: 2026-11-15
 meta_phase: "Feature Verification and Polish"
-current_position: "Stage 2: Mental Flow & Ergonomic Form Polish (Task 04) — Active Focus"
-baseline_release: "v0.0.0.12 (Build 12) Published"
+current_position: "Stage 2: Mental Flow & Ergonomic Form Polish (v0.0.0.20 / Build 20) — Staged for CI & Pixel Verification"
+baseline_release: "v0.0.0.14 (Build 14) Published"
 target_release: "v0.0.1.0 (Build 50) Production Release Candidate"
 statistics:
   description: "Meta-Phase roadmap for holistic feature verification, full server sync parity, mental flow ergonomics, and Android production polish."
