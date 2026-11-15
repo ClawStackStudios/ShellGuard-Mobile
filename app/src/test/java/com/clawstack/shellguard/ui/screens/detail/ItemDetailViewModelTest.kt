@@ -54,15 +54,15 @@ class ItemDetailViewModelTest {
             shellKey = shellKey
         )
 
-        val saved = appContainer.syncRepository.savePearl(
+        pearlId = "detail-test-pearl-1"
+        appContainer.syncRepository.savePearlDetail(
             PearlDetail(
-                id = "",
+                id = pearlId,
                 ownerUuid = testOwnerUuid,
                 title = "Attachment Test Item",
                 secret = "super-secret"
             )
         ).getOrThrow()
-        pearlId = saved.id
     }
 
     @After
