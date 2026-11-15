@@ -32,7 +32,7 @@ flowchart TD
 | Boundary | Enforcement & Characteristics |
 | :--- | :--- |
 | **Client ↔ Server** | Server NEVER sees plaintext secrets or the `hu-` key. Login sends `SHA-256(hu-)` only. |
-| **Client ↔ Local Storage** | Room DB encrypted with SQLCipher. Hybrid file-system attachment vault (`filesDir/vault_attachments/{id}.enc`). Decrypted secrets and temporary file caches (`cacheDir/decrypted_attachments/`) held ephemerally and scrubbed on lock/logout/purge. |
+| **Client ↔ Local Storage** | Room DB encrypted with SQLCipher. Hybrid file-system attachment vault (`filesDir/vault_attachments/{id}.enc`). Attachment downloads stream decrypted bytes directly to user-selected SAF URIs without writing plaintext to `cacheDir` (defense-in-depth `clearDecryptedCache()` still runs on lock/logout/purge). |
 | **Server ↔ Disk** | Secrets stored as ShellCryption blobs; server-side metadata encryption layers on top. |
 | **Human ↔ Agent** | `hu-` keys are human-only root identity. `lb-` agent keys are granular and revocable. |
 | **Local ↔ Remote** | Bidirectional sync with conflict resolution. Server is source of truth. |

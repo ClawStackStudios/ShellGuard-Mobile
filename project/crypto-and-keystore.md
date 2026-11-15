@@ -362,7 +362,7 @@ When a vault item has `reprompt == true`, biometric/PIN re-authentication applie
 1. Password unmasking / copying
 2. Secure note content unmasking / copying
 3. SSH private key unmasking / copying
-4. **Attachment Access**: Viewing, streaming, or opening an attachment (`onOpenAttachment`) via `AttachmentVaultManager` must verify `isRepromptPassed` before decrypting to the cache directory and launching `ACTION_VIEW`.
+4. **Attachment Access**: Downloading an attachment (`onDownloadAttachment` -> SAF `CreateDocument` -> `ItemDetailViewModel.downloadAttachmentToUri`) must verify `isRepromptPassed` before decrypting and streaming to the user-selected destination URI (no plaintext `cacheDir` write or external `ACTION_VIEW` launch).
 
 ---
 
