@@ -24,7 +24,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -44,6 +46,7 @@ fun PasswordGeneratorSheet(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
     var isPassphraseMode by remember { mutableStateOf(false) }
 
     // Password options state
@@ -177,7 +180,10 @@ fun PasswordGeneratorSheet(
                             modifier = Modifier.weight(1f)
                         )
                         Row {
-                            IconButton(onClick = { refreshPassword() }) {
+                            IconButton(onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                refreshPassword()
+                            }) {
                                 Icon(
                                     imageVector = Icons.Default.Refresh,
                                     contentDescription = "Regenerate",
@@ -185,6 +191,7 @@ fun PasswordGeneratorSheet(
                                 )
                             }
                             IconButton(onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                 val clip = ClipData.newPlainText("Generated Password", generatedPassword)
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -375,6 +382,7 @@ fun PasswordGeneratorSheet(
             // Action Buttons
             Button(
                 onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     onPasswordSelected(generatedPassword)
                     onDismissRequest()
                 },

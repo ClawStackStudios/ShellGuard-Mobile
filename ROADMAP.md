@@ -2,7 +2,7 @@
 roadmap_version: 2.0.0
 last_updated: 2026-11-15
 meta_phase: "Feature Verification and Polish"
-current_position: "Stage 2: Mental Flow & Ergonomic Form Polish (v0.0.0.20 / Build 20) — CI-Green (136/136 Tests); #13/#22/#23/#24 Closed; #14 Remaining"
+current_position: "Stage 2: Mental Flow & Ergonomic Form Polish (v0.0.0.20 / Build 20) — All Milestone 2 Tasks Complete (#11–#14, #22–#24)"
 baseline_release: "v0.0.0.14 (Build 14) Published"
 target_release: "v0.0.1.0 (Build 50) Production Release Candidate"
 statistics:
@@ -154,7 +154,7 @@ flowchart TD
     - In `SyncRepository.kt`: ensure staged attachments drain with valid parent references.
   - *Success Criteria*: Unit tests in `SyncRepositoryTest.kt` verify mutation response deserialization without `owner_uuid`, Room schema migration 1->2 passes, and parent-linked multipart uploads succeed.
 
-- [ ] **Task 04.B: [UI/UX & Release] Touch Targets (≥48dp), Haptic Feedback, Keyboard Insets & v0.0.0.20 Release**
+- [x] **Task 04.B: [UI/UX & Release] Touch Targets (≥48dp), Haptic Feedback, Keyboard Insets & v0.0.0.20 Release**
   - *Versioning Note*: `v0.0.0.14 (Build 14)` ships the immediate security and transport sovereignty hotfix; `v0.0.0.15` through `v0.0.0.19` are reserved for intermediate hotfixes.
   - Audit all interactive surfaces against `mobile-android-design`: ensure all buttons, toggles, icon buttons, and list items have touch targets ≥ 48dp.
   - Implement subtle, tactile haptic feedback on secret reveal, copy actions, and password generation.

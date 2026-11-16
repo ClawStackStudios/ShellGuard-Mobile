@@ -89,6 +89,7 @@ import com.clawstack.shellguard.data.repository.VaultItemDomain
 import com.clawstack.shellguard.domain.models.CustomFieldType
 import com.clawstack.shellguard.ui.components.ClipboardToastPill
 import com.clawstack.shellguard.ui.components.CustomFieldDisplayRow
+import com.clawstack.shellguard.ui.components.SecureNoteMarkdownView
 import com.clawstack.shellguard.ui.components.TotpDisplayCard
 import com.clawstack.shellguard.ui.theme.BorderSubtle
 import com.clawstack.shellguard.ui.theme.BrandClawCyan
@@ -577,13 +578,7 @@ fun ItemDetailScreen(
                                                     .padding(12.dp)
                                             ) {
                                                 if (state.isSecretRevealed) {
-                                                    // TODO(ui-markdown): Replace plain Text with SecureNoteMarkdownView(content = state.secret) when revealed (Task 04).
-                                                    Text(
-                                                        text = state.secret.ifBlank { "(Empty Note)" },
-                                                        color = if (state.secret.isBlank()) TextMuted else TextPrimary,
-                                                        fontSize = 14.sp,
-                                                        lineHeight = 20.sp
-                                                    )
+                                                    SecureNoteMarkdownView(content = state.secret)
                                                 } else {
                                                     Column {
                                                         Text(
