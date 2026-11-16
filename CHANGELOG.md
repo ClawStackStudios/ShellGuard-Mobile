@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.0.20] - 2026-11-15 (Build 20) — Stage 2: Sync Bridge Resilience, SAF Import & Ergonomic Form Polish
+### Added
+- **SAF File-Upload Vault Import (`SettingsBackupScreen.kt`, `SettingsViewModel.kt`)**: Replaced raw JSON clipboard-paste import with `ActivityResultContracts.OpenDocument` + bounded `InputStream` reading (`importVaultBackupFromStream`), preventing vault secrets from hitting the system clipboard (#23).
+- **Room Schema Migration 1→2 & Attachment Parent Linkage (`ShellGuardDatabase.kt`, `SecureAttachmentEntity.kt`, `ShellGuardClient.kt`)**: Added `parent_id` and `parent_type` columns with `MIGRATION_1_2` and multipart upload support (#13).
+- **Retryable Sync Error Banner & Haptic Copy (`VaultDashboardScreen.kt`, `ItemDetailScreen.kt`)**: Added a dismissible/retryable sync error banner and `LocalHapticFeedback` on clipboard copy (#22, #14).
+
+### Changed
+- **Accessible Touch Targets (`>= 48.dp`)**: Upgraded `PodFilter` chips, dashboard/settings top-bar `IconButton`s, detail action row buttons, TOTP copy button, and secondary URL controls to `>= 48.dp` (#14).
+- **Password History Push Parity (`ShellResponse.kt`, `SyncRepository.kt`)**: Added `password_history` to `CreateVaultItemRequest` (#13).
+
+### Fixed
+- **Sync Bridge Deserialization & Mutation Edge Cases (`ShellResponse.kt`, `SyncRepository.kt`)**: Defaulted `owner_uuid = ""` on `PearlDto`/`SecureNoteDto`/`SshKeyDto` with `ownerUuid` fallback, isolated per-domain pulls inside `database.withTransaction`, serialized `deleteItem()` with `syncMutex`, and hardened server-ID re-keying + `409 Conflict` recovery (#22, #13).
+
+### Security
+- **Sanitized UI Sync Errors (CWE-532)**: Replaced raw `exception.message` rendering in `VaultDashboardViewModel` with sanitized user-facing error descriptors (#22).
+- **Attachment Download-Only Flow & Zero Cache Spill (`ItemDetailScreen.kt`, `ItemDetailViewModel.kt`)**: Removed the `View` button, `Intent.ACTION_VIEW` external launcher, and `cacheDir/decrypted_attachments/` plaintext disk writes; replaced with an Android SAF (`CreateDocument`) **Download**-only action and non-destructive `Toast` error handling (#24).
+
+### Verified
+- **Cloud CI Test Suite**: **136/136 unit and Robolectric tests passing green** on GitHub Actions (`Continuous Integration & Verification`).
+
+## [0.0.0.14] - 2026-10-19 (Build 14) — Security & Transport Sovereignty Hotfix
+### Added
+- **Consent-Gated Self-Signed TLS Trust Model (`KtorClientProvider.kt`, `GatewayScreen.kt`)**: Added an in-app user consent toggle (`trustSelfSignedCerts`) for homelab self-hosted HTTPS endpoints, enabling users to connect to self-signed deployments without forcing CA certificates into Android OS root stores.
+- **Physical Glass Verification Suite (`on_glass_pixel_verification_2026_10_19.md`)**: Conducted live on-glass verification on physical Google Pixel (`lineage_sailfish`) over wireless TLS ADB, verifying layout, responsive toggle animation, amber warning indicator (`⚠️ Strict HTTPS validation disabled.`), and protocol switching.
+
+### Changed
+- **Roadmap Realignment (Option 1 Decade Intervals)**: Re-versioned future roadmap stages with 10-build buffer intervals (`v0.0.0.20` Stage 2, `v0.0.0.30` Stage 3, `v0.0.0.40` Stage 4, `v0.0.1.0 Build 50` Structural Completion) to accommodate intermediate bugfix releases.
+
+### Fixed
+- **GatewayScreen Box Stacking Layout Defect (`GatewayScreen.kt`)**: Fixed Compose layout defect where the self-signed consent row stacked directly over the segmented URL bar. Reordered the row into the scrollable `Column` container with an accessible `≥ 48dp` touch target (`heightIn(min = 48.dp)`).
+
+### Security
+- **CWE-532 Sensitive Information Logging Redaction (`ShellGuardClient.kt`)**: Redacted raw unparseable 400 Bad Request error response bodies from log outputs to eliminate credential or plaintext leakage into logcat/telemetry.
+- **Fail-Closed Default TLS**: Self-signed certificate trust defaults to `false`; standard platform CA certificate validation is strictly enforced unless the user explicitly acknowledges and toggles self-signed trust for HTTPS connections.
+
 ## [0.0.0.13] - 2026-10-17 (Build 13) — Stage 2: Mental Flow & Search Ergonomics (Sub-16ms Indexing & Cold-Start Resilience)
 ### Added
 - **In-Memory Sub-16ms Tokenized Search (`VaultDashboardViewModel.kt`)**: Implemented pre-indexed tokenized search across all vault items with 80ms debouncing, achieving sub-16ms frame times across 150+ items without UI stutter.

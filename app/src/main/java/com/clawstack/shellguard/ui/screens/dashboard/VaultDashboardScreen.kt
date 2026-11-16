@@ -19,6 +19,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -193,10 +194,9 @@ fun VaultDashboardScreen(
                     }
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // TODO(ui-touch): Upgrade top bar menu and sync IconButtons to minimum 48dp touch targets (Task 04).
                         IconButton(
                             onClick = { viewModel.triggerSync() },
-                            modifier = Modifier.size(38.dp)
+                            modifier = Modifier.size(48.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Refresh,
@@ -209,7 +209,7 @@ fun VaultDashboardScreen(
                         Box {
                             IconButton(
                                 onClick = { isMenuExpanded = true },
-                                modifier = Modifier.size(38.dp)
+                                modifier = Modifier.size(48.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.MoreVert,
@@ -327,9 +327,9 @@ fun VaultDashboardScreen(
                         val isSelected = uiState.selectedPod == pod
                         val count = podCounts[pod] ?: 0
 
-                        // TODO(ui-touch): Audit and enforce minimum 48dp touch targets on PodFilter chips using Modifier.defaultMinSize(minHeight = 48.dp) (Task 04).
                         Box(
                             modifier = Modifier
+                                .defaultMinSize(minHeight = 48.dp)
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(if (isSelected) ReefPink else SurfaceDark)
                                 .border(
@@ -338,7 +338,8 @@ fun VaultDashboardScreen(
                                     shape = RoundedCornerShape(10.dp)
                                 )
                                 .clickable { viewModel.selectPod(pod) }
-                                .padding(horizontal = 14.dp, vertical = 8.dp)
+                                .padding(horizontal = 14.dp, vertical = 8.dp),
+                            contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = "${pod.label} ($count)",
@@ -378,6 +379,60 @@ fun VaultDashboardScreen(
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Medium
                                 )
+                            }
+                        }
+                    }
+                }
+
+                // ── Sync Error Banner (Sanitized + Retryable) ────────────────
+                AnimatedVisibility(
+                    visible = uiState.errorMessage != null,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    Column {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Card(
+                            shape = RoundedCornerShape(10.dp),
+                            colors = CardDefaults.cardColors(containerColor = SurfaceDark),
+                            border = BorderStroke(1.dp, StatusError.copy(alpha = 0.5f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = uiState.errorMessage.orEmpty(),
+                                    color = StatusError,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                TextButton(
+                                    onClick = { viewModel.triggerSync() },
+                                    modifier = Modifier.height(48.dp)
+                                ) {
+                                    Text(
+                                        text = "Retry",
+                                        color = BrandClawCyan,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                IconButton(
+                                    onClick = { viewModel.dismissError() },
+                                    modifier = Modifier.size(48.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Clear,
+                                        contentDescription = "Dismiss error",
+                                        tint = TextMuted,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
                             }
                         }
                     }

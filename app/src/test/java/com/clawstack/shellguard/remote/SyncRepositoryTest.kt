@@ -66,7 +66,8 @@ class SyncRepositoryTest {
             database = database,
             clientProvider = { baseUrl -> com.clawstack.shellguard.data.remote.ShellGuardClient(baseUrl) },
             deviceVault = deviceVault,
-            connectivityMonitor = connectivityMonitor
+            connectivityMonitor = connectivityMonitor,
+            attachmentVaultManager = com.clawstack.shellguard.data.local.AttachmentVaultManager(context)
         )
     }
 
@@ -392,6 +393,135 @@ class SyncRepositoryTest {
         assertTrue("Get note should succeed", retrievedNoteResult.isSuccess)
         val retrievedNote = retrievedNoteResult.getOrNull()!!
         assertEquals("Note attachments should match", listOf("att-uuid-3"), retrievedNote.attachments)
+    }
+
+    @Test
+    fun testTrimmedDtoDeserializationWithoutOwnerUuid() {
+        val json = com.clawstack.shellguard.data.remote.KtorClientProvider.jsonConfig
+        val pearlJson = """{"id":"p-1","title":"GitHub","secret":"enc"}"""
+        val noteJson = """{"id":"n-1","title":"Recovery","content":"enc"}"""
+        val keyJson = """{"id":"k-1","title":"Prod SSH","key_value":"enc"}"""
+
+        val pearl = json.decodeFromString<com.clawstack.shellguard.data.remote.models.PearlDto>(pearlJson)
+        val note = json.decodeFromString<com.clawstack.shellguard.data.remote.models.SecureNoteDto>(noteJson)
+        val key = json.decodeFromString<com.clawstack.shellguard.data.remote.models.SshKeyDto>(keyJson)
+
+        assertEquals("", pearl.owner_uuid)
+        assertEquals("", note.owner_uuid)
+        assertEquals("", key.owner_uuid)
+    }
+
+    @Test
+    fun testCreateVaultItemRequestIncludesPasswordHistory() {
+        val json = com.clawstack.shellguard.data.remote.KtorClientProvider.jsonConfig
+        val req = com.clawstack.shellguard.data.remote.models.CreateVaultItemRequest(
+            id = "p-hist",
+            title = "Bank",
+            secret = "enc",
+            password_history = """{"v":1,"ct":"hist"}"""
+        )
+        val encoded = json.encodeToString(com.clawstack.shellguard.data.remote.models.CreateVaultItemRequest.serializer(), req)
+        assertTrue("Serialized request must include password_history", encoded.contains("password_history"))
+    }
+
+    @Test
+    fun testStageAttachmentPersistsParentLinkage() = runBlocking {
+        val result = syncRepository.stageAttachment(
+            ownerUuid = testOwnerUuid,
+            title = "SSH Cert",
+            fileName = "id_ed25519.pub",
+            mimeType = "text/plain",
+            category = "SSH",
+            rawPlaintextBytes = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5".toByteArray(),
+            parentId = "parent-pearl-123",
+            parentType = "pearl"
+        )
+        assertTrue("stageAttachment should succeed", result.isSuccess)
+        val entity = result.getOrThrow()
+        assertEquals("parent-pearl-123", entity.parentId)
+        assertEquals("pearl", entity.parentType)
+
+        val loaded = database.secureAttachmentDao().getById(testOwnerUuid, entity.id)
+        assertEquals("parent-pearl-123", loaded?.parentId)
+        assertEquals("pearl", loaded?.parentType)
+    }
+
+    @Test
+    fun testSyncAllIngestsTrimmedDtosWithOwnerUuidFallback() = runBlocking {
+        val fakeClient = object : com.clawstack.shellguard.data.remote.ShellGuardClient("http://localhost:6565") {
+            override suspend fun getHealth(): Result<Boolean> = Result.success(true)
+            override suspend fun fetchVault(sessionToken: String): Result<List<com.clawstack.shellguard.data.remote.models.PearlDto>> =
+                Result.success(
+                    listOf(
+                        com.clawstack.shellguard.data.remote.models.PearlDto(
+                            id = "p-trimmed",
+                            title = "Trimmed Pearl",
+                            secret = "enc"
+                        )
+                    )
+                )
+
+            override suspend fun fetchNotes(sessionToken: String): Result<List<com.clawstack.shellguard.data.remote.models.SecureNoteDto>> =
+                Result.success(
+                    listOf(
+                        com.clawstack.shellguard.data.remote.models.SecureNoteDto(
+                            id = "n-trimmed",
+                            title = "Trimmed Note",
+                            content = "enc"
+                        )
+                    )
+                )
+
+            override suspend fun fetchKeys(sessionToken: String): Result<List<com.clawstack.shellguard.data.remote.models.SshKeyDto>> =
+                Result.success(
+                    listOf(
+                        com.clawstack.shellguard.data.remote.models.SshKeyDto(
+                            id = "k-trimmed",
+                            title = "Trimmed Key",
+                            key_value = "enc"
+                        )
+                    )
+                )
+
+            override suspend fun fetchAttachments(sessionToken: String): Result<List<com.clawstack.shellguard.data.remote.models.AttachmentDto>> =
+                Result.success(emptyList())
+        }
+
+        val testRepo = SyncRepository(
+            database = database,
+            clientProvider = { _ -> fakeClient },
+            deviceVault = deviceVault,
+            connectivityMonitor = connectivityMonitor
+        )
+        try {
+            connectivityMonitor.setOnlineForTesting(true)
+
+            val syncResult = testRepo.syncAll(testOwnerUuid)
+            assertTrue("syncAll should succeed with trimmed DTOs: ${syncResult.exceptionOrNull()}", syncResult.isSuccess)
+
+            val items = testRepo.observeUnifiedItems(testOwnerUuid).first()
+            assertEquals("All 3 domains should project to UI with ownerUuid fallback", 3, items.size)
+            assertTrue(items.any { it.id == "p-trimmed" && it.title == "Trimmed Pearl" })
+            assertTrue(items.any { it.id == "n-trimmed" && it.title == "Trimmed Note" })
+            assertTrue(items.any { it.id == "k-trimmed" && it.title == "Trimmed Key" })
+        } finally {
+            testRepo.cancelScope()
+        }
+    }
+
+    @Test
+    fun testMigration1To2AddsAttachmentParentColumns() {
+        val db = database.openHelper.writableDatabase
+        // Verify schema columns exist on v2 database
+        db.query("PRAGMA table_info(vault_secure_attachments)").use { cursor ->
+            val columns = mutableSetOf<String>()
+            val nameIdx = cursor.getColumnIndex("name")
+            while (cursor.moveToNext()) {
+                if (nameIdx >= 0) columns.add(cursor.getString(nameIdx))
+            }
+            assertTrue("parent_id column must exist", columns.contains("parent_id"))
+            assertTrue("parent_type column must exist", columns.contains("parent_type"))
+        }
     }
 }
 

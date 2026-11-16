@@ -4,7 +4,11 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.provider.OpenableColumns
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -17,12 +21,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
@@ -80,6 +87,9 @@ import com.clawstack.shellguard.ui.theme.TextMuted
 import com.clawstack.shellguard.ui.theme.TextPrimary
 import com.clawstack.shellguard.ui.theme.TextSecondary
 import com.clawstack.shellguard.ui.theme.WarningText
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun SettingsBackupScreen(
@@ -89,6 +99,7 @@ fun SettingsBackupScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
 
     // Export State
     var selectedProtectionMode by remember { mutableStateOf(BackupProtectionMode.ACTIVE_KEY) }
@@ -100,15 +111,57 @@ fun SettingsBackupScreen(
     var deviceOnlyKeyFallback by remember { mutableStateOf(false) }
     var showClawKey by remember { mutableStateOf(false) }
 
-    // Import State
-    var importInputText by remember { mutableStateOf("") }
+    // Import State (SAF file selection — never touches system clipboard)
+    var selectedImportUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedFileName by remember { mutableStateOf<String?>(null) }
+    var selectedFileSizeBytes by remember { mutableStateOf<Long?>(null) }
     var importPasswordOrKey by remember { mutableStateOf("") }
     var detectedFormat by remember { mutableStateOf(BackupFormatType.UNKNOWN) }
+
+    val importFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            selectedImportUri = uri
+            coroutineScope.launch {
+                val (resolvedName, resolvedSize, previewFormat) = withContext(Dispatchers.IO) {
+                    var name = "Selected backup file"
+                    var size: Long? = null
+                    runCatching {
+                        context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                            if (cursor.moveToFirst()) {
+                                val nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                                if (nameIdx >= 0) name = cursor.getString(nameIdx) ?: name
+                                val sizeIdx = cursor.getColumnIndex(OpenableColumns.SIZE)
+                                if (sizeIdx >= 0 && !cursor.isNull(sizeIdx)) size = cursor.getLong(sizeIdx)
+                            }
+                        }
+                    }
+                    val format = runCatching {
+                        context.contentResolver.openInputStream(uri)?.use { stream ->
+                            val previewBytes = ByteArray(16384)
+                            val read = stream.read(previewBytes)
+                            if (read > 0) {
+                                viewModel.detectBackupFormat(String(previewBytes, 0, read, Charsets.UTF_8))
+                            } else {
+                                BackupFormatType.UNKNOWN
+                            }
+                        } ?: BackupFormatType.UNKNOWN
+                    }.getOrDefault(BackupFormatType.UNKNOWN)
+                    Triple(name, size, format)
+                }
+                selectedFileName = resolvedName
+                selectedFileSizeBytes = resolvedSize
+                detectedFormat = previewFormat
+            }
+        }
+    }
 
     Scaffold(
         modifier = modifier
             .fillMaxSize()
-            .statusBarsPadding(),
+            .statusBarsPadding()
+            .imePadding(),
         containerColor = OceanDark
     ) { innerPadding ->
         Column(
@@ -126,7 +179,7 @@ fun SettingsBackupScreen(
             ) {
                 IconButton(
                     onClick = onBackClick,
-                    modifier = Modifier.size(38.dp)
+                    modifier = Modifier.size(48.dp)
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -674,25 +727,60 @@ fun SettingsBackupScreen(
                                 modifier = Modifier.padding(top = 4.dp, bottom = 14.dp)
                             )
 
-                            OutlinedTextField(
-                                value = importInputText,
-                                onValueChange = {
-                                    importInputText = it
-                                    detectedFormat = viewModel.detectBackupFormat(it)
+                            OutlinedButton(
+                                onClick = {
+                                    importFileLauncher.launch(
+                                        arrayOf("application/json", "text/plain", "application/octet-stream", "*/*")
+                                    )
                                 },
-                                label = { Text("Paste Backup JSON here") },
-                                minLines = 3,
-                                maxLines = 5,
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = BrandClawCyan,
-                                    unfocusedBorderColor = BorderSubtle,
-                                    focusedLabelColor = BrandClawCyan,
-                                    unfocusedLabelColor = TextMuted,
-                                    focusedTextColor = TextPrimary,
-                                    unfocusedTextColor = TextPrimary
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 48.dp),
+                                border = BorderStroke(1.dp, BrandClawCyan.copy(alpha = 0.7f)),
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.FileUpload,
+                                    contentDescription = null,
+                                    tint = BrandClawCyan,
+                                    modifier = Modifier.size(18.dp)
                                 )
-                            )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = if (selectedImportUri == null) "Select Backup File (.sgvault, .json)" else "Change Backup File",
+                                    color = BrandClawCyan,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+
+                            if (selectedImportUri != null) {
+                                Spacer(modifier = Modifier.height(10.dp))
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(containerColor = OceanDark),
+                                    border = BorderStroke(1.dp, BorderSubtle),
+                                    shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Column(modifier = Modifier.padding(12.dp)) {
+                                        Text(
+                                            text = selectedFileName ?: "Selected backup file",
+                                            color = TextPrimary,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                        selectedFileSizeBytes?.let { bytes ->
+                                            val sizeLabel = if (bytes >= 1024) "${bytes / 1024} KB" else "$bytes B"
+                                            Text(
+                                                text = "Size: $sizeLabel • Read directly via Android Storage Access Framework",
+                                                color = TextMuted,
+                                                fontSize = 11.sp,
+                                                modifier = Modifier.padding(top = 2.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
 
                             // Detected Format Badge
                             if (detectedFormat != BackupFormatType.UNKNOWN) {
@@ -735,6 +823,7 @@ fun SettingsBackupScreen(
                                         label = { Text("Decryption Passphrase or Master Key") },
                                         placeholder = { Text("Leave blank to try active session key") },
                                         visualTransformation = PasswordVisualTransformation(),
+                                        keyboardOptions = KeyboardOptions(autoCorrect = false),
                                         modifier = Modifier.fillMaxWidth(),
                                         colors = OutlinedTextFieldDefaults.colors(
                                             focusedBorderColor = BrandClawCyan,
@@ -752,19 +841,29 @@ fun SettingsBackupScreen(
 
                             Button(
                                 onClick = {
-                                    if (importInputText.isBlank()) {
-                                        Toast.makeText(context, "Please paste backup content first.", Toast.LENGTH_SHORT).show()
+                                    val targetUri = selectedImportUri
+                                    if (targetUri == null) {
+                                        Toast.makeText(context, "Please select a backup file first.", Toast.LENGTH_SHORT).show()
                                         return@Button
                                     }
-                                    viewModel.importVaultBackup(
-                                        rawContent = importInputText,
-                                        passwordOrKey = importPasswordOrKey.ifBlank { null }
+                                    viewModel.importVaultBackupFromStream(
+                                        inputStreamProvider = { context.contentResolver.openInputStream(targetUri) },
+                                        passwordOrKey = importPasswordOrKey.ifBlank { null },
+                                        onCompleted = { res ->
+                                            if (res.isSuccess) {
+                                                selectedImportUri = null
+                                                selectedFileName = null
+                                                selectedFileSizeBytes = null
+                                                importPasswordOrKey = ""
+                                                detectedFormat = BackupFormatType.UNKNOWN
+                                            }
+                                        }
                                     )
                                 },
-                                enabled = !uiState.isImporting && importInputText.isNotBlank(),
+                                enabled = !uiState.isImporting && selectedImportUri != null,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(48.dp),
+                                    .heightIn(min = 48.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = BrandClawCyan),
                                 shape = RoundedCornerShape(10.dp)
                             ) {

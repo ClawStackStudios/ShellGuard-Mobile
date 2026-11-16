@@ -181,23 +181,25 @@ data class SecureAttachmentEntity(
     @ColumnInfo(name = "size_bytes") val sizeBytes: Long = 0,
     @ColumnInfo(name = "sha256_checksum") val sha256Checksum: String = "",
     @ColumnInfo(name = "category") val category: String = "",
+    @ColumnInfo(name = "parent_id") val parentId: String = "",
+    @ColumnInfo(name = "parent_type") val parentType: String = "",
     @ColumnInfo(name = "sync_state") val syncState: String = "SYNCED",
     @ColumnInfo(name = "created_at") val createdAt: String,
     @ColumnInfo(name = "local_updated_at") val localUpdatedAt: Long = System.currentTimeMillis()
 )
 ```
 
-### D.1 `AttachmentVaultManager` & Ephemeral Decryption Cache Lifecycle
+### D.1 `AttachmentVaultManager` & Decryption Lifecycle
 
-Attachments utilize a dual-path storage architecture managed by `AttachmentVaultManager`:
-1. **Encrypted Vault Storage**: `context.filesDir/vault_attachments/{id}.enc` persists encrypted AES-GCM payloads streamed directly from the network or camera/file picker.
-2. **Ephemeral Decryption Cache**: `context.cacheDir/decrypted_attachments/{safeFileName}` holds temporary plaintext files passed to external viewers via Android `FileProvider`.
-3. **Cache Purge Invariant (`clearDecryptedCache`)**: Plaintext files in the cache directory must be scrubbed on:
+Attachments are managed by `AttachmentVaultManager` with zero plaintext `cacheDir` writes during normal operation:
+1. **Encrypted Vault Storage**: `context.filesDir/vault_attachments/{id}.enc` persists encrypted AES-GCM payloads streamed directly from the network or file picker.
+2. **Direct SAF Download Streaming**: `ItemDetailViewModel.downloadAttachmentToUri()` decrypts in memory on `Dispatchers.IO` and streams bytes directly to the user-chosen Storage Access Framework `OutputStream` (`CreateDocument`), without writing unencrypted files to `cacheDir/decrypted_attachments/` or launching `Intent.ACTION_VIEW`.
+3. **Legacy Cache Purge Invariant (`clearDecryptedCache`)**: `clearDecryptedCache()` remains wired as defense-in-depth cleanup on:
    - Cold application start (`ShellGuardApp.onCreate()`)
    - User logout (`VaultDashboardViewModel.logout()`)
    - Vault background timeout / lock (`VaultLockManager.lock()`)
    - Emergency panic purge (`SecurityPreferenceController.purgeAll()` / `SettingsViewModel.executePanicPurge()`)
-4. **Path Traversal & MIME Hardening**: Filenames received from remote envelopes must be sanitized via `File(fileName).name` to prevent directory traversal (CWE-22), and MIME types must be resolved with fallback to `MimeTypeMap.getFileExtensionFromUrl()`.
+4. **Sanitized SAF Filename**: Suggested filenames passed to `CreateDocument` default safely when blank.
 
 ```kotlin
 class AttachmentVaultManager(private val context: Context) {
@@ -339,7 +341,7 @@ import net.sqlcipher.database.SupportFactory
         AuditLogEntity::class,
         AgentKeyEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class ShellGuardDatabase : RoomDatabase() {

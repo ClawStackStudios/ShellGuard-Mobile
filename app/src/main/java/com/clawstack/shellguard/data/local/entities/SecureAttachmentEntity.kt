@@ -21,6 +21,8 @@ data class SecureAttachmentEntity(
     @ColumnInfo(name = "mime_type") val mimeType: String = "application/octet-stream",
     @ColumnInfo(name = "local_file_path") val localFilePath: String = "",
     @ColumnInfo(name = "category") val category: String = "",
+    @ColumnInfo(name = "parent_id") val parentId: String = "",
+    @ColumnInfo(name = "parent_type") val parentType: String = "",
     @ColumnInfo(name = "sync_state") val syncState: String = "SYNCED",
     @ColumnInfo(name = "created_at") val createdAt: String
 )

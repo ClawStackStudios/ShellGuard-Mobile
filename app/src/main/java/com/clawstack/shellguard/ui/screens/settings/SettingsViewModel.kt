@@ -134,6 +134,10 @@ class SettingsViewModel(
         settingsRepo.setPullToRefreshEnabled(enabled)
     }
 
+    fun updateAllowSelfSignedCerts(enabled: Boolean): Job = viewModelScope.launch {
+        settingsRepo.setAllowSelfSignedCerts(enabled)
+    }
+
     fun triggerManualSync(): Job = viewModelScope.launch {
         val ownerUuid = deviceVault.getOwnerUuid().orEmpty()
         if (ownerUuid.isBlank()) {
@@ -271,6 +275,54 @@ class SettingsViewModel(
             )
         }
         onCompleted(result)
+    }
+
+    fun importVaultBackupFromStream(
+        inputStreamProvider: () -> java.io.InputStream?,
+        passwordOrKey: String? = null,
+        maxBytes: Int = 25 * 1024 * 1024,
+        onCompleted: (Result<ImportResult>) -> Unit = {}
+    ): Job = viewModelScope.launch {
+        _extraState.update { it.copy(isImporting = true, errorMessage = null) }
+        val readResult = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            runCatching {
+                val stream = inputStreamProvider() ?: throw IllegalStateException("Unable to open selected backup file.")
+                stream.use { input ->
+                    val buffer = ByteArray(8192)
+                    val out = java.io.ByteArrayOutputStream()
+                    var total = 0
+                    while (true) {
+                        val read = input.read(buffer)
+                        if (read == -1) break
+                        total += read
+                        if (total > maxBytes) {
+                            throw IllegalArgumentException("Backup file exceeds maximum supported size (25 MB).")
+                        }
+                        out.write(buffer, 0, read)
+                    }
+                    out.toString(Charsets.UTF_8.name())
+                }
+            }
+        }
+
+        if (readResult.isFailure) {
+            val err = Result.failure<ImportResult>(readResult.exceptionOrNull() ?: Exception("Failed to read backup file."))
+            _extraState.update {
+                it.copy(
+                    isImporting = false,
+                    errorMessage = readResult.exceptionOrNull()?.message ?: "Failed to read backup file."
+                )
+            }
+            onCompleted(err)
+            return@launch
+        }
+
+        val rawContent = readResult.getOrThrow()
+        importVaultBackup(
+            rawContent = rawContent,
+            passwordOrKey = passwordOrKey,
+            onCompleted = onCompleted
+        ).join()
     }
 
     fun detectBackupFormat(raw: String): BackupFormatType = appContainer.backupEngine.detectBackupFormat(raw)

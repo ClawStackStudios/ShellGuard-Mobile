@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -430,6 +431,46 @@ fun GatewayScreen(
                                 lineHeight = 15.sp,
                                 fontWeight = FontWeight.Medium
                             )
+                        }
+                    }
+
+                    if (uiState.protocol == "https") {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 48.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { viewModel.updateAllowSelfSignedCerts(!uiState.allowSelfSignedCerts) }
+                                .padding(horizontal = 4.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            androidx.compose.material3.Checkbox(
+                                checked = uiState.allowSelfSignedCerts,
+                                onCheckedChange = { viewModel.updateAllowSelfSignedCerts(it) },
+                                colors = androidx.compose.material3.CheckboxDefaults.colors(
+                                    checkedColor = ReefPink,
+                                    uncheckedColor = BorderSubtle,
+                                    checkmarkColor = Color.White
+                                ),
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "Trust self-signed certificates",
+                                    color = TextPrimary,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                if (uiState.allowSelfSignedCerts) {
+                                    Text(
+                                        text = "⚠️ Strict HTTPS validation disabled.",
+                                        color = Color(0xFFFBBF24),
+                                        fontSize = 11.sp
+                                    )
+                                }
+                            }
                         }
                     }
                 }

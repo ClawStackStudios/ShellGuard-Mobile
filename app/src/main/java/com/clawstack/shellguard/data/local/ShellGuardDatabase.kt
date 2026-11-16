@@ -5,6 +5,8 @@ import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import com.clawstack.shellguard.data.local.dao.AgentKeyDao
 import com.clawstack.shellguard.data.local.dao.AuditLogDao
@@ -38,7 +40,7 @@ import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
         AuditLogEntity::class,
         AgentKeyEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class ShellGuardDatabase : RoomDatabase() {
@@ -54,6 +56,13 @@ abstract class ShellGuardDatabase : RoomDatabase() {
     companion object {
         const val DB_NAME = "shellguard_encrypted.db"
         private const val TAG = "ShellGuardDatabase"
+
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE vault_secure_attachments ADD COLUMN parent_id TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE vault_secure_attachments ADD COLUMN parent_type TEXT NOT NULL DEFAULT ''")
+            }
+        }
 
         @Volatile
         private var instance: ShellGuardDatabase? = null
@@ -97,7 +106,9 @@ abstract class ShellGuardDatabase : RoomDatabase() {
                 context,
                 ShellGuardDatabase::class.java,
                 DB_NAME
-            ).fallbackToDestructiveMigration(false)
+            )
+                .addMigrations(MIGRATION_1_2)
+                .fallbackToDestructiveMigration(false)
 
             if (!isRobolectric()) {
                 val passphrase = passphraseBytes ?: "shellguard_default_key".toByteArray(Charsets.UTF_8)

@@ -32,7 +32,7 @@ flowchart TD
 | Boundary | Enforcement & Characteristics |
 | :--- | :--- |
 | **Client ↔ Server** | Server NEVER sees plaintext secrets or the `hu-` key. Login sends `SHA-256(hu-)` only. |
-| **Client ↔ Local Storage** | Room DB encrypted with SQLCipher. Hybrid file-system attachment vault (`filesDir/vault_attachments/{id}.enc`). Decrypted secrets and temporary file caches (`cacheDir/decrypted_attachments/`) held ephemerally and scrubbed on lock/logout/purge. |
+| **Client ↔ Local Storage** | Room DB encrypted with SQLCipher. Hybrid file-system attachment vault (`filesDir/vault_attachments/{id}.enc`). Attachment downloads stream decrypted bytes directly to user-selected SAF URIs without writing plaintext to `cacheDir` (defense-in-depth `clearDecryptedCache()` still runs on lock/logout/purge). |
 | **Server ↔ Disk** | Secrets stored as ShellCryption blobs; server-side metadata encryption layers on top. |
 | **Human ↔ Agent** | `hu-` keys are human-only root identity. `lb-` agent keys are granular and revocable. |
 | **Local ↔ Remote** | Bidirectional sync with conflict resolution. Server is source of truth. |
@@ -104,6 +104,8 @@ flowchart LR
 - **Android OS Constraint**: By default, Android 9+ (API 28+) blocks all cleartext HTTP traffic. Android's `<network-security-config>` XML parser **does not support CIDR IP notation** (e.g. `<domain>192.168.0.0/16</domain>` is invalid and crashes on parse). Therefore, `<base-config cleartextTrafficPermitted="true" />` is strictly mandatory.
 - **TOFU Hardening Roadmap**: For self-signed TLS endpoints, relaxed `TrustManager` and `HostnameVerifier` serve as initial scaffolding to be replaced with Trust-On-First-Use (TOFU) certificate pinning and PAKE/SRP-6a challenge-response authentication.
 
-### 2. Self-Signed & Tailscale TLS Invariant
-- **Self-Signed Certificates**: ShellGuard Web Server generates an internal EC P-256 TLS certificate on first boot (`server.crt`). The Android client employs a relaxed `X509TrustManager` and permissive `HostnameVerifier` for private IP subnets and Tailscale MagicDNS hostnames (`*.ts.net`), adopting a Trust-On-First-Use (TOFU) security posture.
-- **Connection Specifications**: OkHttp must explicitly register `ConnectionSpec.CLEARTEXT` alongside `ConnectionSpec.MODERN_TLS` and `ConnectionSpec.COMPATIBLE_TLS`. Without this, OkHttp throws `UnknownServiceException` when attempting unencrypted HTTP calls.
+### 2. Self-Signed & Tailscale TLS Invariant (Frictionless Transport Sovereignty)
+- **Frictionless Self-Signed HTTPS Support**: Self-hosted ShellGuard servers frequently generate internal EC P-256 TLS certificates on first boot (`server.crt`). The Android client strictly enforces standard platform TLS certificate validation by default, but provides an explicit in-app user consent toggle (`trustSelfSignedCerts` / "Trust self-signed certificates") in `GatewayScreen` and Settings. When enabled, a custom `X509TrustManager` and permissive `HostnameVerifier` are configured for the engine without forcing users to install root CAs into Android OS credential storage.
+- **Amber Transport Warning**: Whenever `trustSelfSignedCerts` is active, or when an unencrypted `http://` endpoint is configured, the client renders an Amber Warning Pill in the UI alerting the user to transport risks.
+- **Connection Specifications**: OkHttp explicitly registers `ConnectionSpec.CLEARTEXT` alongside `ConnectionSpec.MODERN_TLS` and `ConnectionSpec.COMPATIBLE_TLS`. Without this, OkHttp throws `UnknownServiceException` when attempting unencrypted HTTP calls on local subnets.
+

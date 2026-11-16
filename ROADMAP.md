@@ -1,10 +1,10 @@
 ---
 roadmap_version: 2.0.0
-last_updated: 2026-10-17
+last_updated: 2026-11-15
 meta_phase: "Feature Verification and Polish"
-current_position: "Stage 2: Mental Flow & Ergonomic Form Polish (Task 04) — Active Focus"
-baseline_release: "v0.0.0.12 (Build 12) Published"
-target_release: "v0.0.1.0 (Build 16) Production Release Candidate"
+current_position: "Stage 2: Mental Flow & Ergonomic Form Polish (v0.0.0.20 / Build 20) — All Milestone 2 Tasks Complete (#11–#14, #22–#24)"
+baseline_release: "v0.0.0.14 (Build 14) Published"
+target_release: "v0.0.1.0 (Build 50) Production Release Candidate"
 statistics:
   description: "Meta-Phase roadmap for holistic feature verification, full server sync parity, mental flow ergonomics, and Android production polish."
   stages_completed: "████░░░░░░ 40%"
@@ -34,19 +34,17 @@ flowchart TD
 
     S1_SUB["<b>Stage 1 Sub-Phase: Vault Lock & Multi-Method Authentication</b><br/>✅ Complete · Hardware-Verified (121 Tests Green)<br/>• Task 02.A: PinAuthManager (PBKDF2) & Settings UnlockMethod<br/>• Task 02.B: Security Settings UI, Reef PinPad & LockScreen Overhaul"]:::completedStage
 
-    S2["<b>Stage 2: Mental Flow & Ergonomic Form Polish</b><br/>✅ Complete · Hardware-Verified (126 Tests Green)<br/>• Task 03: [Functionality] Cold-Start Routing, Reconnect Recovery & Sub-16ms Search<br/>• Task 04: [UI/UX] Touch Targets (≥48dp), Haptic Feedback & Keyboard Insets"]:::completedStage
+    S2["<b>Stage 2: Mental Flow & Ergonomic Form Polish</b><br/>⚡ <b>Active Focus</b><br/>• Task 03: [Functionality] Cold-Start Routing & Sub-16ms Search (v0.0.0.13)<br/>• Security Hotfix: TLS Consent & Log Redaction (v0.0.0.14)<br/>• <b>Stage 2 Sub-Phase (Task 04.A)</b>: Upstream Sync & Item Integrity<br/>• <b>Task 04.B</b>: [UI/UX] Touch Targets & Insets ➔ <b>v0.0.0.20 (Build 20)</b>"]:::activeStage
 
-    S2_SUB["<b>Stage 2 Sub-Phase: Search Ergonomics, IME Hardening & Heap Hygiene</b><br/>⚡ <b>Active Focus</b><br/>• Task 04.A: [Security] Disable Auto-Correct IME, Post-Lock Heap Drop<br/>• Task 04.B: [UI] Search Bar Clear Button, Empty Search States"]:::activeStage
+    S3["<b>Stage 3: Security Lifecycle, Biometrics & Offline Resilience</b><br/>➔ <b>v0.0.0.30 (Build 30)</b><br/>• Task 05: [Functionality] Lock Persistence & Offline Mutation Queue<br/>• Task 06: [UI/UX] PIN Keypad Polish & Panic Destruction"]:::futureStage
 
-    S3["<b>Stage 3: Security Lifecycle, Biometrics & Offline Resilience</b><br/>• Task 05: [Functionality] Lock Persistence Across Process Death & Offline Mutation Queue<br/>• Task 06: [UI/UX] PIN Keypad Polish, Circular Dial Feel & Panic Destruction"]:::futureStage
+    S4["<b>Stage 4: In-The-Wild Autofill Verification & Release Hardening</b><br/>➔ <b>v0.0.0.40 (Build 40)</b><br/>• Task 07: [Functionality] Browser Testing (Chrome/Brave/Firefox)<br/>• Task 08: [Configuration] 16 KB Page Alignment & R8 Obfuscation"]:::futureStage
 
-    S4["<b>Stage 4: In-The-Wild Autofill Verification & Release Hardening</b><br/>• Task 07: [Functionality] Browser Testing (Chrome/Brave/Firefox) & Anti-AutoSpill Audit<br/>• Task 08: [Configuration] 16 KB Page-Size Audit, R8 Obfuscation Verification & v0.0.0.15"]:::futureStage
+    S5["<b>Stage 5: First-Class HTTPS Transport & The Reef Handshake</b><br/>➔ <b>v0.0.1.0 (Build 50)</b><br/>• Task 09: [Network Security] TOFU PinningTrustManager & Auto-Heal<br/>• Task 10: [UI/UX & Release] Reef Handshake QR Parser & Mobility"]:::futureStage
 
-    S5["<b>Stage 5: First-Class HTTPS Transport & The Reef Handshake</b><br/>• Task 09: [Network Security] TOFU PinningTrustManager & Instance Anchor Auto-Heal<br/>• Task 10: [UI/UX & Release] Reef Handshake QR Parser, Dual-Homed Mobility & v0.0.1.0 Candidate"]:::futureStage
+    M1["<b>🏆 Structural Completion: v0.0.1.0 (Build 50)</b><br/>Hardened, production-ready Android Password Manager & Sync-Native Vault"]:::targetMilestone
 
-    M1["<b>🏆 Structural Completion: v0.0.1.0 (Build 16)</b><br/>Hardened, production-ready Android Password Manager & Sync-Native Vault"]:::targetMilestone
-
-    S1 --> S1_SUB --> S2 --> S2_SUB --> S3 --> S4 --> S5 --> M1
+    S1 --> S1_SUB --> S2 --> S3 --> S4 --> S5 --> M1
 ```
 
 ---
@@ -143,13 +141,27 @@ flowchart TD
   - Benchmark and optimize `observeUnifiedItems` search filtering across 100+ items to guarantee sub-16ms frame times.
   - Harden Gateway cold-start routing: validate saved Base62 `hu-` sovereign key format, auto-fill server host/port, and transition immediately to local offline cache with an amber status banner if the server is unreachable.
   - Implement automated network reconnect recovery: seamlessly transition from `OFFLINE_READ_ONLY` to `SYNCING` ➔ `ONLINE_SYNCED` without UI stutter.
-  - *Success Criteria*: Cold launch with stored session navigates in <300ms; offline search responds instantaneously; reconnect syncs automatically. (Verified 100% green on Cloud CI across 127 tests).
+- [x] **Task 04.A: [Stage 2 Sub-Phase: Sync & Storage Engine] DTO Deserialization Resiliency, Password History Parity & Attachment Parent Linkage**
+  - Fix DTO Deserialization Seam (`owner_uuid`):
+    - In `ShellResponse.kt`: Add `= ""` default value to `owner_uuid` in `PearlDto`, `SecureNoteDto`, and `SshKeyDto` to gracefully ingest trimmed server mutation receipts (`POST /api/vault`, `PUT /api/vault/:id`, `POST /api/notes`, etc.).
+  - Fix Upstream Password History Parity:
+    - Add `val password_history: String? = null` to `CreateVaultItemRequest`.
+    - Pass `password_history = item.passwordHistory.ifBlank { null }` in `SyncRepository.kt` during item creation and editing.
+  - Implement Bitwarden Item Integrity for Attachments:
+    - Add `parentId: String = ""` and `parentType: String = ""` to `SecureAttachmentEntity`.
+    - Update `ShellGuardDatabase.kt`: bump Room `version = 2`, define `MIGRATION_1_2` (`ALTER TABLE vault_secure_attachments ADD COLUMN parent_id ...` and `parent_type ...`), and register in migration list.
+    - In `ShellGuardClient.kt`: update `uploadAttachmentMultipart` to accept `parentId: String` and `parentType: String`, appending `parent_id` and `parent_type` to multipart form data.
+    - In `SyncRepository.kt`: ensure staged attachments drain with valid parent references.
+  - *Success Criteria*: Unit tests in `SyncRepositoryTest.kt` verify mutation response deserialization without `owner_uuid`, Room schema migration 1->2 passes, and parent-linked multipart uploads succeed.
 
-- [ ] **Task 04: [UI/UX] Touch Targets (≥48dp), Haptic Feedback & Keyboard Insets**
+- [x] **Task 04.B: [UI/UX & Release] Touch Targets (≥48dp), Haptic Feedback, Keyboard Insets & v0.0.0.20 Release**
+  - *Versioning Note*: `v0.0.0.14 (Build 14)` ships the immediate security and transport sovereignty hotfix; `v0.0.0.15` through `v0.0.0.19` are reserved for intermediate hotfixes.
   - Audit all interactive surfaces against `mobile-android-design`: ensure all buttons, toggles, icon buttons, and list items have touch targets ≥ 48dp.
   - Implement subtle, tactile haptic feedback on secret reveal, copy actions, and password generation.
   - Polish soft keyboard auto-scroll behavior (`.imePadding()` + `LaunchedEffect` scroll-to-focused): ensure active text fields remain comfortably visible above Gboard on all screen sizes.
   - Refine Secure Notes markdown rendering with clean monospace code blocks and formatted headers.
+  - Author `RELEASE-v0.0.0.20.md` and format `<en-US>` release notes in `RELEASE-PLAY.md`.
+  - Bump monotonic `versionCode = 20` and update `versionName = "0.0.0.20"`.
   - *Success Criteria*: Typing on physical Pixel never obscures input fields; touch targets feel effortless; copy actions produce distinct haptic confirmation.
 
 ---
@@ -157,7 +169,7 @@ flowchart TD
 ## Stage 3: Security Lifecycle, Biometrics & Offline Resilience
 
 > **Stage Objective**:
-> Harden background lifecycle, KeyStore biometric unsealing, timeout enforcement, and emergency wipe cascades. Guarantee zero data loss when modifying items offline.
+> Harden background lifecycle, KeyStore biometric unsealing, timeout enforcement, and emergency wipe cascades. Guarantee zero data loss when modifying items offline. Target Release: **`v0.0.0.30 (Build 30)`** (with `v0.0.0.21`–`v0.0.0.29` reserved for hotfixes).
 
 - [ ] **Task 05: [Functionality] Lock Persistence Across Process Death & Offline Mutation Queue**
   - Verify and harden `VaultLockManager` background timestamp tracking: ensure killing the app from recents or OS low-memory termination enforces the configured timeout upon relaunch.
@@ -176,7 +188,7 @@ flowchart TD
 ## Stage 4: In-The-Wild Autofill Verification & Release Hardening
 
 > **Stage Objective**:
-> Rigorously verify system autofill in real third-party applications and browsers, audit Android 15+ 16 KB page-size compliance and ProGuard R8 rules, and package the `v0.0.1.0` production candidate.
+> Rigorously verify system autofill in real third-party applications and browsers, audit Android 15+ 16 KB page-size compliance and ProGuard R8 rules, and package the release candidate. Target Release: **`v0.0.0.40 (Build 40)`** (with `v0.0.0.31`–`v0.0.0.39` reserved for hotfixes).
 
 - [ ] **Task 07: [Functionality] Real-World Browser & Native App Autofill Gauntlet**
   - Exercise system autofill across physical browsers (Google Chrome, Brave, Firefox) and native Android apps:
@@ -187,12 +199,12 @@ flowchart TD
   - Verify direct Settings deep-link from `SettingsAutofillScreen` opens system autofill picker cleanly.
   - *Success Criteria*: Autofill triggers reliably across browsers and apps without UI flicker or crashes; sensitive credentials fill accurately.
 
-- [ ] **Task 08: [Configuration & Release] 16 KB Page Alignment, ProGuard Audit & v0.0.0.15 Release**
+- [ ] **Task 08: [Configuration & Release] 16 KB Page Alignment, ProGuard Audit & v0.0.0.40 Release**
   - Audit uncompressed native packaging: verify SQLCipher `.so` native libraries pass 16 KB ELF alignment verification (`16kb-page-size-alignment-guide.md`).
   - Audit R8 ProGuard preservation rules: verify release builds preserve Room DAOs, SQLCipher JNI bindings, and Kotlinx Serialization models.
   - Execute full regression test gauntlet (`./gradlew testDebugUnitTest assembleDebug`) verifying 100% green status.
-  - Author `RELEASE-v0.0.0.15.md` and format `<en-US>` release notes in `RELEASE-PLAY.md`.
-  - Bump monotonic `versionCode` and update `versionName` to `v0.0.0.15 (Build 15)`.
+  - Author `RELEASE-v0.0.0.40.md` and format `<en-US>` release notes in `RELEASE-PLAY.md`.
+  - Bump monotonic `versionCode = 40` and update `versionName = "0.0.0.40"`.
   - *Success Criteria*: Full test suite green; release APK compiles cleanly; 16 KB alignment verified; R8 rules verified against reflection bugs.
 
 ---
@@ -200,7 +212,7 @@ flowchart TD
 ## Stage 5: First-Class HTTPS Transport & The Reef Handshake
 
 > **Stage Objective**:
-> Achieve production-grade **Structural Completion (`v0.0.1.0`)** by solving the cleartext transport dilemma through a bespoke, mobile-first sync architecture. Implement the **Reef Handshake QR Pairing protocol** in CameraX, replace permissive trust managers with an active **Trust-On-First-Use (TOFU) Pinning Engine**, and implement the **Instance Identity Anchor** to silently auto-heal through server certificate rotations without developer friction.
+> Achieve production-grade **Structural Completion (`v0.0.1.0 (Build 50)`)** by solving the cleartext transport dilemma through a bespoke, mobile-first sync architecture. Implement the **Reef Handshake QR Pairing protocol** in CameraX, replace permissive trust managers with an active **Trust-On-First-Use (TOFU) Pinning Engine**, and implement the **Instance Identity Anchor** to silently auto-heal through server certificate rotations without developer friction. Target Release: **`v0.0.1.0 (Build 50)`** (with `v0.0.0.41`–`v0.0.0.49` reserved for hotfixes).
 
 - [ ] **Task 09: [Network Security] TOFU PinningTrustManager & Instance Anchor Auto-Heal Engine**
   - Implement `PinningTrustManager` in `com.clawstack.shellguard.data.remote.security`:
@@ -226,6 +238,6 @@ flowchart TD
   - Verification & Release:
     - Execute full regression test gauntlet (`./gradlew testDebugUnitTest assembleDebug`) verifying 100% green status.
     - Author production release manifest `RELEASE-v0.0.1.0.md` and format `<en-US>` release notes in `RELEASE-PLAY.md`.
-    - Bump monotonic `versionCode = 16` and update `versionName = "0.0.1.0"`.
+    - Bump monotonic `versionCode = 50` and update `versionName = "0.0.1.0"`.
   - *Success Criteria*: 1-tap QR pairing configures secure connection; auto-healing verifies on physical Pixel; dual-homed fallback transitions smoothly; `structural_completion` achieved.
 

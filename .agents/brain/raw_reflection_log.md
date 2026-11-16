@@ -251,6 +251,28 @@ Improvements_Identified_For_Consolidation:
 - General pattern: Single Active Root Manifest & Zero-Broken-Link Invariant.
 ---
 
+---
+Date: 2026-10-19
+TaskRef: "Security & Transport Sovereignty Hotfix v0.0.0.14 & Option 1 Decade Spacing Realignment"
+
+Learnings:
+- Physical on-glass testing over wireless TLS ADB immediately caught a Compose layout defect (Box-level overlapping of the self-signed consent row across the URL bar) that unit tests and emulators could not detect.
+- Squeezing roadmap stages into consecutive single integers creates brittle version projections that break on every minor security or bugfix hotfix. Option 1 Decade Spacing provides an engineering runway of 5-10 build numbers between milestones while preserving fixed targets like v0.0.1.0 (Build 50).
+- Sub-second Python drift audit (scripts/audit_docs_drift.py) verified 100% synchronization across 6 root documentation contracts in 0.08s before pushing.
+
+Difficulties:
+- Streaming APK updates directly from ephemeral Cloud CI runners to Pixel failed with INSTALL_FAILED_UPDATE_INCOMPATIBLE due to signature differences from local builds; resolved by running adb uninstall before reinstalling.
+- Cloud CI test suite passed 100% green (127/127 tests in 1m 52s, debug APK compiled in 31s).
+
+Successes:
+- Cloud CI run 39199242607 finished 100% green in 2m 50s.
+- Clean on-glass verification on physical Google Pixel: responsive toggle, amber warning indicator, protocol reactivity.
+
+Improvements_Identified_For_Consolidation:
+- General pattern: Decade version interval spacing for multi-stage mobile roadmaps.
+- Project Specifics: Wireless TLS ADB on-glass verification loop.
+---
+
 
 
 

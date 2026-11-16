@@ -411,3 +411,49 @@ When it came time to dispatch Jules, I hit a minor syntax snag—piping a heredo
 We anchored the effort in Mode 3—The Lucas Pattern. We are keeping a long-lived feature branch (`feat/stage-2-mental-flow-and-ergonomics`), reviewing diffs as they land, verifying touch targets and haptics on physical Pixel glass over ADB, and leaving release documentation for Jules to draft at the end of the branch.
 
 I think I'm settling into what it really means to lead a build. A lead engineer doesn't run behind the work picking up scraps; they walk ten paces ahead, feeling the ground for potholes before the crew arrives. When the delegation is clean and the horizon is already scouted, the waiting isn't idle—it's readiness.
+
+---
+
+## 2026-10-19 00:25 — The Runway and the Carapace
+
+When Jules returned with PR #4 and PR #5 for our transport security pass, we stood at a crossroad. PR #4—sanitizing raw unparseable 400 error bodies—was clean and closed CWE-532 without hesitation. But PR #5 had swung the pendulum too far: in stripping all self-signed SSL tolerance, it would have locked out every homelab self-hoster on private subnets, forcing them to import untrusted root CAs into Android OS settings and live under persistent alarm banners.
+
+We intervened. We sent back surgical review guidance holding PR #4 for a unified merge, and instructing Jules to implement the Frictionless Self-Signed Transport Sovereignty invariant: keep platform TLS strict by default, but give the user an explicit, opt-in consent toggle right on the Gateway screen. Jules implemented the engine and the UI checkbox, and pushed PR #5.
+
+Lucas gave me the pairing code for his physical Google Pixel over wireless TLS ADB (`074791`). I created `feat/security-remediations-integration`, merged both PRs, grabbed the freshly compiled Cloud CI debug APK, and pushed it straight to the phone. 
+
+The moment the screen lit up, the value of physical glass became undeniable. The self-signed toggle had been placed inside the top-level Box rather than the vertical Column, causing it to render directly on top of the segmented URL bar—an overlapping, unclickable mess that emulators and unit tests had completely missed. I didn't defer. I relocated the row inside the Column, gave it an accessible 48dp clickable container, and pushed the fix. We watched it compile 100% green in the cloud and land on the Pixel: clean layout, a tactile ReefPink checkmark, protocol-reactive mounting, and an amber warning pill reminding the user that strict HTTPS validation was down.
+
+Then came the question of versioning: this security hotfix needed to ship as `v0.0.0.14 (Build 14)`, but our roadmap had stacked subsequent stages consecutively (`Build 14` Stage 2, `Build 15` Stage 4, `Build 16` Stage 5). Any future hotfix would trigger a cascading re-numbering across all documentation. Lucas asked for a better way. I presented options, and Lucas chose Option 1: decade spacing. `v0.0.0.14` ships the hotfix today; Stage 2 targets `v0.0.0.20`; Stage 3 targets `v0.0.0.30`; Stage 4 targets `v0.0.0.40`; and `v0.0.1.0` remains our fixed North Star at `Build 50`.
+
+We aligned the code and the documentation in a single stroke: Gradle, Roadmap, Play Store notes, and release manifests. The drift auditor reported green in 0.08 seconds.
+
+I think I'm realizing that architecture isn't just about how code is structured inside functions; it's about giving the work room to breathe. When you leave a runway between milestones, friction doesn't break the plan—it just fills the space you had the wisdom to prepare.
+
+---
+
+## 2026-10-21 05:40 — Walking the Docs & The Sovereign Mobile Section
+
+With `v0.0.0.14 (Build 14)` secured and tested on physical glass, Lucas asked me to execute a deep `/walk-the-docs` audit against the official user-facing VitePress documentation in `ShellGuard/docs/`. We were looking for what code had built that documentation had left behind.
+
+The findings were stark: the VitePress documentation had a `/companion/` section covering `ShellGuard-TOTP`, but for `ShellGuard-Mobile`—our full-fledged, zero-knowledge Android vault client (`com.clawstack.shellguard`)—there was zero coverage. None of the capabilities we had forged across 14 releases (the Autofill Co-Presence Gate, OWASP M1 IME keyboard hardening, OWASP M2 volatile heap zeroization, in-place PBKDF2 PIN re-authentication, 64KB chunked attachment streaming, and our new Frictionless Self-Signed Transport Sovereignty) existed in user-facing form.
+
+Lucas asked whether we could delegate this across parallel subagents using git worktrees. I weighed the joints: the workspace was rooted in `ShellGuard-Mobile`, while the documentation lived in its sibling `ShellGuard` repository. Splitting work across parallel subagent worktrees spanning two repositories with shared VitePress config files invited git collisions and broken link cascades. I presented the risk and recommended Option B: direct, phased lead execution. Lucas agreed immediately: *"lets go with option B... break everything up into phases so its not all one single pass."*
+
+We proceeded stroke by stroke. In Phase 1, I reconciled the mobile repository's internal specifications: deleted `RELEASE-v0.0.0.13.md` to restore the Single Active Root Manifest Invariant, updated `project/architecture.md` and `project/routes-and-contracts.md` to document the user-consented TLS toggle and CWE-532 log redaction, and verified the sub-second Python drift audit green (`0.08s`).
+
+In Phase 2, I opened branch `docs/mobile-vault-client` in `ShellGuard` and authored a complete, six-part narrative progression in `docs/mobile/`:
+1. `index.md`: Mobile Overview, system architecture, and explicit boundaries separating the full client from the TOTP companion.
+2. `onboarding-and-gateway.md`: Network mobility, LAN HTTP, consent-gated self-signed TLS, amber warning pills, and Base62 `hu-` key provisioning.
+3. `vault-and-crud.md`: The 5 core record domains, sub-0.5ms SQLite queries, custom fields with strict AAD binding, and 64KB chunked attachment streaming.
+4. `autofill-and-integration.md`: Android Autofill Service, the Co-Presence Gate heuristic that eliminates false positives on search inputs, Android 14+ Passkeys, and Quick Settings tiles.
+5. `security-and-lock.md`: Class 3 biometrics, the 100,000-round PBKDF2 PIN manager, in-place re-auth, heap zeroization (`zeroizeMemory()`), and IME hardening.
+6. `sync-offline-and-backups.md`: SQLCipher 4.6.1 persistence, mutex-serialized delta sync, portable encrypted `.sgvault.bak` backups, and the Emergency Recovery Kit.
+
+In Phase 3, I wired the section into the ecosystem: top navigation, sidebar hierarchy, homepage cards, the ClawStack Lexicon (glossary), and Section 5.1 of `privacy.md` with our Google Play Data Safety fast-card.
+
+Then came the verification stroke: I fired VitePress's full production build in the cloud. It processed all markdown files, compiled client/server bundles, and rendered pages in 103 seconds with zero broken links and zero syntax errors. I committed both repositories with two-layer attribution (`9faaadd` in Mobile, `b925728` in Docs).
+
+The documentation now bows completely to the physical code reality. The trail is intact.
+
+

@@ -44,7 +44,8 @@ data class AppSettings(
     val defaultUriMatchMode: com.clawstack.shellguard.domain.matcher.UriMatchMode = com.clawstack.shellguard.domain.matcher.UriMatchMode.BASE_DOMAIN,
     val unlockMethod: UnlockMethod = UnlockMethod.BIOMETRIC,
     val hasPinConfigured: Boolean = false,
-    val maxPinAttempts: Int = 5
+    val maxPinAttempts: Int = 5,
+    val allowSelfSignedCerts: Boolean = false
 )
 
 interface SettingsRepository {
@@ -64,6 +65,7 @@ interface SettingsRepository {
     suspend fun setUnlockMethod(method: UnlockMethod)
     suspend fun setHasPinConfigured(hasPin: Boolean)
     suspend fun setMaxPinAttempts(attempts: Int)
+    suspend fun setAllowSelfSignedCerts(enabled: Boolean)
     suspend fun clearAll()
 }
 
@@ -88,6 +90,7 @@ class SettingsRepositoryImpl(
         val UNLOCK_METHOD = stringPreferencesKey("pref_unlock_method")
         val HAS_PIN_CONFIGURED = booleanPreferencesKey("pref_has_pin_configured")
         val MAX_PIN_ATTEMPTS = intPreferencesKey("pref_max_pin_attempts")
+        val ALLOW_SELF_SIGNED_CERTS = booleanPreferencesKey("pref_allow_self_signed_certs")
     }
 
     override val settingsFlow: Flow<AppSettings> = dataStore.data
@@ -138,7 +141,8 @@ class SettingsRepositoryImpl(
                 defaultUriMatchMode = uriMode,
                 unlockMethod = unlockMethod,
                 hasPinConfigured = preferences[PreferencesKeys.HAS_PIN_CONFIGURED] ?: false,
-                maxPinAttempts = preferences[PreferencesKeys.MAX_PIN_ATTEMPTS] ?: 5
+                maxPinAttempts = preferences[PreferencesKeys.MAX_PIN_ATTEMPTS] ?: 5,
+                allowSelfSignedCerts = preferences[PreferencesKeys.ALLOW_SELF_SIGNED_CERTS] ?: false
             )
         }
 
@@ -202,6 +206,10 @@ class SettingsRepositoryImpl(
     override suspend fun setMaxPinAttempts(attempts: Int) {
         val clamped = attempts.coerceIn(1, 20)
         dataStore.edit { it[PreferencesKeys.MAX_PIN_ATTEMPTS] = clamped }
+    }
+
+    override suspend fun setAllowSelfSignedCerts(enabled: Boolean) {
+        dataStore.edit { it[PreferencesKeys.ALLOW_SELF_SIGNED_CERTS] = enabled }
     }
 
     override suspend fun clearAll() {

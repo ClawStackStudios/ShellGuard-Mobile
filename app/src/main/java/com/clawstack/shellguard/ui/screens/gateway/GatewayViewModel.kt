@@ -29,7 +29,8 @@ data class GatewayUiState(
     val errorMessage: String? = null,
     val isUrlValid: Boolean = true,
     val urlErrorMessage: String? = null,
-    val isConnectionSuccess: Boolean = false
+    val isConnectionSuccess: Boolean = false,
+    val allowSelfSignedCerts: Boolean = false
 ) {
     val effectiveKey: String
         get() = if (inputMode == KeyInputMode.FILE) uploadedKey.orEmpty() else clawKey
@@ -73,6 +74,12 @@ class GatewayViewModel(
         appContainer?.deviceVault?.getHashedKey()?.let { savedKey ->
             if (savedKey.isNotBlank() && com.clawstack.shellguard.crypto.ClawCrypto.isValidClawKey(savedKey)) {
                 _uiState.update { it.copy(clawKey = savedKey) }
+            }
+        }
+
+        viewModelScope.launch {
+            appContainer?.settingsRepository?.settingsFlow?.collect { settings ->
+                _uiState.update { it.copy(allowSelfSignedCerts = settings.allowSelfSignedCerts) }
             }
         }
     }
@@ -133,6 +140,12 @@ class GatewayViewModel(
 
     fun updatePort(port: String) {
         _uiState.update { it.copy(port = port.filter { c -> c.isDigit() }, errorMessage = null) }
+    }
+
+    fun updateAllowSelfSignedCerts(enabled: Boolean) {
+        viewModelScope.launch {
+            appContainer?.settingsRepository?.setAllowSelfSignedCerts(enabled)
+        }
     }
 
     fun updateClawKey(rawInput: String) {

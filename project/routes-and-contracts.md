@@ -384,15 +384,18 @@ class ShellGuardClient(
                     ConnectionSpec.CLEARTEXT
                 )
             )
-            // 2. Relaxed TrustManager for self-signed certificates on local LAN IPs and Tailscale nodes
-            .sslSocketFactory(sslSocketFactory, trustAllCerts[0])
-            .hostnameVerifier { _, _ -> true }
+            // 2. Frictionless Transport Sovereignty: Relaxed TrustManager for self-signed certificates
+            // only when explicitly consented by user (allowSelfSigned = true)
+            if (allowSelfSigned) {
+                sslSocketFactory(NetworkSecurityHelper.relaxedSslContext.socketFactory, NetworkSecurityHelper.relaxedTrustManager)
+                hostnameVerifier { _, _ -> true }
+            }
             // 3. Follow redirects across VPN tunnels (Tailscale / WireGuard)
-            .followRedirects(true)
-            .followSslRedirects(true)
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .build()
+            followRedirects(true)
+            followSslRedirects(true)
+            connectTimeout(15, TimeUnit.SECONDS)
+            readTimeout(30, TimeUnit.SECONDS)
+            build()
     }
 
     fun updateBaseUrl(newUrl: String) {
@@ -563,14 +566,14 @@ Since the ShellGuard server often runs on local networks (LAN) or via Tailscale,
 ```
 
 **Ktor OkHttp Engine configuration (refer to Section 3 for Kotlin code):**
-The `getUnsafeOkHttpClient` in `ShellGuardClient` configures OkHttp to trust all certificates and bypass hostname verification, which is necessary for connections to local LAN IPs or self-signed Tailscale endpoints.
+`NetworkSecurityHelper.configureOkHttpClient` configures standard platform TLS certificate validation by default, but permits users to explicitly toggle `trustSelfSignedCerts` (in `GatewayScreen` and Settings) to trust self-signed TLS endpoints without installing root CAs into Android OS credential storage. In addition, HTTP logging sanitizes sensitive credentials and query parameters in compliance with CWE-532.
 
-### 6.1 Amber Cleartext HTTP Transport Warning
+### 6.1 Amber Transport Warning (HTTP & Unverified TLS)
 
-While cleartext HTTP is explicitly permitted in `network_security_config.xml` to support local home labs, the mobile client enforces transparency regarding transport risk:
-- **Threat Vector**: Unencrypted HTTP exposes the client's `SHA-256(hu-)` login hash, session bearer tokens, and vault item metadata (URLs, titles, usernames) to network eavesdroppers.
-- **Client Enforcement**: Whenever `baseUrl` begins with `http://` or port `:80` / custom unencrypted HTTP is selected, `GatewayScreen` and `SettingsServerScreen` MUST render an amber transport warning indicator:
-  `⚠️ Unencrypted HTTP — Session tokens and item metadata are exposed on local network`
+While cleartext HTTP and self-signed TLS are supported to accommodate homelab infrastructure, the mobile client enforces transparency regarding transport risk:
+- **Threat Vector**: Unencrypted HTTP exposes the client's `SHA-256(hu-)` login hash, session bearer tokens, and vault item metadata (URLs, titles, usernames) to network eavesdroppers. Self-signed TLS bypasses standard public PKI verification.
+- **Client Enforcement**: Whenever `baseUrl` begins with `http://` or `trustSelfSignedCerts` is active, `GatewayScreen` and `SettingsServerScreen` MUST render an amber transport warning indicator:
+  `⚠️ Unencrypted HTTP — Session tokens and item metadata are exposed on local network` or `⚠️ Self-Signed TLS — Unverified certificate accepted by user consent`
 - **Zero-Knowledge Auth Evolution**: Future revisions will replace static `SHA-256(hu-)` transmission with a zero-knowledge challenge-response protocol (SRP-6a / OPAQUE) to prevent session credential harvesting even across unencrypted HTTP channels.
 
 ---

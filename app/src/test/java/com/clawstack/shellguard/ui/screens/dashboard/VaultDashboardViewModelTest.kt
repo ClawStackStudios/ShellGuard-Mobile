@@ -209,4 +209,12 @@ class VaultDashboardViewModelTest {
         assertEquals("Pod filter should be reset to ALL", PodFilter.ALL, state.selectedPod)
         assertNull("Error message should be nullified", state.errorMessage)
     }
+
+    @Test
+    fun testDismissErrorClearsUiErrorMessage() = runTest(testDispatcher) {
+        val viewModel = VaultDashboardViewModel(appContainer, defaultDispatcher = testDispatcher)
+        viewModel.dismissError()
+        testScheduler.advanceUntilIdle()
+        assertNull("Error message should be cleared after dismissError", viewModel.uiState.value.errorMessage)
+    }
 }

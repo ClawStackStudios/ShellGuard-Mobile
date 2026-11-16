@@ -1,7 +1,7 @@
 # Progress: ShellGuard Mobile
 
-## Current Status: Stage 2 Mental Flow & Ergonomic Form Polish — In Flight (Jules Session `1446424829708118836`)
-Stage 1 (Server Parity: Encrypted Attachments, Multi-URI Bridge, Storage DI Wiring, Settings Debt, and Room Persistence Hotfix) and Stage 1.5 (In-Place Vault Re-Authentication & PBKDF2-SHA256 PIN Unlock) are 100% published under Release `v0.0.0.12 (Build 12)` and verified on Google Pixel hardware. Stage 2 (Mental Flow & Ergonomic Form Polish, Build 13) is actively in flight under Mode 3 Long-Lived Co-Pilot architecture: Google Jules CLI Session `1446424829708118836` is executing Sub-Phase 2A (Task 03: Search Performance & Cold-Start Routing) on branch `feat/stage-2-mental-flow-and-ergonomics` while Task 04 (Touch Targets, Haptics & Ergonomics) is queued.
+## Current Status: Stage 2 Mental Flow & Ergonomic Form Polish (`v0.0.0.20` Build 20) — Issues #13, #22, #23, #24 Closed; #14 Final Polish Remaining
+Stage 2 work on branch `feat/stage-2-v0.0.0.20` (`v0.0.0.20` Build 20) is implemented and verified 100% green on Cloud CI (136/136 unit & Robolectric tests, Run `43771352373`). GitHub Issues `#13` (DTO resiliency, password history, attachment parent linkage / Room `v2`), `#22` (sync bridge error & mutation hardening), `#23` (SAF zero-clipboard vault import), and `#24` (SAF attachment Download-only flow) are closed. Issue `#14` remains open for final verification of soft keyboard auto-scroll / Secure Notes markdown refinement before PR merge to `main`.
 
 
 

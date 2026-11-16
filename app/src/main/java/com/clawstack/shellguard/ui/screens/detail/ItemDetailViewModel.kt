@@ -7,6 +7,8 @@ import com.clawstack.shellguard.data.repository.VaultItemDomain
 import com.clawstack.shellguard.di.AppContainer
 import com.clawstack.shellguard.domain.models.CustomField
 import com.clawstack.shellguard.domain.models.PasswordHistoryEntry
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 sealed interface ItemDetailUiState {
     object Loading : ItemDetailUiState
@@ -175,40 +178,38 @@ class ItemDetailViewModel(
         }
     }
 
-    fun openAttachment(context: android.content.Context, attachmentId: String, onReady: (android.net.Uri, String) -> Unit) {
-        viewModelScope.launch {
-            val res = appContainer.syncRepository.decryptAttachment(attachmentId)
-            res.onSuccess { plaintextBase64 ->
-                try {
-                    val bytes = java.util.Base64.getDecoder().decode(plaintextBase64)
-                    val ownerUuid = appContainer.deviceVault.getOwnerUuid().orEmpty()
-                    val entity = appContainer.syncRepository.getAttachment(ownerUuid, attachmentId).getOrNull()
-                    if (entity != null) {
-                        val cacheDir = java.io.File(context.cacheDir, "decrypted_attachments")
-                        if (!cacheDir.exists()) cacheDir.mkdirs()
-                        val safeFileName = java.io.File(entity.fileName).name
-                        val targetFile = java.io.File(cacheDir, safeFileName)
-                        targetFile.writeBytes(bytes)
-                        val uri = androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", targetFile)
-
-                        val extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(safeFileName)
-                        val resolvedMime = if (!extension.isNullOrBlank()) {
-                            android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.lowercase()) ?: entity.mimeType
-                        } else {
-                            entity.mimeType
+    fun downloadAttachmentToUri(
+        context: android.content.Context,
+        attachmentId: String,
+        destinationUri: android.net.Uri,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ): Job = viewModelScope.launch {
+        val res = appContainer.syncRepository.decryptAttachment(attachmentId)
+        res.fold(
+            onSuccess = { plaintextBase64 ->
+                val writeResult = withContext(Dispatchers.IO) {
+                    runCatching {
+                        val bytes = java.util.Base64.getDecoder().decode(plaintextBase64)
+                        val out = context.contentResolver.openOutputStream(destinationUri)
+                            ?: throw IllegalStateException("Unable to open destination file.")
+                        out.use { stream ->
+                            stream.write(bytes)
+                            stream.flush()
                         }
-
-                        val finalMime = if (resolvedMime.isBlank()) "application/octet-stream" else resolvedMime
-
-                        onReady(uri, finalMime)
                     }
-                } catch (e: Exception) {
-                    _rawState.value = ItemDetailUiState.Error("Failed to decode and open attachment: ${e.message}")
                 }
-            }.onFailure {
-                _rawState.value = ItemDetailUiState.Error("Failed to decrypt attachment: ${it.message}")
+                writeResult.fold(
+                    onSuccess = { onSuccess() },
+                    onFailure = { e ->
+                        onError("Failed to save attachment: ${e.message ?: "unknown error"}")
+                    }
+                )
+            },
+            onFailure = { e ->
+                onError("Unable to download attachment: ${e.message ?: "decryption failed"}")
             }
-        }
+        )
     }
 
     fun deleteItem(onDeleted: () -> Unit) {

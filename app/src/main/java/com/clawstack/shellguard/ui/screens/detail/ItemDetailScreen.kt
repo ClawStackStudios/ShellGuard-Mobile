@@ -9,6 +9,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.PersistableBundle
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -22,6 +24,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -73,6 +76,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
@@ -84,6 +89,7 @@ import com.clawstack.shellguard.data.repository.VaultItemDomain
 import com.clawstack.shellguard.domain.models.CustomFieldType
 import com.clawstack.shellguard.ui.components.ClipboardToastPill
 import com.clawstack.shellguard.ui.components.CustomFieldDisplayRow
+import com.clawstack.shellguard.ui.components.SecureNoteMarkdownView
 import com.clawstack.shellguard.ui.components.TotpDisplayCard
 import com.clawstack.shellguard.ui.theme.BorderSubtle
 import com.clawstack.shellguard.ui.theme.BrandClawCyan
@@ -120,6 +126,27 @@ fun ItemDetailScreen(
     var pendingSensitiveAction by remember { mutableStateOf<(() -> Unit)?>(null) }
     var isRepromptPassed by remember { mutableStateOf(false) }
     var isHistoryExpanded by remember { mutableStateOf(false) }
+    var pendingDownloadAttachmentId by remember { mutableStateOf<String?>(null) }
+
+    val saveAttachmentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("*/*")
+    ) { destUri ->
+        val targetId = pendingDownloadAttachmentId
+        pendingDownloadAttachmentId = null
+        if (destUri != null && targetId != null) {
+            viewModel.downloadAttachmentToUri(
+                context = context,
+                attachmentId = targetId,
+                destinationUri = destUri,
+                onSuccess = {
+                    Toast.makeText(context, "Attachment saved", Toast.LENGTH_SHORT).show()
+                },
+                onError = { err ->
+                    Toast.makeText(context, err, Toast.LENGTH_LONG).show()
+                }
+            )
+        }
+    }
 
     // Clipboard auto-clear state machine
     var clipboardToastVisible by remember { mutableStateOf(false) }
@@ -128,8 +155,9 @@ fun ItemDetailScreen(
     var clipboardProgress by remember { mutableFloatStateOf(1f) }
     var clipboardJob by remember { mutableStateOf<Job?>(null) }
 
-    // TODO(ux-haptics): Integrate tactile HapticFeedbackType.LongPress on copyToClipboard and secret visibility reveal (Task 04).
+    val haptic = LocalHapticFeedback.current
     fun copyToClipboard(label: String, text: String, isSensitive: Boolean) {
+        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText(label, text).apply {
             if (isSensitive && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -491,10 +519,10 @@ fun ItemDetailScreen(
                                                     fontWeight = FontWeight.Bold,
                                                     letterSpacing = 0.5.sp
                                                 )
-                                                // TODO(ui-touch): Audit and enforce minimum 48dp touch targets on reveal and copy IconButtons in action rows (Task 04).
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                                     IconButton(
                                                         onClick = {
+                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                             if (state.reprompt && !isRepromptPassed && !state.isSecretRevealed) {
                                                                 pendingSensitiveAction = { viewModel.toggleSecretVisibility() }
                                                                 showRepromptDialog = true
@@ -502,7 +530,7 @@ fun ItemDetailScreen(
                                                                 viewModel.toggleSecretVisibility()
                                                             }
                                                         },
-                                                        modifier = Modifier.size(32.dp)
+                                                        modifier = Modifier.size(48.dp)
                                                     ) {
                                                         Icon(
                                                             imageVector = if (state.isSecretRevealed) Icons.Default.VisibilityOff else Icons.Default.Visibility,
@@ -520,7 +548,7 @@ fun ItemDetailScreen(
                                                                 copyToClipboard("Note", state.secret, isSensitive = true)
                                                             }
                                                         },
-                                                        modifier = Modifier.size(32.dp)
+                                                        modifier = Modifier.size(48.dp)
                                                     ) {
                                                         Icon(
                                                             imageVector = Icons.Default.ContentCopy,
@@ -550,13 +578,7 @@ fun ItemDetailScreen(
                                                     .padding(12.dp)
                                             ) {
                                                 if (state.isSecretRevealed) {
-                                                    // TODO(ui-markdown): Replace plain Text with SecureNoteMarkdownView(content = state.secret) when revealed (Task 04).
-                                                    Text(
-                                                        text = state.secret.ifBlank { "(Empty Note)" },
-                                                        color = if (state.secret.isBlank()) TextMuted else TextPrimary,
-                                                        fontSize = 14.sp,
-                                                        lineHeight = 20.sp
-                                                    )
+                                                    SecureNoteMarkdownView(content = state.secret)
                                                 } else {
                                                     Column {
                                                         Text(
@@ -812,21 +834,16 @@ fun ItemDetailScreen(
                                 Spacer(modifier = Modifier.height(16.dp))
                                 AttachmentListSection(
                                     attachments = state.attachments,
-                                    onOpenAttachment = { attId ->
-                                        val openAction = {
-                                            viewModel.openAttachment(context, attId) { uri, mime ->
-                                                try {
-                                                    context.startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri, mime).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))
-                                                } catch (e: android.content.ActivityNotFoundException) {
-                                                    Toast.makeText(context, "No app found to open this file type", Toast.LENGTH_SHORT).show()
-                                                }
-                                            }
+                                    onDownloadAttachment = { att ->
+                                        val downloadAction = {
+                                            pendingDownloadAttachmentId = att.id
+                                            saveAttachmentLauncher.launch(att.fileName.ifBlank { "attachment" })
                                         }
                                         if (state.reprompt && !isRepromptPassed) {
-                                            pendingSensitiveAction = openAction
+                                            pendingSensitiveAction = downloadAction
                                             showRepromptDialog = true
                                         } else {
-                                            openAction()
+                                            downloadAction()
                                         }
                                     }
                                 )
@@ -935,7 +952,7 @@ fun ItemDetailScreen(
 @Composable
 fun AttachmentListSection(
     attachments: List<AttachmentItemDetail>,
-    onOpenAttachment: (String) -> Unit
+    onDownloadAttachment: (AttachmentItemDetail) -> Unit
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = SurfaceContainerDark),
@@ -959,8 +976,11 @@ fun AttachmentListSection(
                             Text("${att.sizeBytes / 1024} KB • ${att.mimeType}", color = TextMuted, fontSize = 12.sp)
                         }
                     }
-                    androidx.compose.material3.TextButton(onClick = { onOpenAttachment(att.id) }) {
-                        Text("View", color = BrandClawCyan, fontSize = 14.sp)
+                    androidx.compose.material3.TextButton(
+                        onClick = { onDownloadAttachment(att) },
+                        modifier = Modifier.heightIn(min = 48.dp)
+                    ) {
+                        Text("Download", color = BrandClawCyan, fontSize = 14.sp)
                     }
                 }
                 if (index < attachments.size - 1) {
@@ -1000,7 +1020,7 @@ fun DetailTextRow(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
             )
-            IconButton(onClick = onCopy, modifier = Modifier.size(32.dp)) {
+            IconButton(onClick = onCopy, modifier = Modifier.size(48.dp)) {
                 Icon(
                     imageVector = Icons.Default.ContentCopy,
                     contentDescription = "Copy $label",
@@ -1045,7 +1065,7 @@ fun DetailUrlRow(
                     .clickable { onOpenUrl() }
             )
             Row {
-                IconButton(onClick = onOpenUrl, modifier = Modifier.size(32.dp)) {
+                IconButton(onClick = onOpenUrl, modifier = Modifier.size(48.dp)) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.OpenInNew,
                         contentDescription = "Open Link",
@@ -1053,7 +1073,7 @@ fun DetailUrlRow(
                         modifier = Modifier.size(16.dp)
                     )
                 }
-                IconButton(onClick = onCopy, modifier = Modifier.size(32.dp)) {
+                IconButton(onClick = onCopy, modifier = Modifier.size(48.dp)) {
                     Icon(
                         imageVector = Icons.Default.ContentCopy,
                         contentDescription = "Copy URL",
@@ -1100,7 +1120,7 @@ fun DetailSecretRow(
                 modifier = Modifier.weight(1f)
             )
             Row {
-                IconButton(onClick = onToggleReveal, modifier = Modifier.size(32.dp)) {
+                IconButton(onClick = onToggleReveal, modifier = Modifier.size(48.dp)) {
                     Icon(
                         imageVector = if (isRevealed) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                         contentDescription = "Toggle Visibility",
@@ -1108,7 +1128,7 @@ fun DetailSecretRow(
                         modifier = Modifier.size(18.dp)
                     )
                 }
-                IconButton(onClick = onCopy, modifier = Modifier.size(32.dp)) {
+                IconButton(onClick = onCopy, modifier = Modifier.size(48.dp)) {
                     Icon(
                         imageVector = Icons.Default.ContentCopy,
                         contentDescription = "Copy $label",
