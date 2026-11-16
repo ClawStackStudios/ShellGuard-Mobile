@@ -2,7 +2,7 @@
 roadmap_version: 2.0.0
 last_updated: 2026-11-15
 meta_phase: "Feature Verification and Polish"
-current_position: "Stage 2: Mental Flow & Ergonomic Form Polish (v0.0.0.20 / Build 20) — Staged for CI & Pixel Verification"
+current_position: "Stage 2: Mental Flow & Ergonomic Form Polish (v0.0.0.20 / Build 20) — CI-Green (136/136 Tests); #13/#22/#23/#24 Closed; #14 Remaining"
 baseline_release: "v0.0.0.14 (Build 14) Published"
 target_release: "v0.0.1.0 (Build 50) Production Release Candidate"
 statistics:
@@ -141,7 +141,7 @@ flowchart TD
   - Benchmark and optimize `observeUnifiedItems` search filtering across 100+ items to guarantee sub-16ms frame times.
   - Harden Gateway cold-start routing: validate saved Base62 `hu-` sovereign key format, auto-fill server host/port, and transition immediately to local offline cache with an amber status banner if the server is unreachable.
   - Implement automated network reconnect recovery: seamlessly transition from `OFFLINE_READ_ONLY` to `SYNCING` ➔ `ONLINE_SYNCED` without UI stutter.
-- [ ] **Task 04.A: [Stage 2 Sub-Phase: Sync & Storage Engine] DTO Deserialization Resiliency, Password History Parity & Attachment Parent Linkage**
+- [x] **Task 04.A: [Stage 2 Sub-Phase: Sync & Storage Engine] DTO Deserialization Resiliency, Password History Parity & Attachment Parent Linkage**
   - Fix DTO Deserialization Seam (`owner_uuid`):
     - In `ShellResponse.kt`: Add `= ""` default value to `owner_uuid` in `PearlDto`, `SecureNoteDto`, and `SshKeyDto` to gracefully ingest trimmed server mutation receipts (`POST /api/vault`, `PUT /api/vault/:id`, `POST /api/notes`, etc.).
   - Fix Upstream Password History Parity:
