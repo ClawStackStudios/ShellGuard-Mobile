@@ -9,7 +9,7 @@
 <en-US>
 • Sync Bridge Fix: Resilient DTO parsing & isolated domain pulls.
 • Mutation Safety: Transactional sync & ID re-keying recovery.
-• Attachment Linkage: Room v2 migration with parent item parity.
+• Attachment Safety: Room v2 parent linkage & SAF download-only.
 • Zero-Clipboard Import: SAF file picker replaces JSON paste.
 • Ergonomic Polish: ≥48dp touch targets & tactile copy haptics.
 • Sanitized Errors: Actionable retry banner on sync failures.
