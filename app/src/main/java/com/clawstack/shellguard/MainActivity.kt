@@ -4,22 +4,37 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.foundation.layout.Box
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
@@ -45,8 +60,13 @@ import com.clawstack.shellguard.ui.screens.settings.SettingsSyncScreen
 import com.clawstack.shellguard.ui.screens.settings.SettingsViewModel
 import com.clawstack.shellguard.ui.navigation.Screen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.clawstack.shellguard.ui.theme.BorderSubtle
 import com.clawstack.shellguard.ui.theme.OceanDark
+import com.clawstack.shellguard.ui.theme.ReefPink
 import com.clawstack.shellguard.ui.theme.ShellGuardTheme
+import com.clawstack.shellguard.ui.theme.SurfaceDark
+import com.clawstack.shellguard.ui.theme.TextMuted
+import com.clawstack.shellguard.ui.theme.TextPrimary
 
 class MainActivity : FragmentActivity() {
 
@@ -92,14 +112,85 @@ class MainActivity : FragmentActivity() {
                 darkTheme = isDarkTheme,
                 dynamicColor = appSettings.dynamicColors
             ) {
+                val navController = rememberNavController()
+                val isVaultLocked by appContainer.vaultLockManager.isVaultLocked.collectAsState()
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+                val showBottomBar = !isVaultLocked &&
+                    (currentRoute == Screen.Dashboard.route || currentRoute == Screen.Settings.route)
+
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     containerColor = OceanDark,
-                    contentWindowInsets = WindowInsets(0, 0, 0, 0)
-                ) { innerPadding ->
-                    val navController = rememberNavController()
-                    val isVaultLocked by appContainer.vaultLockManager.isVaultLocked.collectAsState()
+                    contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                    bottomBar = {
+                        if (showBottomBar) {
+                            Column {
+                                HorizontalDivider(thickness = 1.dp, color = BorderSubtle)
+                                NavigationBar(
+                                    containerColor = SurfaceDark,
+                                    tonalElevation = 0.dp
+                                ) {
+                                    val isVaultSelected = currentRoute == Screen.Dashboard.route
+                                    NavigationBarItem(
+                                        selected = isVaultSelected,
+                                        onClick = {
+                                            navController.navigate(Screen.Dashboard.route) {
+                                                popUpTo(navController.graph.findStartDestination().id) {
+                                                    saveState = true
+                                                }
+                                                launchSingleTop = true
+                                                restoreState = true
+                                            }
+                                        },
+                                        icon = {
+                                            Icon(
+                                                imageVector = if (isVaultSelected) Icons.Filled.Lock else Icons.Outlined.Lock,
+                                                contentDescription = "Vault"
+                                            )
+                                        },
+                                        label = { Text("Vault") },
+                                        colors = NavigationBarItemDefaults.colors(
+                                            selectedIconColor = ReefPink,
+                                            selectedTextColor = TextPrimary,
+                                            indicatorColor = ReefPink.copy(alpha = 0.16f),
+                                            unselectedIconColor = TextMuted,
+                                            unselectedTextColor = TextMuted
+                                        )
+                                    )
 
+                                    val isSettingsSelected = currentRoute == Screen.Settings.route
+                                    NavigationBarItem(
+                                        selected = isSettingsSelected,
+                                        onClick = {
+                                            navController.navigate(Screen.Settings.route) {
+                                                popUpTo(navController.graph.findStartDestination().id) {
+                                                    saveState = true
+                                                }
+                                                launchSingleTop = true
+                                                restoreState = true
+                                            }
+                                        },
+                                        icon = {
+                                            Icon(
+                                                imageVector = if (isSettingsSelected) Icons.Filled.Settings else Icons.Outlined.Settings,
+                                                contentDescription = "Settings"
+                                            )
+                                        },
+                                        label = { Text("Settings") },
+                                        colors = NavigationBarItemDefaults.colors(
+                                            selectedIconColor = ReefPink,
+                                            selectedTextColor = TextPrimary,
+                                            indicatorColor = ReefPink.copy(alpha = 0.16f),
+                                            unselectedIconColor = TextMuted,
+                                            unselectedTextColor = TextMuted
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                ) { innerPadding ->
                     val startDestination = if (appContainer.deviceVault.hasActiveSession()) {
                         "dashboard"
                     } else {
@@ -149,19 +240,11 @@ class MainActivity : FragmentActivity() {
                                     onItemClick = { item ->
                                         navController.navigate("detail/${item.domain.name}/${item.id}")
                                     },
-                                    onAddItemClick = {
-                                        navController.navigate("form/NEW/PASSWORD/new")
+                                    onAddItemClick = { domain ->
+                                        navController.navigate("form/NEW/${domain.name}/new")
                                     },
                                     onLockClick = {
                                         appContainer.vaultLockManager.lockVaultNow()
-                                    },
-                                    onSettingsClick = {
-                                        navController.navigate(Screen.Settings.route)
-                                    },
-                                    onLogoutClick = {
-                                        navController.navigate("gateway") {
-                                            popUpTo(0) { inclusive = true }
-                                        }
                                     }
                                 )
                             }
@@ -178,13 +261,17 @@ class MainActivity : FragmentActivity() {
 
                                 SettingsHubScreen(
                                     viewModel = settingsViewModel,
-                                    onBackClick = { navController.popBackStack() },
                                     onNavigateToSecurity = { navController.navigate(Screen.SettingsSecurity.route) },
                                     onNavigateToAutofill = { navController.navigate(Screen.SettingsAutofill.route) },
                                     onNavigateToSync = { navController.navigate(Screen.SettingsSync.route) },
                                     onNavigateToAppearance = { navController.navigate(Screen.SettingsAppearance.route) },
                                     onNavigateToBackup = { navController.navigate(Screen.SettingsBackup.route) },
-                                    onNavigateToAbout = { navController.navigate(Screen.SettingsAbout.route) }
+                                    onNavigateToAbout = { navController.navigate(Screen.SettingsAbout.route) },
+                                    onLogoutClick = {
+                                        navController.navigate("gateway") {
+                                            popUpTo(0) { inclusive = true }
+                                        }
+                                    }
                                 )
                             }
 

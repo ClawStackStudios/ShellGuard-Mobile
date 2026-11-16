@@ -331,6 +331,25 @@ class SettingsViewModel(
         _extraState.update { it.copy(lastExportResult = null, lastImportResult = null) }
     }
 
+    fun lockVault(onLocked: () -> Unit = {}) {
+        appContainer.vaultLockManager.lockVaultNow()
+        appContainer.deviceVault.zeroizeMemory()
+        try {
+            appContainer.attachmentVaultManager.clearDecryptedCache()
+        } catch (_: Throwable) {}
+        onLocked()
+    }
+
+    fun logout(onLoggedOut: () -> Unit) {
+        viewModelScope.launch {
+            appContainer.deviceVault.clearSession()
+            try {
+                appContainer.attachmentVaultManager.clearDecryptedCache()
+            } catch (_: Throwable) {}
+            onLoggedOut()
+        }
+    }
+
     public override fun onCleared() {
         super.onCleared()
     }
