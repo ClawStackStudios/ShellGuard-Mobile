@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
@@ -20,6 +22,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -125,67 +128,71 @@ class MainActivity : FragmentActivity() {
                     contentWindowInsets = WindowInsets(0, 0, 0, 0),
                     bottomBar = {
                         if (showBottomBar) {
-                            Column {
-                                HorizontalDivider(thickness = 1.dp, color = BorderSubtle)
-                                NavigationBar(
-                                    containerColor = SurfaceDark,
-                                    tonalElevation = 0.dp
-                                ) {
-                                    val isVaultSelected = currentRoute == Screen.Dashboard.route
-                                    NavigationBarItem(
-                                        selected = isVaultSelected,
-                                        onClick = {
-                                            navController.navigate(Screen.Dashboard.route) {
-                                                popUpTo(navController.graph.findStartDestination().id) {
-                                                    saveState = true
+                            Surface(color = SurfaceDark) {
+                                Column(modifier = Modifier.navigationBarsPadding()) {
+                                    HorizontalDivider(thickness = 1.dp, color = BorderSubtle)
+                                    NavigationBar(
+                                        containerColor = SurfaceDark,
+                                        tonalElevation = 0.dp,
+                                        windowInsets = WindowInsets(0, 0, 0, 0),
+                                        modifier = Modifier.height(72.dp)
+                                    ) {
+                                        val isVaultSelected = currentRoute == Screen.Dashboard.route
+                                        NavigationBarItem(
+                                            selected = isVaultSelected,
+                                            onClick = {
+                                                navController.navigate(Screen.Dashboard.route) {
+                                                    popUpTo(navController.graph.findStartDestination().id) {
+                                                        saveState = true
+                                                    }
+                                                    launchSingleTop = true
+                                                    restoreState = true
                                                 }
-                                                launchSingleTop = true
-                                                restoreState = true
-                                            }
-                                        },
-                                        icon = {
-                                            Icon(
-                                                imageVector = if (isVaultSelected) Icons.Filled.Lock else Icons.Outlined.Lock,
-                                                contentDescription = "Vault"
+                                            },
+                                            icon = {
+                                                Icon(
+                                                    imageVector = if (isVaultSelected) Icons.Filled.Lock else Icons.Outlined.Lock,
+                                                    contentDescription = "Vault"
+                                                )
+                                            },
+                                            label = { Text("Vault") },
+                                            colors = NavigationBarItemDefaults.colors(
+                                                selectedIconColor = ReefPink,
+                                                selectedTextColor = TextPrimary,
+                                                indicatorColor = ReefPink.copy(alpha = 0.16f),
+                                                unselectedIconColor = TextMuted,
+                                                unselectedTextColor = TextMuted
                                             )
-                                        },
-                                        label = { Text("Vault") },
-                                        colors = NavigationBarItemDefaults.colors(
-                                            selectedIconColor = ReefPink,
-                                            selectedTextColor = TextPrimary,
-                                            indicatorColor = ReefPink.copy(alpha = 0.16f),
-                                            unselectedIconColor = TextMuted,
-                                            unselectedTextColor = TextMuted
                                         )
-                                    )
 
-                                    val isSettingsSelected = currentRoute == Screen.Settings.route
-                                    NavigationBarItem(
-                                        selected = isSettingsSelected,
-                                        onClick = {
-                                            navController.navigate(Screen.Settings.route) {
-                                                popUpTo(navController.graph.findStartDestination().id) {
-                                                    saveState = true
+                                        val isSettingsSelected = currentRoute == Screen.Settings.route
+                                        NavigationBarItem(
+                                            selected = isSettingsSelected,
+                                            onClick = {
+                                                navController.navigate(Screen.Settings.route) {
+                                                    popUpTo(navController.graph.findStartDestination().id) {
+                                                        saveState = true
+                                                    }
+                                                    launchSingleTop = true
+                                                    restoreState = true
                                                 }
-                                                launchSingleTop = true
-                                                restoreState = true
-                                            }
-                                        },
-                                        icon = {
-                                            Icon(
-                                                imageVector = if (isSettingsSelected) Icons.Filled.Settings else Icons.Outlined.Settings,
-                                                contentDescription = "Settings"
+                                            },
+                                            icon = {
+                                                Icon(
+                                                    imageVector = if (isSettingsSelected) Icons.Filled.Settings else Icons.Outlined.Settings,
+                                                    contentDescription = "Settings"
+                                                )
+                                            },
+                                            label = { Text("Settings") },
+                                            colors = NavigationBarItemDefaults.colors(
+                                                selectedIconColor = ReefPink,
+                                                selectedTextColor = TextPrimary,
+                                                indicatorColor = ReefPink.copy(alpha = 0.16f),
+                                                unselectedIconColor = TextMuted,
+                                                unselectedTextColor = TextMuted
                                             )
-                                        },
-                                        label = { Text("Settings") },
-                                        colors = NavigationBarItemDefaults.colors(
-                                            selectedIconColor = ReefPink,
-                                            selectedTextColor = TextPrimary,
-                                            indicatorColor = ReefPink.copy(alpha = 0.16f),
-                                            unselectedIconColor = TextMuted,
-                                            unselectedTextColor = TextMuted
                                         )
-                                    )
+                                    }
                                 }
                             }
                         }
