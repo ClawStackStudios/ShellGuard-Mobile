@@ -33,7 +33,6 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -142,7 +141,7 @@ class MainActivity : FragmentActivity() {
                                             selected = isVaultSelected,
                                             onClick = {
                                                 navController.navigate(Screen.Dashboard.route) {
-                                                    popUpTo(navController.graph.findStartDestination().id) {
+                                                    popUpTo(Screen.Dashboard.route) {
                                                         saveState = true
                                                     }
                                                     launchSingleTop = true
@@ -170,7 +169,7 @@ class MainActivity : FragmentActivity() {
                                             selected = isSettingsSelected,
                                             onClick = {
                                                 navController.navigate(Screen.Settings.route) {
-                                                    popUpTo(navController.graph.findStartDestination().id) {
+                                                    popUpTo(Screen.Dashboard.route) {
                                                         saveState = true
                                                     }
                                                     launchSingleTop = true
