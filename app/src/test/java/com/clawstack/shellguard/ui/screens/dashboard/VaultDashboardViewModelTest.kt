@@ -48,7 +48,27 @@ class TestAppContainer(
     override val keyStoreHelper get() = throw NotImplementedError()
     override val clawCrypto get() = throw NotImplementedError()
     override val cryptoEngine get() = throw NotImplementedError()
-    override val settingsRepository get() = throw NotImplementedError()
+    override val settingsRepository: com.clawstack.shellguard.data.local.SettingsRepository =
+        object : com.clawstack.shellguard.data.local.SettingsRepository {
+            override val settingsFlow = kotlinx.coroutines.flow.flowOf(com.clawstack.shellguard.data.local.AppSettings())
+            override suspend fun setThemeMode(mode: com.clawstack.shellguard.data.local.ThemeMode) {}
+            override suspend fun setDynamicColors(enabled: Boolean) {}
+            override suspend fun setShowFavicons(enabled: Boolean) {}
+            override suspend fun setCompactView(enabled: Boolean) {}
+            override suspend fun setLockTimeout(timeout: com.clawstack.shellguard.crypto.LockTimeout) {}
+            override suspend fun setAllowScreenCapture(enabled: Boolean) {}
+            override suspend fun setClipboardClearSeconds(seconds: Int) {}
+            override suspend fun setPanicWipeCountdownSeconds(seconds: Int) {}
+            override suspend fun setAutofillInlineChips(enabled: Boolean) {}
+            override suspend fun setSyncOverCellular(enabled: Boolean) {}
+            override suspend fun setPullToRefreshEnabled(enabled: Boolean) {}
+            override suspend fun setDefaultUriMatchMode(mode: com.clawstack.shellguard.domain.matcher.UriMatchMode) {}
+            override suspend fun setUnlockMethod(method: com.clawstack.shellguard.data.local.UnlockMethod) {}
+            override suspend fun setHasPinConfigured(hasPin: Boolean) {}
+            override suspend fun setMaxPinAttempts(attempts: Int) {}
+            override suspend fun setAllowSelfSignedCerts(enabled: Boolean) {}
+            override suspend fun clearAll() {}
+        }
     override val pinAuthManager get() = throw NotImplementedError()
     override val backupEngine get() = throw NotImplementedError()
     override fun getClient(baseUrl: String) = throw NotImplementedError()
