@@ -140,4 +140,26 @@ class ItemDetailViewModelTest {
             decryptedCacheDir.exists() && (decryptedCacheDir.listFiles()?.isNotEmpty() == true)
         )
     }
+
+    @Test
+    fun testDecodeAttachmentPayloadFormats() {
+        val repo = appContainer.syncRepository
+        val expected = "hello-shellguard-attachment".toByteArray(Charsets.UTF_8)
+        val b64 = java.util.Base64.getEncoder().encodeToString(expected)
+
+        // 1. Data URI prefix from Web FileReader.readAsDataURL()
+        val dataUriDecoded = repo.decodeAttachmentPayload("data:text/plain;base64,$b64")
+        assertEquals("hello-shellguard-attachment", String(dataUriDecoded, Charsets.UTF_8))
+
+        // 2. Line-wrapped + URL-safe Base64 without padding
+        val urlSafeNoPad = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(expected)
+        val wrapped = urlSafeNoPad.chunked(8).joinToString("\n")
+        val wrappedDecoded = repo.decodeAttachmentPayload(wrapped)
+        assertEquals("hello-shellguard-attachment", String(wrappedDecoded, Charsets.UTF_8))
+
+        // 3. Raw UTF-8 text encrypted directly without Base64 wrapping
+        val rawSshNote = "-----BEGIN OPENSSH PRIVATE KEY-----\nline1\n"
+        val rawDecoded = repo.decodeAttachmentPayload(rawSshNote)
+        assertEquals(rawSshNote, String(rawDecoded, Charsets.UTF_8))
+    }
 }
