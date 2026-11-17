@@ -95,6 +95,10 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/attachment_file_paths" />
         </provider>
+        <service
+            android:name=".services.lifecycle.VaultTaskCleanupService"
+            android:exported="false"
+            android:stopWithTask="false" />
     </application>
 
 </manifest>

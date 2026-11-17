@@ -88,4 +88,18 @@ class VaultLockManagerTest {
         lockManager.onAppForegrounded(t0 + 999_999_999L)
         assertFalse(lockManager.isVaultLocked.value)
     }
+
+    @Test
+    fun testLockPersistsAcrossProcessRestart() {
+        lockManager.lockVaultNow()
+        assertTrue(lockManager.isVaultLocked.value)
+
+        // Simulate fresh process instance reading persisted lock state
+        val restartedLockManager = VaultLockManager(context, deviceVault)
+        assertTrue(restartedLockManager.isVaultLocked.value)
+
+        restartedLockManager.unlockVault()
+        val unlockedRestarted = VaultLockManager(context, deviceVault)
+        assertFalse(unlockedRestarted.isVaultLocked.value)
+    }
 }

@@ -76,6 +76,14 @@ class MainActivity : FragmentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        try {
+            startService(
+                android.content.Intent(
+                    this,
+                    com.clawstack.shellguard.services.lifecycle.VaultTaskCleanupService::class.java
+                )
+            )
+        } catch (_: Throwable) {}
 
         // Enforce FLAG_SECURE in release builds to prevent screen capture & task switcher leakage
         // In debug builds, skip FLAG_SECURE so ADB screencap works and legacy GPU drivers don't black out on IME

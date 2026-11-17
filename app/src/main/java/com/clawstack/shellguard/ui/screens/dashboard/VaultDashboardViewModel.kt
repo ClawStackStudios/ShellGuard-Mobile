@@ -55,6 +55,11 @@ class VaultDashboardViewModel(
 
     val syncStatus: StateFlow<SyncStatus> = appContainer.syncRepository.syncStatus
 
+    val pullToRefreshEnabled: StateFlow<Boolean> = appContainer.settingsRepository.settingsFlow
+        .map { it.pullToRefreshEnabled }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
     private val allItems: StateFlow<List<UnifiedVaultItem>> =
         appContainer.syncRepository.observeUnifiedItems(ownerUuid)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
