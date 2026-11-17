@@ -7,20 +7,25 @@ import androidx.lifecycle.viewModelScope
 import com.clawstack.shellguard.crypto.ClawCrypto
 import com.clawstack.shellguard.data.local.AppSettings
 import com.clawstack.shellguard.di.AppContainer
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 class LockViewModel(private val appContainer: AppContainer) : ViewModel() {
 
     val username: String = appContainer.deviceVault.getUsername() ?: "Vault Owner"
     val serverUrl: String = appContainer.deviceVault.getServerUrl() ?: ""
 
-    val settings: StateFlow<AppSettings> = appContainer.settingsRepository.settingsFlow
+    val hasHardwarePin: Boolean
+        get() = appContainer.pinAuthManager.hasPin()
+
+    val settings: StateFlow<AppSettings?> = appContainer.settingsRepository.settingsFlow
         .stateIn(
             viewModelScope,
             SharingStarted.Eagerly,
-            AppSettings()
+            null
         )
 
     fun unlock() {
@@ -30,6 +35,15 @@ class LockViewModel(private val appContainer: AppContainer) : ViewModel() {
     fun logout() {
         appContainer.deviceVault.clearSession()
         appContainer.vaultLockManager.unlockVault()
+    }
+
+    fun verifyPinAsync(pin: String, onResult: (Boolean) -> Unit): Job = viewModelScope.launch {
+        val success = appContainer.pinAuthManager.verifyPinAsync(pin)
+        if (success) {
+            appContainer.deviceVault.getInMemoryShellKey()
+            unlock()
+        }
+        onResult(success)
     }
 
     fun verifyPin(pin: String): Boolean {
@@ -42,12 +56,12 @@ class LockViewModel(private val appContainer: AppContainer) : ViewModel() {
     }
 
     fun isPinLockedOut(): Boolean {
-        val maxAttempts = settings.value.maxPinAttempts
+        val maxAttempts = settings.value?.maxPinAttempts ?: 5
         return appContainer.pinAuthManager.isLockedOut(maxAttempts)
     }
 
     fun getRemainingPinAttempts(): Int {
-        val maxAttempts = settings.value.maxPinAttempts
+        val maxAttempts = settings.value?.maxPinAttempts ?: 5
         return appContainer.pinAuthManager.getRemainingAttempts(maxAttempts)
     }
 

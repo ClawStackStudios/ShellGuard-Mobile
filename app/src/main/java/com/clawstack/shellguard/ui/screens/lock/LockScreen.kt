@@ -7,6 +7,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -48,12 +49,49 @@ fun LockScreen(
     onFallbackToGateway: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val loadedSettings by viewModel.settings.collectAsState()
+    val blockerInteraction = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(OceanDark)
+            .clickable(
+                interactionSource = blockerInteraction,
+                indication = null,
+                onClick = {}
+            )
+    ) {
+        val currentSettings = loadedSettings
+        if (currentSettings == null) {
+            CircularProgressIndicator(
+                color = ReefPink,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        } else {
+            LockScreenContent(
+                settings = currentSettings,
+                viewModel = viewModel,
+                onUnlocked = onUnlocked,
+                onFallbackToGateway = onFallbackToGateway
+            )
+        }
+    }
+}
+
+@Composable
+private fun LockScreenContent(
+    settings: com.clawstack.shellguard.data.local.AppSettings,
+    viewModel: LockViewModel,
+    onUnlocked: () -> Unit,
+    onFallbackToGateway: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val context = LocalContext.current
     val activity = context as? FragmentActivity
 
-    val settings by viewModel.settings.collectAsState()
     val unlockMethod = settings.unlockMethod
-    val hasPinConfigured = settings.hasPinConfigured
+    val hasPinConfigured = settings.hasPinConfigured || viewModel.hasHardwarePin
 
     var activeUnlockMode by remember(unlockMethod, hasPinConfigured) {
         mutableStateOf(
@@ -239,30 +277,56 @@ fun LockScreen(
                             }
                         }
                     } else {
-                        PinPadView(
-                            currentPin = pinInput,
-                            onPinChange = {
-                                pinInput = it
-                                pinError = null
-                            },
-                            pinLength = 6,
-                            isError = pinError != null,
-                            errorMessage = pinError,
-                            onPinComplete = { completedPin ->
-                                val success = viewModel.verifyPin(completedPin)
-                                if (success) {
-                                    onUnlocked()
-                                } else {
-                                    val remaining = viewModel.getRemainingPinAttempts()
-                                    pinError = if (remaining <= 0) {
-                                        "Too many failed attempts. Master Key required."
-                                    } else {
-                                        "Incorrect PIN. $remaining attempts remaining."
-                                    }
-                                    pinInput = ""
-                                }
+                        var isVerifyingPin by remember { mutableStateOf(false) }
+
+                        if (isVerifyingPin) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 24.dp)
+                            ) {
+                                CircularProgressIndicator(
+                                    color = ReefPink,
+                                    modifier = Modifier.size(36.dp)
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = "Verifying PIN...",
+                                    color = TextSecondary,
+                                    fontSize = 13.sp
+                                )
                             }
-                        )
+                        } else {
+                            PinPadView(
+                                currentPin = pinInput,
+                                onPinChange = {
+                                    pinInput = it
+                                    pinError = null
+                                },
+                                pinLength = 6,
+                                isError = pinError != null,
+                                errorMessage = pinError,
+                                onPinComplete = { completedPin ->
+                                    if (isVerifyingPin) return@PinPadView
+                                    isVerifyingPin = true
+                                    viewModel.verifyPinAsync(completedPin) { success ->
+                                        isVerifyingPin = false
+                                        if (success) {
+                                            onUnlocked()
+                                        } else {
+                                            val remaining = viewModel.getRemainingPinAttempts()
+                                            pinError = if (remaining <= 0) {
+                                                "Too many failed attempts. Master Key required."
+                                            } else {
+                                                "Incorrect PIN. $remaining attempts remaining."
+                                            }
+                                            pinInput = ""
+                                        }
+                                    }
+                                }
+                            )
+                        }
 
                         Spacer(modifier = Modifier.height(12.dp))
 

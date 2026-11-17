@@ -40,8 +40,8 @@ class VaultLockManagerTest {
     }
 
     @Test
-    fun testInitialStateUnlocked() {
-        assertFalse(lockManager.isVaultLocked.value)
+    fun testColdStartWithActiveSessionStartsLocked() {
+        assertTrue(lockManager.isVaultLocked.value)
     }
 
     @Test
@@ -55,6 +55,7 @@ class VaultLockManagerTest {
 
     @Test
     fun testImmediateLockOnBackground() {
+        lockManager.unlockVault()
         lockManager.setLockTimeout(LockTimeout.IMMEDIATE)
         assertEquals(LockTimeout.IMMEDIATE, lockManager.getLockTimeout())
 
@@ -64,6 +65,7 @@ class VaultLockManagerTest {
 
     @Test
     fun testTimeoutElapsedTriggersLock() {
+        lockManager.unlockVault()
         lockManager.setLockTimeout(LockTimeout.FIVE_MINUTES)
 
         // Elapsed < 5 minutes (e.g. 2 minutes = 120_000ms)
@@ -80,6 +82,7 @@ class VaultLockManagerTest {
 
     @Test
     fun testNeverTimeoutDoesNotLock() {
+        lockManager.unlockVault()
         lockManager.setLockTimeout(LockTimeout.NEVER)
         assertEquals(LockTimeout.NEVER, lockManager.getLockTimeout())
 
@@ -90,16 +93,15 @@ class VaultLockManagerTest {
     }
 
     @Test
-    fun testLockPersistsAcrossProcessRestart() {
-        lockManager.lockVaultNow()
-        assertTrue(lockManager.isVaultLocked.value)
+    fun testNeverTimeoutStaysUnlockedOnColdStartUnlessExplicitlyLocked() {
+        lockManager.unlockVault()
+        lockManager.setLockTimeout(LockTimeout.NEVER)
 
-        // Simulate fresh process instance reading persisted lock state
-        val restartedLockManager = VaultLockManager(context, deviceVault)
-        assertTrue(restartedLockManager.isVaultLocked.value)
+        val unlockedRestart = VaultLockManager(context, deviceVault)
+        assertFalse(unlockedRestart.isVaultLocked.value)
 
-        restartedLockManager.unlockVault()
-        val unlockedRestarted = VaultLockManager(context, deviceVault)
-        assertFalse(unlockedRestarted.isVaultLocked.value)
+        unlockedRestart.lockVaultNow()
+        val lockedRestart = VaultLockManager(context, deviceVault)
+        assertTrue(lockedRestart.isVaultLocked.value)
     }
 }

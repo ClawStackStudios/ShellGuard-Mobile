@@ -28,9 +28,20 @@ class VaultLockManager(
     }
 
     private val _isVaultLocked = MutableStateFlow(
-        deviceVault.hasActiveSession() && prefs.getBoolean(KEY_IS_LOCKED, false)
+        computeInitialLockedState()
     )
     val isVaultLocked: StateFlow<Boolean> = _isVaultLocked.asStateFlow()
+
+    init {
+        if (_isVaultLocked.value) {
+            deviceVault.zeroizeMemory()
+        }
+    }
+
+    private fun computeInitialLockedState(): Boolean {
+        if (!deviceVault.hasActiveSession()) return false
+        return prefs.getBoolean(KEY_IS_LOCKED, false) || getLockTimeout() != LockTimeout.NEVER
+    }
 
     private var backgroundTimestamp: Long
         get() = prefs.getLong(KEY_BG_TIMESTAMP, 0L)
@@ -51,6 +62,7 @@ class VaultLockManager(
         if (deviceVault.hasActiveSession()) {
             _isVaultLocked.value = true
             prefs.edit().putBoolean(KEY_IS_LOCKED, true).commit()
+            deviceVault.zeroizeMemory()
         }
     }
 

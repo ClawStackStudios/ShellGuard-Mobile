@@ -185,12 +185,11 @@ class ItemDetailViewModel(
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {}
     ): Job = viewModelScope.launch {
-        val res = appContainer.syncRepository.decryptAttachment(attachmentId)
+        val res = appContainer.syncRepository.decryptAttachmentBytes(attachmentId)
         res.fold(
-            onSuccess = { plaintextBase64 ->
+            onSuccess = { bytes ->
                 val writeResult = withContext(Dispatchers.IO) {
                     runCatching {
-                        val bytes = java.util.Base64.getDecoder().decode(plaintextBase64)
                         val out = context.contentResolver.openOutputStream(destinationUri)
                             ?: throw IllegalStateException("Unable to open destination file.")
                         out.use { stream ->
