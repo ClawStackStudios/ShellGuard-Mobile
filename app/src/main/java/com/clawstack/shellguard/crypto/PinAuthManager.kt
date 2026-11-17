@@ -2,6 +2,8 @@ package com.clawstack.shellguard.crypto
 
 import android.util.Base64
 import com.clawstack.shellguard.data.local.SettingsRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 import java.security.SecureRandom
 import javax.crypto.SecretKeyFactory
@@ -19,6 +21,7 @@ class PinAuthManager(
 
     /**
      * Hashes and stores the new PIN using PBKDF2-SHA256 with 100,000 iterations and a fresh 16-byte salt.
+     * CPU-bound derivation runs on Dispatchers.Default and KeyStore I/O runs on Dispatchers.IO.
      */
     suspend fun setupPin(pin: String) {
         val cleanPin = pin.trim()
@@ -26,16 +29,24 @@ class PinAuthManager(
             "PIN must be between 4 and 8 numeric digits"
         }
 
-        val salt = ByteArray(SALT_BYTES)
-        secureRandom.nextBytes(salt)
+        val (saltBase64, hashBase64) = withContext(Dispatchers.Default) {
+            val salt = ByteArray(SALT_BYTES)
+            secureRandom.nextBytes(salt)
+            val hash = deriveHash(cleanPin, salt)
+            Base64.encodeToString(salt, Base64.NO_WRAP) to Base64.encodeToString(hash, Base64.NO_WRAP)
+        }
 
-        val hash = deriveHash(cleanPin, salt)
-
-        val saltBase64 = Base64.encodeToString(salt, Base64.NO_WRAP)
-        val hashBase64 = Base64.encodeToString(hash, Base64.NO_WRAP)
-
-        deviceVault.savePinHash(saltBase64, hashBase64)
+        withContext(Dispatchers.IO) {
+            deviceVault.savePinHash(saltBase64, hashBase64)
+        }
         settingsRepository.setHasPinConfigured(true)
+    }
+
+    /**
+     * Non-blocking PIN verification offloaded to Dispatchers.Default so UI frames stay responsive.
+     */
+    suspend fun verifyPinAsync(candidatePin: String): Boolean = withContext(Dispatchers.Default) {
+        verifyPin(candidatePin)
     }
 
     /**
@@ -81,7 +92,9 @@ class PinAuthManager(
      * Wipes the stored PIN hash, salt, and failure counter.
      */
     suspend fun clearPin() {
-        deviceVault.clearPin()
+        withContext(Dispatchers.IO) {
+            deviceVault.clearPin()
+        }
         settingsRepository.setHasPinConfigured(false)
     }
 
