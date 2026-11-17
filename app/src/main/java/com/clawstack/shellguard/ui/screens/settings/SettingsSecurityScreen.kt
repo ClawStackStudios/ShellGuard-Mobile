@@ -715,13 +715,17 @@ fun SettingsSecurityScreen(
         }
 
         if (showPinSetupDialog) {
+            var isSavingPin by remember { mutableStateOf(false) }
+
             AlertDialog(
                 onDismissRequest = {
-                    showPinSetupDialog = false
-                    pinSetupStep = 1
-                    firstEnteredPin = ""
-                    currentPinInput = ""
-                    pinDialogError = null
+                    if (!isSavingPin) {
+                        showPinSetupDialog = false
+                        pinSetupStep = 1
+                        firstEnteredPin = ""
+                        currentPinInput = ""
+                        pinDialogError = null
+                    }
                 },
                 title = {
                     Text(
@@ -737,67 +741,83 @@ fun SettingsSecurityScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = if (pinSetupStep == 1) {
-                                "Enter a 6-digit PIN to secure your vault"
-                            } else {
-                                "Re-enter your 6-digit PIN to confirm"
+                            text = when {
+                                isSavingPin -> "Securing PIN..."
+                                pinSetupStep == 1 -> "Enter a 6-digit PIN to secure your vault"
+                                else -> "Re-enter your 6-digit PIN to confirm"
                             },
                             color = TextSecondary,
                             fontSize = 13.sp,
                             modifier = Modifier.padding(bottom = 12.dp)
                         )
 
-                        PinPadView(
-                            currentPin = currentPinInput,
-                            onPinChange = {
-                                currentPinInput = it
-                                pinDialogError = null
-                            },
-                            pinLength = 6,
-                            isError = pinDialogError != null,
-                            errorMessage = pinDialogError,
-                            onPinComplete = { completedPin ->
-                                if (pinSetupStep == 1) {
-                                    firstEnteredPin = completedPin
-                                    currentPinInput = ""
-                                    pinSetupStep = 2
-                                } else {
-                                    if (completedPin == firstEnteredPin) {
-                                        viewModel.setupPin(
-                                            pin = completedPin,
-                                            onSuccess = {
-                                                showPinSetupDialog = false
-                                                pinSetupStep = 1
-                                                firstEnteredPin = ""
-                                                currentPinInput = ""
-                                            },
-                                            onError = { err ->
-                                                pinDialogError = err
-                                                pinSetupStep = 1
-                                                firstEnteredPin = ""
-                                                currentPinInput = ""
-                                            }
-                                        )
-                                    } else {
-                                        pinDialogError = "PINs do not match. Please try again."
-                                        pinSetupStep = 1
-                                        firstEnteredPin = ""
+                        if (isSavingPin) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            androidx.compose.material3.CircularProgressIndicator(
+                                color = ReefPink,
+                                modifier = Modifier.size(36.dp)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        } else {
+                            PinPadView(
+                                currentPin = currentPinInput,
+                                onPinChange = {
+                                    currentPinInput = it
+                                    pinDialogError = null
+                                },
+                                pinLength = 6,
+                                isError = pinDialogError != null,
+                                errorMessage = pinDialogError,
+                                onPinComplete = { completedPin ->
+                                    if (isSavingPin) return@PinPadView
+                                    if (pinSetupStep == 1) {
+                                        firstEnteredPin = completedPin
                                         currentPinInput = ""
+                                        pinSetupStep = 2
+                                    } else {
+                                        if (completedPin == firstEnteredPin) {
+                                            isSavingPin = true
+                                            viewModel.setupPin(
+                                                pin = completedPin,
+                                                onSuccess = {
+                                                    isSavingPin = false
+                                                    showPinSetupDialog = false
+                                                    pinSetupStep = 1
+                                                    firstEnteredPin = ""
+                                                    currentPinInput = ""
+                                                },
+                                                onError = { err ->
+                                                    isSavingPin = false
+                                                    pinDialogError = err
+                                                    pinSetupStep = 1
+                                                    firstEnteredPin = ""
+                                                    currentPinInput = ""
+                                                }
+                                            )
+                                        } else {
+                                            pinDialogError = "PINs do not match. Please try again."
+                                            pinSetupStep = 1
+                                            firstEnteredPin = ""
+                                            currentPinInput = ""
+                                        }
                                     }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 },
                 confirmButton = {},
                 dismissButton = {
-                    TextButton(onClick = {
-                        showPinSetupDialog = false
-                        pinSetupStep = 1
-                        firstEnteredPin = ""
-                        currentPinInput = ""
-                        pinDialogError = null
-                    }) {
+                    TextButton(
+                        enabled = !isSavingPin,
+                        onClick = {
+                            showPinSetupDialog = false
+                            pinSetupStep = 1
+                            firstEnteredPin = ""
+                            currentPinInput = ""
+                            pinDialogError = null
+                        }
+                    ) {
                         Text("Cancel", color = TextMuted)
                     }
                 },

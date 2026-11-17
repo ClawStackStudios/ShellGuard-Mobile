@@ -7,9 +7,11 @@ import androidx.lifecycle.viewModelScope
 import com.clawstack.shellguard.crypto.ClawCrypto
 import com.clawstack.shellguard.data.local.AppSettings
 import com.clawstack.shellguard.di.AppContainer
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 class LockViewModel(private val appContainer: AppContainer) : ViewModel() {
 
@@ -30,6 +32,15 @@ class LockViewModel(private val appContainer: AppContainer) : ViewModel() {
     fun logout() {
         appContainer.deviceVault.clearSession()
         appContainer.vaultLockManager.unlockVault()
+    }
+
+    fun verifyPinAsync(pin: String, onResult: (Boolean) -> Unit): Job = viewModelScope.launch {
+        val success = appContainer.pinAuthManager.verifyPinAsync(pin)
+        if (success) {
+            appContainer.deviceVault.getInMemoryShellKey()
+            unlock()
+        }
+        onResult(success)
     }
 
     fun verifyPin(pin: String): Boolean {
