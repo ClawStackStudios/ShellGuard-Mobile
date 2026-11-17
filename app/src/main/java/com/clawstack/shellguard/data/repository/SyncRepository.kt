@@ -854,6 +854,39 @@ class SyncRepository(
         }
     }
 
+    suspend fun decryptAttachmentBytes(id: String): Result<ByteArray> = withContext(Dispatchers.IO) {
+        decryptAttachment(id).map { decrypted ->
+            decodeAttachmentPayload(decrypted)
+        }
+    }
+
+    internal fun decodeAttachmentPayload(decrypted: String): ByteArray {
+        val trimmed = decrypted.trim()
+        if (trimmed.isEmpty()) return ByteArray(0)
+
+        val base64MarkerIndex = trimmed.indexOf(";base64,", ignoreCase = true)
+        val candidate = if (trimmed.startsWith("data:", ignoreCase = true) && base64MarkerIndex != -1) {
+            trimmed.substring(base64MarkerIndex + ";base64,".length)
+        } else {
+            trimmed
+        }
+
+        val normalized = candidate
+            .replace(Regex("\\s+"), "")
+            .replace('-', '+')
+            .replace('_', '/')
+            .let { compact ->
+                val remainder = compact.length % 4
+                if (remainder == 0) compact else compact + "=".repeat(4 - remainder)
+            }
+
+        return try {
+            java.util.Base64.getDecoder().decode(normalized)
+        } catch (_: IllegalArgumentException) {
+            decrypted.toByteArray(kotlin.text.Charsets.UTF_8)
+        }
+    }
+
     suspend fun getPearlDetail(id: String): Result<PearlDetail> = withContext(Dispatchers.IO) {
         runCatching {
             val ownerUuid = deviceVault.getOwnerUuid() ?: throw IllegalStateException("No owner UUID")
