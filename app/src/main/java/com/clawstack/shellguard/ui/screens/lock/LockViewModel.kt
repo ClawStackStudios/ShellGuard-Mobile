@@ -18,11 +18,14 @@ class LockViewModel(private val appContainer: AppContainer) : ViewModel() {
     val username: String = appContainer.deviceVault.getUsername() ?: "Vault Owner"
     val serverUrl: String = appContainer.deviceVault.getServerUrl() ?: ""
 
-    val settings: StateFlow<AppSettings> = appContainer.settingsRepository.settingsFlow
+    val hasHardwarePin: Boolean
+        get() = appContainer.pinAuthManager.hasPin()
+
+    val settings: StateFlow<AppSettings?> = appContainer.settingsRepository.settingsFlow
         .stateIn(
             viewModelScope,
             SharingStarted.Eagerly,
-            AppSettings()
+            null
         )
 
     fun unlock() {
@@ -53,12 +56,12 @@ class LockViewModel(private val appContainer: AppContainer) : ViewModel() {
     }
 
     fun isPinLockedOut(): Boolean {
-        val maxAttempts = settings.value.maxPinAttempts
+        val maxAttempts = settings.value?.maxPinAttempts ?: 5
         return appContainer.pinAuthManager.isLockedOut(maxAttempts)
     }
 
     fun getRemainingPinAttempts(): Int {
-        val maxAttempts = settings.value.maxPinAttempts
+        val maxAttempts = settings.value?.maxPinAttempts ?: 5
         return appContainer.pinAuthManager.getRemainingAttempts(maxAttempts)
     }
 

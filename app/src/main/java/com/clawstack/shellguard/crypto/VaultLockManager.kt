@@ -27,11 +27,27 @@ class VaultLockManager(
         context.getSharedPreferences("shellguard_lock_prefs", Context.MODE_PRIVATE)
     }
 
-    private val _isVaultLocked = MutableStateFlow(false)
+    private val _isVaultLocked = MutableStateFlow(
+        computeInitialLockedState()
+    )
     val isVaultLocked: StateFlow<Boolean> = _isVaultLocked.asStateFlow()
 
-    // TODO(security-lifecycle): Persist backgroundTimestamp to EncryptedSharedPreferences to enforce auto-lock timeout across process death and recents kill (Task 05 / CWE-384).
-    private var backgroundTimestamp: Long = 0L
+    init {
+        if (_isVaultLocked.value) {
+            deviceVault.zeroizeMemory()
+        }
+    }
+
+    private fun computeInitialLockedState(): Boolean {
+        if (!deviceVault.hasActiveSession()) return false
+        return prefs.getBoolean(KEY_IS_LOCKED, false) || getLockTimeout() != LockTimeout.NEVER
+    }
+
+    private var backgroundTimestamp: Long
+        get() = prefs.getLong(KEY_BG_TIMESTAMP, 0L)
+        set(value) {
+            prefs.edit().putLong(KEY_BG_TIMESTAMP, value).commit()
+        }
 
     fun getLockTimeout(): LockTimeout {
         val name = prefs.getString(KEY_LOCK_TIMEOUT, LockTimeout.FIVE_MINUTES.name)
@@ -45,19 +61,24 @@ class VaultLockManager(
     fun lockVaultNow() {
         if (deviceVault.hasActiveSession()) {
             _isVaultLocked.value = true
+            prefs.edit().putBoolean(KEY_IS_LOCKED, true).commit()
+            deviceVault.zeroizeMemory()
         }
     }
 
     fun unlockVault() {
         _isVaultLocked.value = false
-        backgroundTimestamp = 0L
+        prefs.edit()
+            .putBoolean(KEY_IS_LOCKED, false)
+            .putLong(KEY_BG_TIMESTAMP, 0L)
+            .commit()
     }
 
     fun onAppBackgrounded(timestamp: Long = System.currentTimeMillis()) {
         if (!deviceVault.hasActiveSession()) return
         backgroundTimestamp = timestamp
         if (getLockTimeout() == LockTimeout.IMMEDIATE) {
-            _isVaultLocked.value = true
+            lockVaultNow()
         }
     }
 
@@ -68,10 +89,11 @@ class VaultLockManager(
         val timeout = getLockTimeout()
         if (timeout == LockTimeout.NEVER) return
 
-        if (backgroundTimestamp > 0L) {
-            val elapsed = timestamp - backgroundTimestamp
+        val bgTs = backgroundTimestamp
+        if (bgTs > 0L) {
+            val elapsed = timestamp - bgTs
             if (elapsed >= timeout.millis) {
-                _isVaultLocked.value = true
+                lockVaultNow()
             }
         }
         backgroundTimestamp = 0L
@@ -79,5 +101,7 @@ class VaultLockManager(
 
     companion object {
         private const val KEY_LOCK_TIMEOUT = "lock_timeout_mode"
+        private const val KEY_IS_LOCKED = "is_vault_locked"
+        private const val KEY_BG_TIMESTAMP = "background_timestamp"
     }
 }
