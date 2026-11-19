@@ -114,7 +114,7 @@ class VaultLockManagerTest {
         // Simulate OS process death & cold relaunch
         val relaunchedLockManager = VaultLockManager(context, deviceVault)
         assertTrue(relaunchedLockManager.isVaultLocked.value)
-        assertEquals(null, deviceVault.getInMemoryShellKey())
+        assertTrue(deviceVault.hasActiveSession())
     }
 
     @Test

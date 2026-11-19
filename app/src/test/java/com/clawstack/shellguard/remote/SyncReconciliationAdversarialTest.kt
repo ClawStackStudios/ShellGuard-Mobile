@@ -436,17 +436,29 @@ class SyncReconciliationAdversarialTest {
             PearlDto(id = delId, owner_uuid = testOwnerUuid, title = "To Delete Offline", secret = initialDelSecret, type = "password")
         )
 
-        // Simulate Airplane Mode (offline network failures)
+        // Simulate Airplane Mode (offline ConnectivityMonitor + failing health check)
+        val offlineConnectivity = ConnectivityMonitor(context, initialOnlineOverride = false)
+        val offlineRepo = SyncRepository(
+            database = database,
+            clientProvider = { fakeClient },
+            deviceVault = deviceVault,
+            connectivityMonitor = offlineConnectivity,
+            cryptoEngine = ShellCryptionEngine
+        )
         fakeClient.healthResult = Result.failure(Exception("Airplane Mode"))
 
-        // 1. Offline Create, Edit, and Delete
-        syncRepository.savePearlDetail(
-            PearlDetail(id = newId, ownerUuid = testOwnerUuid, title = "Created Offline", secret = "OfflineSecret1!")
-        )
-        syncRepository.savePearlDetail(
-            PearlDetail(id = editId, ownerUuid = testOwnerUuid, title = "Edited Offline", secret = "NewOfflinePass!")
-        )
-        syncRepository.deleteItem(com.clawstack.shellguard.data.repository.VaultItemDomain.PASSWORD, delId)
+        try {
+            // 1. Offline Create, Edit, and Delete
+            offlineRepo.savePearlDetail(
+                PearlDetail(id = newId, ownerUuid = testOwnerUuid, title = "Created Offline", secret = "OfflineSecret1!")
+            )
+            offlineRepo.savePearlDetail(
+                PearlDetail(id = editId, ownerUuid = testOwnerUuid, title = "Edited Offline", secret = "NewOfflinePass!")
+            )
+            offlineRepo.deleteItem(com.clawstack.shellguard.data.repository.VaultItemDomain.PASSWORD, delId)
+        } finally {
+            offlineRepo.cancelScope()
+        }
 
         // 2. Simulate cold app restart by constructing a fresh SyncRepository on the same Room DB
         val restartedRepo = SyncRepository(
