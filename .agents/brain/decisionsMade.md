@@ -780,3 +780,40 @@ Calibration is sharp with 0 over-confidence penalties across 8 ratified decision
 **Outcome**: Realigned `ROADMAP.md`, `meta-prompt-ai-studio.md`, `productVersion.md`, and `app/build.gradle.kts`. Sub-second doc-drift audit passed 100% green.
 **Pattern reference**: Link to `project/productVersion.md § SemVer Calculus & Increment Rules`.
 
+## route-gated-two-tab-nav-anchored-to-dashboard — 2026-11-16 06:56
+
+**Context**: Adding a 2-tab `NavigationBar` (`Vault` | `Settings`) to `MainActivity.kt` while keeping `gateway` as the unauthenticated `startDestination`.
+**Options considered**:
+- Use `popUpTo(navController.graph.findStartDestination().id)` — Standard Jetpack Navigation snippet, but resolves to `"gateway"` after a fresh login (which is already popped), causing duplicate backstack entries.
+- Anchor `popUpTo(Screen.Dashboard.route)` directly and gate `bottomBar` visibility to `Screen.Dashboard.route` and `Screen.Settings.route` — Explicitly matches the post-login root tab and keeps all bespoke screens full-screen.
+**Chosen**: Anchor `popUpTo(Screen.Dashboard.route)` directly.
+**Why**: I wanted the backstack to feel predictable whether the user cold-started into an active session or logged in fresh from Gateway; discovering the `findStartDestination()` mismatch during backward trace made the explicit anchor feel non-negotiable.
+**Confidence**: high — verified directly in `MainActivity.kt` route logic and confirmed green in Cloud CI.
+**Outcome**: Clean tab switching and back-press behavior verified on physical Pixel.
+**Pattern reference**: New pattern — first instance.
+
+## isolate-attachment-base64-fix-on-dedicated-branch — 2026-11-16 21:16
+
+**Context**: Lucas hit `"Failed to download attachment, illegal base 64 character"` on the Pixel while we were actively iterating on `feat/ui-redesign-2tab-nav`.
+**Options considered**:
+- Patch `SyncRepository` and `ItemDetailViewModel` directly on `feat/ui-redesign-2tab-nav` — Faster in the moment, but couples a data-layer interoperability bugfix to an experimental UI redesign branch.
+- Branch `fix/attachment-download-base64` from `main`, fix and test it independently, merge PR `#27`, and return to the UI branch — Keeps history clean and lets the fix ship immediately without waiting on UI polish.
+**Chosen**: Branch `fix/attachment-download-base64` from `main` and isolate the fix.
+**Why**: Even though jumping branches costs a few extra git steps, mixing a storage/crypto decoding fix into a UI branch always makes PRs harder to reason about later; keeping the seams separate felt calmer and cleaner.
+**Confidence**: high — Cloud CI `#44023074056` passed, Pixel verification succeeded, and PR `#27` merged cleanly into `main`.
+**Outcome**: Merged PR `#27` (`f1317d7`) and returned to `feat/ui-redesign-2tab-nav`.
+**Pattern reference**: `AGENTS.md § Branch Isolation` & `long-term/patterns.md § hybrid-attachment-filesystem-vault`.
+
+## reuse-pull-to-refresh-setting-and-persist-recents-lock — 2026-11-16 20:00
+
+**Context**: Implementing Pull-to-Refresh on `VaultDashboardScreen` and fail-closed locking when the app is swiped away from Android Recent Apps.
+**Options considered**:
+- Add a brand-new Pull-to-Refresh flag and keep `VaultLockManager._isVaultLocked` in-memory — Duplicates existing DataStore preferences and leaves Recents-kill vulnerable to cold-start unlock bypass.
+- Wire the existing `SettingsRepository.pullToRefreshEnabled` flow into `VaultDashboardViewModel`, persist `is_vault_locked` synchronously via `.commit()` in `VaultLockManager`, and add `VaultTaskCleanupService.onTaskRemoved()` — Reuses existing user preferences and closes the process-death lock bypass.
+**Chosen**: Reuse `SettingsRepository.pullToRefreshEnabled` + persist lock state + `VaultTaskCleanupService`.
+**Why**: Finding `pullToRefreshEnabled` already sitting in `SettingsRepository` felt like finding a joint already cut; wiring it in and closing the Recents-kill gap with `.commit()` honored both the existing settings contract and the security-first invariant.
+**Confidence**: high — Cloud CI `#44017751836` passed all unit/Robolectric tests including `testLockPersistsAcrossProcessRestart`.
+**Outcome**: Pending physical Pixel verification on `feat/ui-redesign-2tab-nav`.
+**Pattern reference**: `long-term/patterns.md § deterministic-datastore-viewmodel-synchronization`.
+
+

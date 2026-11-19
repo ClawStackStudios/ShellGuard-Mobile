@@ -1,5 +1,5 @@
-# Self-Review Checklist (v3)
-*Last updated: 2026-10-10. Prior version: v2 (2026-10-09).*
+# Self-Review Checklist (v4)
+*Last updated: 2026-11-16. Prior version: v3 (2026-10-10).*
 
 Run this checklist before finalizing any task, commit, or pull request:
 
@@ -18,10 +18,12 @@ Run this checklist before finalizing any task, commit, or pull request:
 - [ ] **13. Storage Lifecycle & Panic Purge Parity**: Does `executePanicPurge()` wipe all physical filesystem directories (`vault_attachments/`, download caches) alongside Room and DataStore, and does backup/restore account for them? → *maps to: Cascading Storage Destruction Blind Spots*
 - [ ] **14. Large-File Mutation & Patch Guard**: For files >500 lines or delegated tasks, are changes applied via direct section replacements rather than fragile shell unified diff scripts? → *maps to: Diff Patch Drift & Large-File Fragility*
 - [ ] **15. Bot Handle & Forge Entity Verification**: In GitHub comments and automated tooling, are mentions validated against actual bot entities (never pinging `@jules`)? → *maps to: Platform Contract & Handle Mirroring Drift*
+- [ ] **16. Main-Thread Crypto Offload & Navigation Root Anchor**: Are CPU-heavy cryptographic operations (e.g. 100,000-round PBKDF2) and `EncryptedSharedPreferences` I/O explicitly offloaded via `withContext(Dispatchers.Default)` / `withContext(Dispatchers.IO)` (even inside `suspend fun`), and do bottom-nav `popUpTo` calls anchor to the post-auth root route (`Screen.Dashboard.route`) rather than `findStartDestination().id`? → *maps to: Main-Thread Choreographer Freeze & Post-Login Backstack Drift*
+- [ ] **17. Repository-Layer Payload Normalization & Strict-Base64 Guard**: Is binary/attachment decoding kept in the `Repository` layer (never in a `ViewModel`), and does it normalize `data:<mime>;base64,...` Data URI prefixes, whitespace/line breaks, and URL-safe Base64 (`-`/`_`) with raw UTF-8 fallback instead of calling strict `java.util.Base64.getDecoder()`? → *maps to: Cross-Client Wire Format & Layer Boundary Drift*
 
 ---
 
-### Diff from v2
-**Added**: 3 items (Items 13–15: Storage Lifecycle & Panic Purge Parity, Large-File Mutation & Patch Guard, Bot Handle & Forge Entity Verification).
+### Diff from v3
+**Added**: 2 items (Items 16–17: Main-Thread Crypto Offload & Navigation Root Anchor, Repository-Layer Payload Normalization & Strict-Base64 Guard).
 **Removed**: 0 items.  
-**Unchanged**: 12 items (Items 1–12).
+**Unchanged**: 15 items (Items 1–15).
