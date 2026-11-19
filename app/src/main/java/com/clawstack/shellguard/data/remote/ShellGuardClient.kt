@@ -52,6 +52,10 @@ open class ShellGuardClient(
         onUnauthorized = onUnauthorized
     )
 
+    open fun close() {
+        client.close()
+    }
+
     /**
      * 1. Public Health Check (GET /api/health)
      */

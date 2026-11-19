@@ -68,6 +68,8 @@ object ShellCryptionEngine {
         )
     }
 
+    private val secureRandom = SecureRandom()
+
     /**
      * Encrypts plaintext string using AES-GCM-256 with a random 12-byte IV and binds the given AAD.
      * Returns a standardized ShellCryption JSON envelope string.
@@ -77,7 +79,7 @@ object ShellCryptionEngine {
         require(aad.isNotBlank()) { "AAD must not be blank" }
 
         val iv = ByteArray(GCM_IV_LENGTH_BYTES)
-        SecureRandom().nextBytes(iv)
+        secureRandom.nextBytes(iv)
 
         val cipher = Cipher.getInstance(ALGORITHM)
         val secretKeySpec = SecretKeySpec(shellKey, "AES")
