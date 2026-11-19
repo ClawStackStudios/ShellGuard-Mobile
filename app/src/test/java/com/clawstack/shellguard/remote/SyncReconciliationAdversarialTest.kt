@@ -87,7 +87,7 @@ class SyncReconciliationAdversarialTest {
             val custom = createPearlCustomResponse?.invoke(request)
             val dto = custom ?: PearlDto(
                 id = request.id ?: "generated-id",
-                owner_uuid = "owner",
+                owner_uuid = testOwnerUuid,
                 title = request.title,
                 secret = request.secret,
                 type = request.type
@@ -102,7 +102,7 @@ class SyncReconciliationAdversarialTest {
             updatePearlResult?.let { return it }
             val dto = PearlDto(
                 id = id,
-                owner_uuid = "owner",
+                owner_uuid = testOwnerUuid,
                 title = request.title,
                 secret = request.secret,
                 type = request.type
