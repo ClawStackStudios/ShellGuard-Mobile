@@ -32,6 +32,7 @@ interface AppContainer {
     val pinAuthManager: com.clawstack.shellguard.crypto.PinAuthManager
     val backupEngine: com.clawstack.shellguard.data.backup.VaultBackupEngine
     fun getClient(baseUrl: String): ShellGuardClient
+    fun clearCachedClient() {}
 }
 
 /**
@@ -100,7 +101,7 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
     private var cachedClientKey: ClientCacheKey? = null
     private var cachedClient: ShellGuardClient? = null
 
-    fun clearCachedClient() {
+    override fun clearCachedClient() {
         val toClose = synchronized(clientLock) {
             val prev = cachedClient
             cachedClient = null

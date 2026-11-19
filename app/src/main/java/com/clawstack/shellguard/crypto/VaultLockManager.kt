@@ -92,7 +92,7 @@ class VaultLockManager(
         val bgTs = backgroundTimestamp
         if (bgTs > 0L) {
             val elapsed = timestamp - bgTs
-            if (elapsed >= timeout.millis) {
+            if (elapsed < 0L || elapsed >= timeout.millis) {
                 lockVaultNow()
             }
         }

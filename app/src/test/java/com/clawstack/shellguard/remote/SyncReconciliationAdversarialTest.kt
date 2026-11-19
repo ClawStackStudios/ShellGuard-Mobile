@@ -75,6 +75,9 @@ class SyncReconciliationAdversarialTest {
 
         override suspend fun deleteVaultItem(sessionToken: String, id: String): Result<Boolean> {
             deletedPearlIds.add(id)
+            if (deletePearlResult.getOrNull() == true) {
+                remotePearls.removeAll { it.id == id }
+            }
             return deletePearlResult
         }
 
@@ -84,7 +87,7 @@ class SyncReconciliationAdversarialTest {
             val custom = createPearlCustomResponse?.invoke(request)
             val dto = custom ?: PearlDto(
                 id = request.id ?: "generated-id",
-                owner_uuid = "owner",
+                owner_uuid = "",
                 title = request.title,
                 secret = request.secret,
                 type = request.type
@@ -99,7 +102,7 @@ class SyncReconciliationAdversarialTest {
             updatePearlResult?.let { return it }
             val dto = PearlDto(
                 id = id,
-                owner_uuid = "owner",
+                owner_uuid = "",
                 title = request.title,
                 secret = request.secret,
                 type = request.type
@@ -395,5 +398,126 @@ class SyncReconciliationAdversarialTest {
             ShellCryptionEngine.AadNamespace.pearlSecret(serverAssignedId)
         )
         assertEquals("ProtonPassword456!", serverDecrypted)
+    }
+
+    @Test
+    fun testOfflineCrudPersistsAcrossRestartAndFlushesWithoutDuplicatesOrResurrection() = runBlocking {
+        // Seed 2 existing synced pearls on both local Room and remote server
+        val editId = "pearl-offline-edit"
+        val delId = "pearl-offline-del"
+        val newId = "pearl-offline-new"
+
+        val initialEditSecret = ShellCryptionEngine.encryptField("OldPass", shellKey, ShellCryptionEngine.AadNamespace.pearlSecret(editId))
+        val initialDelSecret = ShellCryptionEngine.encryptField("DelPass", shellKey, ShellCryptionEngine.AadNamespace.pearlSecret(delId))
+
+        database.vaultPearlDao().upsertAll(
+            listOf(
+                VaultPearlEntity(
+                    id = editId,
+                    ownerUuid = testOwnerUuid,
+                    title = "Old Title",
+                    secret = initialEditSecret,
+                    syncState = "SYNCED",
+                    createdAt = "1000",
+                    remoteUpdatedAt = 1000L,
+                    localUpdatedAt = 1000L
+                ),
+                VaultPearlEntity(
+                    id = delId,
+                    ownerUuid = testOwnerUuid,
+                    title = "To Delete Offline",
+                    secret = initialDelSecret,
+                    syncState = "SYNCED",
+                    createdAt = "1000",
+                    remoteUpdatedAt = 1000L,
+                    localUpdatedAt = 1000L
+                )
+            )
+        )
+        fakeClient.remotePearls = mutableListOf(
+            PearlDto(id = editId, owner_uuid = testOwnerUuid, title = "Old Title", secret = initialEditSecret, type = "password"),
+            PearlDto(id = delId, owner_uuid = testOwnerUuid, title = "To Delete Offline", secret = initialDelSecret, type = "password")
+        )
+
+        // Simulate Airplane Mode (offline ConnectivityMonitor + failing health check)
+        val offlineConnectivity = ConnectivityMonitor(context, initialOnlineOverride = false)
+        val offlineRepo = SyncRepository(
+            database = database,
+            clientProvider = { fakeClient },
+            deviceVault = deviceVault,
+            connectivityMonitor = offlineConnectivity,
+            cryptoEngine = ShellCryptionEngine
+        )
+        fakeClient.healthResult = Result.failure(Exception("Airplane Mode"))
+
+        try {
+            // 1. Offline Create, Edit, and Delete
+            offlineRepo.savePearlDetail(
+                PearlDetail(id = newId, ownerUuid = testOwnerUuid, title = "Created Offline", secret = "OfflineSecret1!")
+            )
+            offlineRepo.savePearlDetail(
+                PearlDetail(id = editId, ownerUuid = testOwnerUuid, title = "Edited Offline", secret = "NewOfflinePass!")
+            )
+            offlineRepo.deleteItem(com.clawstack.shellguard.data.repository.VaultItemDomain.PASSWORD, delId)
+        } finally {
+            offlineRepo.cancelScope()
+        }
+
+        // 2. Simulate cold app restart by constructing a fresh SyncRepository on the same Room DB
+        val restartedRepo = SyncRepository(
+            database = database,
+            clientProvider = { fakeClient },
+            deviceVault = deviceVault,
+            connectivityMonitor = connectivityMonitor,
+            cryptoEngine = ShellCryptionEngine
+        )
+
+        try {
+            assertEquals("PENDING_SYNC", database.vaultPearlDao().getById(testOwnerUuid, newId)?.syncState)
+            assertEquals("PENDING_SYNC", database.vaultPearlDao().getById(testOwnerUuid, editId)?.syncState)
+            assertEquals("PENDING_DELETE", database.vaultPearlDao().getById(testOwnerUuid, delId)?.syncState)
+
+            // 3. Reconnect and flush
+            fakeClient.healthResult = Result.success(true)
+            val syncResult = restartedRepo.syncAll(testOwnerUuid)
+            assertTrue("Reconnect syncAll should succeed", syncResult.isSuccess)
+
+            // Deleted item must not resurrect
+            assertTrue(fakeClient.deletedPearlIds.contains(delId))
+            assertNull(database.vaultPearlDao().getById(testOwnerUuid, delId))
+
+            // Offline create & edit must be synced cleanly without duplicates
+            val allPearls = database.vaultPearlDao().getAllActivePearls(testOwnerUuid)
+            assertEquals(2, allPearls.size)
+            assertEquals("Edited Offline", restartedRepo.getPearlDetail(editId).getOrThrow().title)
+            assertEquals("NewOfflinePass!", restartedRepo.getPearlDetail(editId).getOrThrow().secret)
+            assertEquals("Created Offline", restartedRepo.getPearlDetail(newId).getOrThrow().title)
+        } finally {
+            restartedRepo.cancelScope()
+        }
+    }
+
+    @Test
+    fun testTamperedOrSwappedPayloadFailsClosedAndNeverLeaksCiphertext() = runBlocking {
+        val pearlId = "pearl-tampered-1"
+        val swappedCiphertext = ShellCryptionEngine.encryptField(
+            "TopSecret!",
+            shellKey,
+            ShellCryptionEngine.AadNamespace.pearlSecret("different-pearl-id")
+        )
+
+        database.vaultPearlDao().upsert(
+            VaultPearlEntity(
+                id = pearlId,
+                ownerUuid = testOwnerUuid,
+                title = "Swapped Item",
+                secret = swappedCiphertext,
+                syncState = "SYNCED",
+                createdAt = "1000"
+            )
+        )
+
+        val detailResult = syncRepository.getPearlDetail(pearlId)
+        assertTrue("AAD mismatch must fail closed", detailResult.isFailure)
     }
 }

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.0.30] - 2026-11-18 (Build 30) — Stage 3: Security Lifecycle, Biometrics & Offline Resilience
+### Added
+- **2-Tab Reef Navigation & Speed-Dial FAB (`MainActivity.kt`, `VaultDashboardScreen.kt`)**: Streamlined navigation into a route-gated 2-tab bar (`Vault` | `Settings`), 3-domain `+` Speed-Dial FAB, Pull-to-Refresh wired to `SettingsRepository.pullToRefreshEnabled`, Back-to-Lock exit gate, and `VaultTaskCleanupService` Recents-swipe lock (#26, PR #33).
+- **Stage 3 Adversarial & Physics Test Suites (`CircularDialPickerTest.kt`, `VaultLockManagerTest.kt`, `ShellCryptionEngineTest.kt`, `SyncReconciliationAdversarialTest.kt`)**: Added polar coordinate boundary tests, process-death/clock-rollback lock tests, 10-domain (90-pair) cross-namespace AAD swap tests, and Airplane Mode offline CRUD + cold-restart + reconnect flush tests (#15, #16).
+
+### Changed
+- **PIN Keypad & Circular Dial Polish (`PinPadView.kt`, `LockScreen.kt`, `CircularDialPicker.kt`)**: Added spring press scale + `ReefPink` border states, animated dot fills, stable-height `Verifying PIN...` state, 12 o'clock drag boundary clamping, 5s/15s haptic snap ticks, `48.dp` stepper targets, and clickable `Default: 15s` reset (#16).
+- **Off-Main-Thread PBKDF2 & Client Pooling (`PinAuthManager.kt`, `AppContainer.kt`)**: Offloaded 100k-round PBKDF2 PIN setup/verify off Main thread and cached `ShellGuardClient` instances (PR #30, #32).
+
+### Fixed
+- **Panic Purge Countdown Race & Cascade Hardening (`PanicPurgeCountdownScreen.kt`, `SettingsViewModel.kt`, `EncryptedDeviceVault.kt`)**: Fixed DataStore `.onStart` 15s countdown race, moved 4-step purge cascade onto `Dispatchers.IO` with synchronous `.commit()`, and evicted cached Ktor client (#16).
+- **Clock-Rollback & Cold-Start Lock Gate (`VaultLockManager.kt`)**: Hardened `onAppForegrounded` against negative elapsed time (`elapsed < 0L`) and resolved `UnlockMethod` DataStore race (#15, PR #31).
+- **Attachment Base64 Interop (`SyncRepository.kt`)**: Normalized Web Data URI / UTF-8 attachment payloads during decryption (PR #27).
+
+### Verified
+- **Cloud CI Test Suite**: **152/152 unit and Robolectric tests passing green** on GitHub Actions (`Continuous Integration & Verification`).
+- **Physical Hardware**: Verified on Google Pixel (`sailfish`) over wireless TLS ADB.
+
 ## [0.0.0.20] - 2026-11-15 (Build 20) — Stage 2: Sync Bridge Resilience, SAF Import & Ergonomic Form Polish
 ### Added
 - **SAF File-Upload Vault Import (`SettingsBackupScreen.kt`, `SettingsViewModel.kt`)**: Replaced raw JSON clipboard-paste import with `ActivityResultContracts.OpenDocument` + bounded `InputStream` reading (`importVaultBackupFromStream`), preventing vault secrets from hitting the system clipboard (#23).

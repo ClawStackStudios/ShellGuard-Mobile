@@ -279,53 +279,56 @@ private fun LockScreenContent(
                     } else {
                         var isVerifyingPin by remember { mutableStateOf(false) }
 
+                        PinPadView(
+                            currentPin = pinInput,
+                            onPinChange = {
+                                pinInput = it
+                                pinError = null
+                            },
+                            pinLength = 6,
+                            isError = pinError != null,
+                            errorMessage = if (isVerifyingPin) null else pinError,
+                            enabled = !isVerifyingPin,
+                            onPinComplete = { completedPin ->
+                                if (isVerifyingPin) return@PinPadView
+                                isVerifyingPin = true
+                                viewModel.verifyPinAsync(completedPin) { success ->
+                                    isVerifyingPin = false
+                                    if (success) {
+                                        onUnlocked()
+                                    } else {
+                                        val remaining = viewModel.getRemainingPinAttempts()
+                                        pinError = if (remaining <= 0) {
+                                            "Too many failed attempts. Master Key required."
+                                        } else {
+                                            "Incorrect PIN. $remaining attempts remaining."
+                                        }
+                                        pinInput = ""
+                                    }
+                                }
+                            }
+                        )
+
                         if (isVerifyingPin) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 24.dp)
+                                    .padding(top = 8.dp)
                             ) {
                                 CircularProgressIndicator(
                                     color = ReefPink,
-                                    modifier = Modifier.size(36.dp)
+                                    modifier = Modifier.size(16.dp),
+                                    strokeWidth = 2.dp
                                 )
-                                Spacer(modifier = Modifier.height(12.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = "Verifying PIN...",
                                     color = TextSecondary,
-                                    fontSize = 13.sp
+                                    fontSize = 12.sp
                                 )
                             }
-                        } else {
-                            PinPadView(
-                                currentPin = pinInput,
-                                onPinChange = {
-                                    pinInput = it
-                                    pinError = null
-                                },
-                                pinLength = 6,
-                                isError = pinError != null,
-                                errorMessage = pinError,
-                                onPinComplete = { completedPin ->
-                                    if (isVerifyingPin) return@PinPadView
-                                    isVerifyingPin = true
-                                    viewModel.verifyPinAsync(completedPin) { success ->
-                                        isVerifyingPin = false
-                                        if (success) {
-                                            onUnlocked()
-                                        } else {
-                                            val remaining = viewModel.getRemainingPinAttempts()
-                                            pinError = if (remaining <= 0) {
-                                                "Too many failed attempts. Master Key required."
-                                            } else {
-                                                "Incorrect PIN. $remaining attempts remaining."
-                                            }
-                                            pinInput = ""
-                                        }
-                                    }
-                                }
-                            )
                         }
 
                         Spacer(modifier = Modifier.height(12.dp))

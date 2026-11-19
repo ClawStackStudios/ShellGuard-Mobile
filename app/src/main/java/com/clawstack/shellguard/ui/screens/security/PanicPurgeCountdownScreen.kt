@@ -73,9 +73,17 @@ fun PanicPurgeCountdownScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val initialSeconds = uiState.settings.panicWipeCountdownSeconds
-    var remainingSeconds by remember { mutableIntStateOf(initialSeconds) }
+    val configuredSeconds = uiState.settings.panicWipeCountdownSeconds
+    var remainingSeconds by remember { mutableIntStateOf(configuredSeconds) }
+    var hasTicked by remember { mutableStateOf(false) }
     var isPurgeInitiated by remember { mutableStateOf(false) }
+
+    // Sync with DataStore once it finishes its initial disk load (before the first tick)
+    LaunchedEffect(configuredSeconds) {
+        if (!hasTicked && !isPurgeInitiated) {
+            remainingSeconds = configuredSeconds
+        }
+    }
 
     // Intercept hardware back button to trigger cancellation
     BackHandler {
@@ -90,6 +98,7 @@ fun PanicPurgeCountdownScreen(
 
         while (remainingSeconds > 0) {
             delay(1000L)
+            hasTicked = true
             remainingSeconds--
         }
 
@@ -288,7 +297,7 @@ fun PanicPurgeCountdownScreen(
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "• Room SQLCipher encrypted tables destroyed\n• In-memory session credentials and keys zeroized\n• Application preferences and sync tokens cleared",
+                            text = "• Room SQLCipher encrypted tables destroyed\n• In-memory keys and volatile heap zeroized\n• KeyStore session, Master Key & encrypted attachments wiped\n• Application preferences reset to fresh Gateway",
                             color = TextSecondary,
                             fontSize = 11.sp,
                             lineHeight = 16.sp

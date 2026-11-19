@@ -3,6 +3,7 @@ package com.clawstack.shellguard.ui.components
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -22,13 +24,10 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,14 +36,18 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.clawstack.shellguard.ui.theme.BorderSubtle
-import com.clawstack.shellguard.ui.theme.ReefPink
 import com.clawstack.shellguard.ui.theme.StatusError
 import com.clawstack.shellguard.ui.theme.SurfaceDark
 import com.clawstack.shellguard.ui.theme.TextMuted
@@ -54,6 +57,36 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
+
+/**
+ * Converts a pointer offset relative to the dial center into a clamped seconds value.
+ * When [previousSeconds] is provided (during continuous drag), prevents sudden 60s <-> 5s
+ * wrap-around jumps across the 12 o'clock boundary.
+ */
+internal fun polarOffsetToSeconds(
+    dx: Float,
+    dy: Float,
+    minSeconds: Int = 5,
+    maxSeconds: Int = 60,
+    previousSeconds: Int? = null
+): Int {
+    val rad = atan2(dy, dx)
+    var deg = Math.toDegrees(rad.toDouble()) + 90.0
+    if (deg < 0.0) deg += 360.0
+    var seconds = ((deg / 360.0) * 60.0).roundToInt()
+    if (seconds <= 0) seconds = 60
+    val rawClamped = seconds.coerceIn(minSeconds, maxSeconds)
+
+    return if (previousSeconds != null) {
+        when {
+            previousSeconds >= 50 && rawClamped <= 15 -> maxSeconds
+            previousSeconds <= 15 && rawClamped >= 50 -> minSeconds
+            else -> rawClamped
+        }
+    } else {
+        rawClamped
+    }
+}
 
 /**
  * Clock-face circular dial time picker for configuring the panic purge countdown.
@@ -69,6 +102,20 @@ fun CircularDialPicker(
     maxSeconds: Int = 60
 ) {
     val clampedSeconds = currentSeconds.coerceIn(minSeconds, maxSeconds)
+    val haptic = LocalHapticFeedback.current
+    val latestSeconds by rememberUpdatedState(clampedSeconds)
+    val latestOnSecondsChanged by rememberUpdatedState(onSecondsChanged)
+
+    fun emitWithHaptics(next: Int, previous: Int): Boolean {
+        if (next == previous) return false
+        if (next % 15 == 0) {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        } else if (next % 5 == 0) {
+            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        }
+        latestOnSecondsChanged(next)
+        return true
+    }
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -82,40 +129,39 @@ fun CircularDialPicker(
                 modifier = Modifier
                     .size(dialSize)
                     .pointerInput(minSeconds, maxSeconds) {
-                        fun updateFromOffset(offset: Offset, size: androidx.compose.ui.unit.IntSize) {
-                            val center = Offset(size.width / 2f, size.height / 2f)
-                            val dx = offset.x - center.x
-                            val dy = offset.y - center.y
-                            // Angle in radians: -PI to +PI
-                            val rad = atan2(dy, dx)
-                            // Convert to degrees with 12 o'clock as 0 deg
-                            var deg = Math.toDegrees(rad.toDouble()) + 90.0
-                            if (deg < 0) deg += 360.0
-                            // Map 0..360 deg to 0..60 seconds
-                            var seconds = ((deg / 360.0) * 60.0).roundToInt()
-                            if (seconds <= 0) seconds = 60
-                            val clamped = seconds.coerceIn(minSeconds, maxSeconds)
-                            onSecondsChanged(clamped)
-                        }
-
                         detectTapGestures { offset ->
-                            updateFromOffset(offset, size)
+                            val centerX = size.width / 2f
+                            val centerY = size.height / 2f
+                            val next = polarOffsetToSeconds(
+                                dx = offset.x - centerX,
+                                dy = offset.y - centerY,
+                                minSeconds = minSeconds,
+                                maxSeconds = maxSeconds,
+                                previousSeconds = null
+                            )
+                            emitWithHaptics(next, latestSeconds)
                         }
                     }
-                    // TODO(ux-gestures): Polish arc gesture dragging with tactile haptic ticks on duration snap points (Task 06).
                     .pointerInput(minSeconds, maxSeconds) {
-                        detectDragGestures { change, _ ->
+                        var activeDragSeconds = latestSeconds
+                        detectDragGestures(
+                            onDragStart = {
+                                activeDragSeconds = latestSeconds
+                            }
+                        ) { change, _ ->
                             change.consume()
-                            val center = Offset(size.width / 2f, size.height / 2f)
-                            val dx = change.position.x - center.x
-                            val dy = change.position.y - center.y
-                            val rad = atan2(dy, dx)
-                            var deg = Math.toDegrees(rad.toDouble()) + 90.0
-                            if (deg < 0) deg += 360.0
-                            var seconds = ((deg / 360.0) * 60.0).roundToInt()
-                            if (seconds <= 0) seconds = 60
-                            val clamped = seconds.coerceIn(minSeconds, maxSeconds)
-                            onSecondsChanged(clamped)
+                            val centerX = size.width / 2f
+                            val centerY = size.height / 2f
+                            val next = polarOffsetToSeconds(
+                                dx = change.position.x - centerX,
+                                dy = change.position.y - centerY,
+                                minSeconds = minSeconds,
+                                maxSeconds = maxSeconds,
+                                previousSeconds = activeDragSeconds
+                            )
+                            if (emitWithHaptics(next, activeDragSeconds)) {
+                                activeDragSeconds = next
+                            }
                         }
                     }
             ) {
@@ -226,11 +272,11 @@ fun CircularDialPicker(
             IconButton(
                 onClick = {
                     val next = (clampedSeconds - 5).coerceIn(minSeconds, maxSeconds)
-                    onSecondsChanged(next)
+                    emitWithHaptics(next, clampedSeconds)
                 },
                 enabled = clampedSeconds > minSeconds,
                 modifier = Modifier
-                    .size(36.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .background(SurfaceDark)
                     .border(1.dp, BorderSubtle, CircleShape)
@@ -239,18 +285,25 @@ fun CircularDialPicker(
                     imageVector = Icons.Default.Remove,
                     contentDescription = "Decrease 5 seconds",
                     tint = if (clampedSeconds > minSeconds) TextPrimary else TextMuted,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(20.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
             Box(
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
+                    .defaultMinSize(minHeight = 48.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .background(SurfaceDark)
                     .border(1.dp, BorderSubtle, RoundedCornerShape(8.dp))
-                    .padding(horizontal = 14.dp, vertical = 6.dp)
+                    .clickable(role = Role.Button) {
+                        val defaultTarget = 15.coerceIn(minSeconds, maxSeconds)
+                        emitWithHaptics(defaultTarget, clampedSeconds)
+                    }
+                    .semantics { contentDescription = "Reset purge timer to 15 seconds" }
+                    .padding(horizontal = 14.dp, vertical = 10.dp)
             ) {
                 Text(
                     text = "Default: 15s",
@@ -260,16 +313,16 @@ fun CircularDialPicker(
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
             IconButton(
                 onClick = {
                     val next = (clampedSeconds + 5).coerceIn(minSeconds, maxSeconds)
-                    onSecondsChanged(next)
+                    emitWithHaptics(next, clampedSeconds)
                 },
                 enabled = clampedSeconds < maxSeconds,
                 modifier = Modifier
-                    .size(36.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .background(SurfaceDark)
                     .border(1.dp, BorderSubtle, CircleShape)
@@ -278,7 +331,7 @@ fun CircularDialPicker(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Increase 5 seconds",
                     tint = if (clampedSeconds < maxSeconds) TextPrimary else TextMuted,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(20.dp)
                 )
             }
         }
