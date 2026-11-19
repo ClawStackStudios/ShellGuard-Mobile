@@ -415,6 +415,7 @@ class SyncReconciliationAdversarialTest {
                     title = "Old Title",
                     secret = initialEditSecret,
                     syncState = "SYNCED",
+                    createdAt = "1000",
                     remoteUpdatedAt = 1000L,
                     localUpdatedAt = 1000L
                 ),
@@ -424,12 +425,13 @@ class SyncReconciliationAdversarialTest {
                     title = "To Delete Offline",
                     secret = initialDelSecret,
                     syncState = "SYNCED",
+                    createdAt = "1000",
                     remoteUpdatedAt = 1000L,
                     localUpdatedAt = 1000L
                 )
             )
         )
-        fakeClient.remotePearls = listOf(
+        fakeClient.remotePearls = mutableListOf(
             PearlDto(id = editId, owner_uuid = testOwnerUuid, title = "Old Title", secret = initialEditSecret, type = "password"),
             PearlDto(id = delId, owner_uuid = testOwnerUuid, title = "To Delete Offline", secret = initialDelSecret, type = "password")
         )
@@ -444,35 +446,40 @@ class SyncReconciliationAdversarialTest {
         syncRepository.savePearlDetail(
             PearlDetail(id = editId, ownerUuid = testOwnerUuid, title = "Edited Offline", secret = "NewOfflinePass!")
         )
-        syncRepository.deleteItem(delId, "password")
+        syncRepository.deleteItem(delId, com.clawstack.shellguard.domain.model.VaultItemDomain.PASSWORD)
 
         // 2. Simulate cold app restart by constructing a fresh SyncRepository on the same Room DB
         val restartedRepo = SyncRepository(
             database = database,
+            clientProvider = { fakeClient },
             deviceVault = deviceVault,
-            cryptoEngine = ShellCryptionEngine,
-            clientProvider = { fakeClient }
+            connectivityMonitor = connectivityMonitor,
+            cryptoEngine = ShellCryptionEngine
         )
 
-        assertEquals("PENDING_SYNC", database.vaultPearlDao().getById(testOwnerUuid, newId)?.syncState)
-        assertEquals("PENDING_SYNC", database.vaultPearlDao().getById(testOwnerUuid, editId)?.syncState)
-        assertEquals("PENDING_DELETE", database.vaultPearlDao().getById(testOwnerUuid, delId)?.syncState)
+        try {
+            assertEquals("PENDING_SYNC", database.vaultPearlDao().getById(testOwnerUuid, newId)?.syncState)
+            assertEquals("PENDING_SYNC", database.vaultPearlDao().getById(testOwnerUuid, editId)?.syncState)
+            assertEquals("PENDING_DELETE", database.vaultPearlDao().getById(testOwnerUuid, delId)?.syncState)
 
-        // 3. Reconnect and flush
-        fakeClient.healthResult = Result.success(true)
-        val syncResult = restartedRepo.syncAll(testOwnerUuid)
-        assertTrue("Reconnect syncAll should succeed", syncResult.isSuccess)
+            // 3. Reconnect and flush
+            fakeClient.healthResult = Result.success(true)
+            val syncResult = restartedRepo.syncAll(testOwnerUuid)
+            assertTrue("Reconnect syncAll should succeed", syncResult.isSuccess)
 
-        // Deleted item must not resurrect
-        assertTrue(fakeClient.deletedPearlIds.contains(delId))
-        assertNull(database.vaultPearlDao().getById(testOwnerUuid, delId))
+            // Deleted item must not resurrect
+            assertTrue(fakeClient.deletedPearlIds.contains(delId))
+            assertNull(database.vaultPearlDao().getById(testOwnerUuid, delId))
 
-        // Offline create & edit must be synced cleanly without duplicates
-        val allPearls = database.vaultPearlDao().getAllPearls(testOwnerUuid)
-        assertEquals(2, allPearls.size)
-        assertEquals("Edited Offline", restartedRepo.getPearlDetail(editId).getOrThrow().title)
-        assertEquals("NewOfflinePass!", restartedRepo.getPearlDetail(editId).getOrThrow().secret)
-        assertEquals("Created Offline", restartedRepo.getPearlDetail(newId).getOrThrow().title)
+            // Offline create & edit must be synced cleanly without duplicates
+            val allPearls = database.vaultPearlDao().getAllActivePearls(testOwnerUuid)
+            assertEquals(2, allPearls.size)
+            assertEquals("Edited Offline", restartedRepo.getPearlDetail(editId).getOrThrow().title)
+            assertEquals("NewOfflinePass!", restartedRepo.getPearlDetail(editId).getOrThrow().secret)
+            assertEquals("Created Offline", restartedRepo.getPearlDetail(newId).getOrThrow().title)
+        } finally {
+            restartedRepo.cancelScope()
+        }
     }
 
     @Test
@@ -490,7 +497,8 @@ class SyncReconciliationAdversarialTest {
                 ownerUuid = testOwnerUuid,
                 title = "Swapped Item",
                 secret = swappedCiphertext,
-                syncState = "SYNCED"
+                syncState = "SYNCED",
+                createdAt = "1000"
             )
         )
 
