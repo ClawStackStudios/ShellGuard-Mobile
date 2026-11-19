@@ -1,13 +1,13 @@
 ---
 roadmap_version: 2.0.0
-last_updated: 2026-11-15
+last_updated: 2026-11-18
 meta_phase: "Feature Verification and Polish"
-current_position: "Stage 2: Mental Flow & Ergonomic Form Polish (v0.0.0.20 / Build 20) — All Milestone 2 Tasks Complete (#11–#14, #22–#24)"
-baseline_release: "v0.0.0.14 (Build 14) Published"
+current_position: "Stage 3: Security Lifecycle, Biometrics & Offline Resilience (v0.0.0.30 / Build 30) — Complete (#15, #16); Next: Stage 4 (v0.0.0.40)"
+baseline_release: "v0.0.0.20 (Build 20) Published"
 target_release: "v0.0.1.0 (Build 50) Production Release Candidate"
 statistics:
   description: "Meta-Phase roadmap for holistic feature verification, full server sync parity, mental flow ergonomics, and Android production polish."
-  stages_completed: "████░░░░░░ 40%"
+  stages_completed: "██████░░░░ 60%"
   stages_in_progress: "█░░░░░░░░░ 10%"
 ---
 
@@ -34,11 +34,11 @@ flowchart TD
 
     S1_SUB["<b>Stage 1 Sub-Phase: Vault Lock & Multi-Method Authentication</b><br/>✅ Complete · Hardware-Verified (121 Tests Green)<br/>• Task 02.A: PinAuthManager (PBKDF2) & Settings UnlockMethod<br/>• Task 02.B: Security Settings UI, Reef PinPad & LockScreen Overhaul"]:::completedStage
 
-    S2["<b>Stage 2: Mental Flow & Ergonomic Form Polish</b><br/>⚡ <b>Active Focus</b><br/>• Task 03: [Functionality] Cold-Start Routing & Sub-16ms Search (v0.0.0.13)<br/>• Security Hotfix: TLS Consent & Log Redaction (v0.0.0.14)<br/>• <b>Stage 2 Sub-Phase (Task 04.A)</b>: Upstream Sync & Item Integrity<br/>• <b>Task 04.B</b>: [UI/UX] Touch Targets & Insets ➔ <b>v0.0.0.20 (Build 20)</b>"]:::activeStage
+    S2["<b>Stage 2: Mental Flow & Ergonomic Form Polish</b><br/>✅ Complete · Hardware-Verified (136 Tests Green)<br/>• Task 03: Cold-Start Routing & Sub-16ms Search (v0.0.0.13)<br/>• Security Hotfix: TLS Consent & Log Redaction (v0.0.0.14)<br/>• Task 04.A & 04.B: Upstream Sync, SAF Import & Ergonomics (v0.0.0.20)"]:::completedStage
 
-    S3["<b>Stage 3: Security Lifecycle, Biometrics & Offline Resilience</b><br/>➔ <b>v0.0.0.30 (Build 30)</b><br/>• Task 05: [Functionality] Lock Persistence & Offline Mutation Queue<br/>• Task 06: [UI/UX] PIN Keypad Polish & Panic Destruction"]:::futureStage
+    S3["<b>Stage 3: Security Lifecycle, Biometrics & Offline Resilience</b><br/>✅ Complete · Hardware-Verified (152 Tests Green) ➔ <b>v0.0.0.30 (Build 30)</b><br/>• Task 05: Lock Persistence & Offline Mutation Queue (#15)<br/>• Task 06: PIN Keypad Polish, Circular Dial & Panic Destruction (#16)"]:::completedStage
 
-    S4["<b>Stage 4: In-The-Wild Autofill Verification & Release Hardening</b><br/>➔ <b>v0.0.0.40 (Build 40)</b><br/>• Task 07: [Functionality] Browser Testing (Chrome/Brave/Firefox)<br/>• Task 08: [Configuration] 16 KB Page Alignment & R8 Obfuscation"]:::futureStage
+    S4["<b>Stage 4: In-The-Wild Autofill Verification & Release Hardening</b><br/>⚡ <b>Active Focus</b> ➔ <b>v0.0.0.40 (Build 40)</b><br/>• Task 07: [Functionality] Browser Testing (Chrome/Brave/Firefox)<br/>• Task 08: [Configuration] 16 KB Page Alignment & R8 Obfuscation"]:::activeStage
 
     S5["<b>Stage 5: First-Class HTTPS Transport & The Reef Handshake</b><br/>➔ <b>v0.0.1.0 (Build 50)</b><br/>• Task 09: [Network Security] TOFU PinningTrustManager & Auto-Heal<br/>• Task 10: [UI/UX & Release] Reef Handshake QR Parser & Mobility"]:::futureStage
 
@@ -171,13 +171,13 @@ flowchart TD
 > **Stage Objective**:
 > Harden background lifecycle, KeyStore biometric unsealing, timeout enforcement, and emergency wipe cascades. Guarantee zero data loss when modifying items offline. Target Release: **`v0.0.0.30 (Build 30)`** (with `v0.0.0.21`–`v0.0.0.29` reserved for hotfixes).
 
-- [ ] **Task 05: [Functionality] Lock Persistence Across Process Death & Offline Mutation Queue**
+- [x] **Task 05: [Functionality] Lock Persistence Across Process Death & Offline Mutation Queue**
   - Verify and harden `VaultLockManager` background timestamp tracking: ensure killing the app from recents or OS low-memory termination enforces the configured timeout upon relaunch.
   - Test and verify offline mutation queueing in `SyncRepository`: items created, edited, or deleted in Airplane Mode must persist locally through app restarts and flush cleanly to the server on reconnect without resurrecting deleted items.
   - Verify fail-closed decryption across all domains: corrupt or untrusted payloads must never leak ciphertext strings into editable form fields.
   - *Success Criteria*: Process kill enforces lock; offline creates/edits/deletes sync cleanly upon reconnect without data loss.
 
-- [ ] **Task 06: [UI/UX] PIN Keypad Polish, Circular Dial Feel & Panic Destruction**
+- [x] **Task 06: [UI/UX] PIN Keypad Polish, Circular Dial Feel & Panic Destruction**
   - Polish `LockScreen.kt` numerical PIN keypad: responsive press states, masked PIN dots, and instantaneous fallback to Master ClawKey.
   - Polish `CircularDialPicker` gesture physics: smooth continuous arc dragging with clear duration snap points (5s–60s).
   - Verify `PanicPurgeCountdownScreen`: 3 pulsing concentric Canvas rings, 68sp monospace timer, hardware back button cancellation, and full 4-step fail-closed destruction cascade.

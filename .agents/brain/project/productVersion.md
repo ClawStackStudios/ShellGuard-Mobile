@@ -1,11 +1,11 @@
 # Product Version & Release State
 
 ## Active Version State
-- **Current Version**: `0.0.0.20`
-- **Monotonic Build Code**: `20` (`versionCode = 20` in `app/build.gradle.kts`)
+- **Current Version**: `0.0.0.30`
+- **Monotonic Build Code**: `30` (`versionCode = 30` in `app/build.gradle.kts`)
 - **Active Release Channel**: Production / GitHub Release & Google Play Track
-- **Latest Git Tag**: `v0.0.0.20`
-- **Release Status**: Staged / Releasing
+- **Latest Git Tag**: `v0.0.0.30`
+- **Release Status**: Staged / Releasing (PR #34)
 - **Central Version Source**: `app/build.gradle.kts` (`versionCode`, `versionName`)
 
 ## SemVer Calculus & Increment Rules (4-Digit Convention: `MAJOR.MINOR.PATCH.REVISION`)

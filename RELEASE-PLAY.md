@@ -3,6 +3,21 @@
 > **Single Source of Truth for Google Play Store What's New Notes**  
 > *Google Play enforces a strict 500-character limit per localized language block.*
 
+## `v0.0.0.30` — Stage 3: Security Lifecycle, Biometrics & Offline Resilience (Build 30)
+
+```xml
+<en-US>
+• 2-Tab Navigation: Streamlined Vault & Settings tabs + Pull-to-Refresh.
+• PIN Keypad Polish: Spring press feedback, animated dots & off-main PBKDF2.
+• Circular Dial Physics: 12 o'clock guard, 5s/15s haptics & 48dp targets.
+• Panic Purge Hardening: Accurate timer sync & synchronous 4-step wipe.
+• Process-Death Lock: Recents-swipe lock & clock-rollback protection.
+• 152 Tests 100% Green on Cloud CI & verified on Pixel hardware.
+</en-US>
+```
+
+---
+
 ## `v0.0.0.20` — Stage 2: Sync Resilience, SAF Import & Ergonomics (Build 20)
 
 ```xml
