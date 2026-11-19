@@ -22,12 +22,15 @@ import com.clawstack.shellguard.domain.models.SshKeyDetail
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -128,7 +131,7 @@ class SyncRepository(
             database.secureNoteDao().observeAll(ownerUuid),
             database.sshKeyDao().observeAll(ownerUuid)
         ) { pearls, notes, sshKeys ->
-            val unifiedList = mutableListOf<UnifiedVaultItem>()
+            val unifiedList = ArrayList<UnifiedVaultItem>(pearls.size + notes.size + sshKeys.size)
 
             pearls.forEach { pearl ->
                 unifiedList.add(
@@ -184,7 +187,7 @@ class SyncRepository(
             }
 
             unifiedList.sortedByDescending { it.localUpdatedAt.coerceAtLeast(it.remoteUpdatedAt) }
-        }
+        }.flowOn(Dispatchers.Default)
     }
 
     /**
@@ -224,16 +227,43 @@ class SyncRepository(
 
             val domainErrors = mutableListOf<Throwable>()
 
-            // Downstream delta pull - Pearls
-            val pearlsResult = client.fetchVault(sessionToken)
-            if (pearlsResult.isFailure) {
-                domainErrors.add(pearlsResult.exceptionOrNull() ?: Exception("Failed to fetch pearls"))
-            } else {
-                val remotePearls = pearlsResult.getOrThrow()
-                val remotePearlIds = remotePearls.map { it.id }.toSet()
+            lateinit var typedPearlsResult: Result<List<com.clawstack.shellguard.data.remote.models.PearlDto>>
+            lateinit var typedNotesResult: Result<List<com.clawstack.shellguard.data.remote.models.SecureNoteDto>>
+            lateinit var typedKeysResult: Result<List<com.clawstack.shellguard.data.remote.models.SshKeyDto>>
+            lateinit var typedAttachmentsResult: Result<List<com.clawstack.shellguard.data.remote.models.AttachmentDto>>
 
-                database.withTransaction {
-                    // Conflict check: Don't overwrite local pending changes
+            coroutineScope {
+                val pearlsDeferred = async { client.fetchVault(sessionToken) }
+                val notesDeferred = async { client.fetchNotes(sessionToken) }
+                val keysDeferred = async { client.fetchKeys(sessionToken) }
+                val attachmentsDeferred = async { client.fetchAttachments(sessionToken) }
+                typedPearlsResult = pearlsDeferred.await()
+                typedNotesResult = notesDeferred.await()
+                typedKeysResult = keysDeferred.await()
+                typedAttachmentsResult = attachmentsDeferred.await()
+            }
+
+            if (typedPearlsResult.isFailure) {
+                domainErrors.add(typedPearlsResult.exceptionOrNull() ?: Exception("Failed to fetch pearls"))
+            }
+            if (typedNotesResult.isFailure) {
+                domainErrors.add(typedNotesResult.exceptionOrNull() ?: Exception("Failed to fetch notes"))
+            }
+            if (typedKeysResult.isFailure) {
+                domainErrors.add(typedKeysResult.exceptionOrNull() ?: Exception("Failed to fetch SSH keys"))
+            }
+            if (typedAttachmentsResult.isFailure) {
+                domainErrors.add(typedAttachmentsResult.exceptionOrNull() ?: Exception("Failed to fetch attachments"))
+            }
+
+            val obsoleteAttachmentIdsToDelete = mutableListOf<String>()
+            val syncTimestamp = System.currentTimeMillis()
+
+            // Single atomic SQLCipher transaction for all succeeded domains (1 fsync, 1 UI emission)
+            database.withTransaction {
+                if (typedPearlsResult.isSuccess) {
+                    val remotePearls = typedPearlsResult.getOrThrow()
+                    val remotePearlIds = remotePearls.map { it.id }.toSet()
                     val pendingPearlSyncIds = database.vaultPearlDao().getPendingSyncItems(ownerUuid).map { it.id }.toSet()
                     val pendingPearlDeleteIds = database.vaultPearlDao().getPendingDeleteItems(ownerUuid).map { it.id }.toSet()
                     val conflictingPearlIds = pendingPearlSyncIds + pendingPearlDeleteIds
@@ -259,33 +289,25 @@ class SyncRepository(
                                 passwordHistory = dto.password_history?.takeIf { it != "[]" } ?: "",
                                 reprompt = dto.reprompt,
                                 syncState = "SYNCED",
-                                createdAt = dto.created_at.ifBlank { System.currentTimeMillis().toString() },
-                                localUpdatedAt = System.currentTimeMillis(),
-                                remoteUpdatedAt = System.currentTimeMillis()
+                                createdAt = dto.created_at.ifBlank { syncTimestamp.toString() },
+                                localUpdatedAt = syncTimestamp,
+                                remoteUpdatedAt = syncTimestamp
                             )
                         }
                     if (pearlEntitiesToUpsert.isNotEmpty()) {
                         database.vaultPearlDao().upsertAll(pearlEntitiesToUpsert)
                     }
 
-                    // Prune deleted remote items in safe chunks (prevent SQLite 999 limit)
                     val localSyncedPearlIds = database.vaultPearlDao().getSyncedItemIds(ownerUuid).toSet()
                     val obsoletePearlIds = localSyncedPearlIds - remotePearlIds
                     obsoletePearlIds.chunked(500).forEach { batch ->
                         database.vaultPearlDao().deleteBatch(ownerUuid, batch)
                     }
                 }
-            }
 
-            // Downstream notes pull
-            val notesResult = client.fetchNotes(sessionToken)
-            if (notesResult.isFailure) {
-                domainErrors.add(notesResult.exceptionOrNull() ?: Exception("Failed to fetch notes"))
-            } else {
-                val remoteNotes = notesResult.getOrThrow()
-                val remoteNoteIds = remoteNotes.map { it.id }.toSet()
-
-                database.withTransaction {
+                if (typedNotesResult.isSuccess) {
+                    val remoteNotes = typedNotesResult.getOrThrow()
+                    val remoteNoteIds = remoteNotes.map { it.id }.toSet()
                     val pendingNoteSyncIds = database.secureNoteDao().getPendingSyncItems(ownerUuid).map { it.id }.toSet()
                     val pendingNoteDeleteIds = database.secureNoteDao().getPendingDeleteItems(ownerUuid).map { it.id }.toSet()
                     val conflictingNoteIds = pendingNoteSyncIds + pendingNoteDeleteIds
@@ -304,9 +326,9 @@ class SyncRepository(
                                 tags = dto.tags,
                                 reprompt = dto.reprompt,
                                 syncState = "SYNCED",
-                                createdAt = dto.created_at.ifBlank { System.currentTimeMillis().toString() },
-                                localUpdatedAt = System.currentTimeMillis(),
-                                remoteUpdatedAt = System.currentTimeMillis()
+                                createdAt = dto.created_at.ifBlank { syncTimestamp.toString() },
+                                localUpdatedAt = syncTimestamp,
+                                remoteUpdatedAt = syncTimestamp
                             )
                         }
                     if (noteEntitiesToUpsert.isNotEmpty()) {
@@ -319,17 +341,10 @@ class SyncRepository(
                         database.secureNoteDao().deleteBatch(ownerUuid, batch)
                     }
                 }
-            }
 
-            // Downstream keys pull
-            val keysResult = client.fetchKeys(sessionToken)
-            if (keysResult.isFailure) {
-                domainErrors.add(keysResult.exceptionOrNull() ?: Exception("Failed to fetch SSH keys"))
-            } else {
-                val remoteKeys = keysResult.getOrThrow()
-                val remoteKeyIds = remoteKeys.map { it.id }.toSet()
-
-                database.withTransaction {
+                if (typedKeysResult.isSuccess) {
+                    val remoteKeys = typedKeysResult.getOrThrow()
+                    val remoteKeyIds = remoteKeys.map { it.id }.toSet()
                     val pendingKeySyncIds = database.sshKeyDao().getPendingSyncItems(ownerUuid).map { it.id }.toSet()
                     val pendingKeyDeleteIds = database.sshKeyDao().getPendingDeleteItems(ownerUuid).map { it.id }.toSet()
                     val conflictingKeyIds = pendingKeySyncIds + pendingKeyDeleteIds
@@ -348,9 +363,9 @@ class SyncRepository(
                                 tags = dto.tags,
                                 reprompt = dto.reprompt,
                                 syncState = "SYNCED",
-                                createdAt = dto.created_at.ifBlank { System.currentTimeMillis().toString() },
-                                localUpdatedAt = System.currentTimeMillis(),
-                                remoteUpdatedAt = System.currentTimeMillis()
+                                createdAt = dto.created_at.ifBlank { syncTimestamp.toString() },
+                                localUpdatedAt = syncTimestamp,
+                                remoteUpdatedAt = syncTimestamp
                             )
                         }
                     if (keyEntitiesToUpsert.isNotEmpty()) {
@@ -363,60 +378,62 @@ class SyncRepository(
                         database.sshKeyDao().deleteBatch(ownerUuid, batch)
                     }
                 }
-            }
 
-            // 4. Downstream Pull for Attachments (Metadata only per CWE-400)
-            val remoteAttachmentsRes = client.fetchAttachments(sessionToken)
-            if (remoteAttachmentsRes.isFailure) {
-                domainErrors.add(remoteAttachmentsRes.exceptionOrNull() ?: Exception("Failed to fetch attachments"))
-            } else {
-                val remoteAttachments = remoteAttachmentsRes.getOrNull() ?: emptyList()
-                val remoteAttIds = remoteAttachments.map { it.id }.toSet()
-                database.withTransaction {
-                    for (dto in remoteAttachments) {
-                        val existing = database.secureAttachmentDao().getById(ownerUuid, dto.id)
-                        if (existing == null) {
-                            database.secureAttachmentDao().upsert(
-                                com.clawstack.shellguard.data.local.entities.SecureAttachmentEntity(
-                                    id = dto.id,
-                                    ownerUuid = dto.owner_uuid.ifBlank { ownerUuid },
-                                    title = dto.title,
-                                    fileName = dto.file_name,
-                                    sizeBytes = dto.size_bytes,
-                                    mimeType = dto.mime_type,
-                                    category = dto.category ?: "",
-                                    parentId = dto.parent_id ?: "",
-                                    parentType = dto.parent_type ?: "",
-                                    syncState = "SYNCED",
-                                    createdAt = dto.created_at.ifBlank { System.currentTimeMillis().toString() }
-                                )
+                if (typedAttachmentsResult.isSuccess) {
+                    val remoteAttachments = typedAttachmentsResult.getOrThrow()
+                    val remoteAttIds = remoteAttachments.map { it.id }.toSet()
+                    val localItems = database.secureAttachmentDao().getAll(ownerUuid)
+                    val existingAttIds = localItems.map { it.id }.toSet()
+
+                    val newAttachments = remoteAttachments
+                        .filter { it.id !in existingAttIds }
+                        .map { dto ->
+                            com.clawstack.shellguard.data.local.entities.SecureAttachmentEntity(
+                                id = dto.id,
+                                ownerUuid = dto.owner_uuid.ifBlank { ownerUuid },
+                                title = dto.title,
+                                fileName = dto.file_name,
+                                sizeBytes = dto.size_bytes,
+                                mimeType = dto.mime_type,
+                                category = dto.category ?: "",
+                                parentId = dto.parent_id ?: "",
+                                parentType = dto.parent_type ?: "",
+                                syncState = "SYNCED",
+                                createdAt = dto.created_at.ifBlank { syncTimestamp.toString() }
                             )
                         }
+                    if (newAttachments.isNotEmpty()) {
+                        database.secureAttachmentDao().upsertAll(newAttachments)
                     }
-                    // Prune deleted remote attachments from Room and disk
-                    val localItems = database.secureAttachmentDao().getAll(ownerUuid)
+
                     for (local in localItems) {
-                        if (local.syncState == "SYNCED" && !remoteAttIds.contains(local.id)) {
+                        if (local.syncState == "SYNCED" && local.id !in remoteAttIds) {
                             database.secureAttachmentDao().deleteById(ownerUuid, local.id)
-                            attachmentVaultManager?.deleteEncryptedFile(local.id)
+                            obsoleteAttachmentIdsToDelete.add(local.id)
                         }
                     }
                 }
+
+                if (domainErrors.isEmpty()) {
+                    database.syncMetadataDao().upsert(
+                        SyncMetadataEntity(
+                            ownerUuid = ownerUuid,
+                            lastSyncTimestamp = syncTimestamp,
+                            syncStatus = "OnlineSynced"
+                        )
+                    )
+                }
+            }
+
+            // Delete obsolete encrypted attachment files only after Room transaction commits
+            for (obsoleteId in obsoleteAttachmentIdsToDelete) {
+                attachmentVaultManager?.deleteEncryptedFile(obsoleteId)
             }
 
             if (domainErrors.isNotEmpty()) {
                 _syncStatus.value = SyncStatus.SYNC_ERROR
                 return@withContext Result.failure(domainErrors.first())
             }
-
-            // Update SyncMetadata only after all operations succeed
-            database.syncMetadataDao().upsert(
-                SyncMetadataEntity(
-                    ownerUuid = ownerUuid,
-                    lastSyncTimestamp = System.currentTimeMillis(),
-                    syncStatus = "OnlineSynced"
-                )
-            )
 
             _syncStatus.value = SyncStatus.ONLINE_SYNCED
             Result.success(Unit)

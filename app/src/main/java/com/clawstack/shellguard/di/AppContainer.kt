@@ -94,17 +94,49 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
         )
     }
 
+    private data class ClientCacheKey(val baseUrl: String, val allowSelfSigned: Boolean)
+
+    private val clientLock = Any()
+    private var cachedClientKey: ClientCacheKey? = null
+    private var cachedClient: ShellGuardClient? = null
+
+    fun clearCachedClient() {
+        val toClose = synchronized(clientLock) {
+            val prev = cachedClient
+            cachedClient = null
+            cachedClientKey = null
+            prev
+        }
+        toClose?.close()
+    }
+
     override fun getClient(baseUrl: String): ShellGuardClient {
+        val normalizedUrl = baseUrl.trim().removeSuffix("/")
         val allowSelfSigned = runBlocking {
             settingsRepository.settingsFlow.first().allowSelfSignedCerts
         }
-        return ShellGuardClient(
-            baseUrl = baseUrl,
-            allowSelfSigned = allowSelfSigned,
-            onUnauthorized = {
-                deviceVault.clearSession()
+        val desiredKey = ClientCacheKey(normalizedUrl, allowSelfSigned)
+        var evictedClient: ShellGuardClient? = null
+        val activeClient = synchronized(clientLock) {
+            val existing = cachedClient
+            if (existing != null && cachedClientKey == desiredKey) {
+                return@synchronized existing
             }
-        )
+            evictedClient = existing
+            val created = ShellGuardClient(
+                baseUrl = normalizedUrl,
+                allowSelfSigned = allowSelfSigned,
+                onUnauthorized = {
+                    deviceVault.clearSession()
+                    clearCachedClient()
+                }
+            )
+            cachedClientKey = desiredKey
+            cachedClient = created
+            created
+        }
+        evictedClient?.close()
+        return activeClient
     }
 }
 

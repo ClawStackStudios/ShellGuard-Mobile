@@ -70,7 +70,7 @@ class VaultDashboardViewModel(
         _uiState.map { it.selectedPod }.distinctUntilChanged(),
         debouncedSearchQuery
     ) { items, selectedPod, query ->
-        val tokens = if (query.isEmpty()) emptyList() else query.split("\\s+".toRegex()).filter { it.isNotBlank() }
+        val tokens = if (query.isEmpty()) emptyList() else query.split(WHITESPACE_REGEX).filter { it.isNotBlank() }
         items.filter { item ->
             val matchesPod = when (selectedPod) {
                 PodFilter.ALL -> true
@@ -172,5 +172,9 @@ class VaultDashboardViewModel(
             } catch (_: Throwable) {}
             onLoggedOut()
         }
+    }
+
+    companion object {
+        private val WHITESPACE_REGEX = Regex("\\s+")
     }
 }
