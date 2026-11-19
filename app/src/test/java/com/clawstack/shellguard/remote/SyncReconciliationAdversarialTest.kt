@@ -75,6 +75,9 @@ class SyncReconciliationAdversarialTest {
 
         override suspend fun deleteVaultItem(sessionToken: String, id: String): Result<Boolean> {
             deletedPearlIds.add(id)
+            if (deletePearlResult.getOrNull() == true) {
+                remotePearls.removeAll { it.id == id }
+            }
             return deletePearlResult
         }
 
