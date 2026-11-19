@@ -446,7 +446,7 @@ class SyncReconciliationAdversarialTest {
         syncRepository.savePearlDetail(
             PearlDetail(id = editId, ownerUuid = testOwnerUuid, title = "Edited Offline", secret = "NewOfflinePass!")
         )
-        syncRepository.deleteItem(delId, com.clawstack.shellguard.domain.model.VaultItemDomain.PASSWORD)
+        syncRepository.deleteItem(delId, com.clawstack.shellguard.data.repository.VaultItemDomain.PASSWORD)
 
         // 2. Simulate cold app restart by constructing a fresh SyncRepository on the same Room DB
         val restartedRepo = SyncRepository(
