@@ -14,8 +14,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 import com.clawstack.shellguard.data.backup.BackupFormatType
 import com.clawstack.shellguard.data.backup.BackupProtectionMode
@@ -167,22 +169,28 @@ class SettingsViewModel(
     fun executePanicPurge(onCompleted: () -> Unit): Job = viewModelScope.launch {
         _extraState.update { it.copy(isWiping = true) }
         try {
-            // 1. Wipe Room Database tables
-            appContainer.database.clearAllTables()
-            // 2. Zeroize in-memory secrets and clear EncryptedSharedPreferences session
-            appContainer.deviceVault.clearSession()
-            // 3. Wipe disk-stored encrypted attachment payloads
-            appContainer.attachmentVaultManager.clearAll()
-            // 4. Clear settings repository preferences
-            appContainer.settingsRepository.clearAll()
-            // 5. Reset vault lock manager
-            appContainer.vaultLockManager.unlockVault()
-        } catch (t: Throwable) {
-            // Ensure session is cleared even if database wipe throws
-            appContainer.deviceVault.clearSession()
-            try {
-                appContainer.attachmentVaultManager.clearDecryptedCache()
-            } catch (_: Throwable) {}
+            withContext(Dispatchers.IO) {
+                // 1. Wipe Room Database tables
+                appContainer.database.clearAllTables()
+                // 2. Zeroize in-memory secrets and clear EncryptedSharedPreferences session
+                appContainer.deviceVault.clearSession()
+                // 3. Wipe disk-stored encrypted attachment payloads
+                appContainer.attachmentVaultManager.clearAll()
+                // 4. Clear settings repository preferences & evict cached network client
+                appContainer.settingsRepository.clearAll()
+                appContainer.clearCachedClient()
+                // 5. Reset vault lock manager
+                appContainer.vaultLockManager.unlockVault()
+            }
+        } catch (_: Throwable) {
+            // Fail-closed: ensure session, attachments, and client are cleared even if DB wipe throws
+            withContext(Dispatchers.IO) {
+                appContainer.deviceVault.clearSession()
+                try {
+                    appContainer.attachmentVaultManager.clearAll()
+                } catch (_: Throwable) {}
+                appContainer.clearCachedClient()
+            }
         } finally {
             _extraState.update { it.copy(isWiping = false) }
             onCompleted()

@@ -104,7 +104,7 @@ class EncryptedDeviceVault(private val context: Context) {
     fun clearSession() {
         zeroizeMemory()
         clearPersistentShellKey()
-        prefs.edit().clear().apply()
+        prefs.edit().clear().commit()
     }
 
     fun savePinHash(saltBase64: String, hashBase64: String) {
