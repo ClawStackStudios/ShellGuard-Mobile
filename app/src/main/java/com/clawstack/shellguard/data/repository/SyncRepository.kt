@@ -227,20 +227,24 @@ class SyncRepository(
 
             val domainErrors = mutableListOf<Throwable>()
 
-            lateinit var typedPearlsResult: Result<List<com.clawstack.shellguard.data.remote.models.PearlDto>>
-            lateinit var typedNotesResult: Result<List<com.clawstack.shellguard.data.remote.models.SecureNoteDto>>
-            lateinit var typedKeysResult: Result<List<com.clawstack.shellguard.data.remote.models.SshKeyDto>>
-            lateinit var typedAttachmentsResult: Result<List<com.clawstack.shellguard.data.remote.models.AttachmentDto>>
+            data class DownstreamPullResults(
+                val pearls: Result<List<com.clawstack.shellguard.data.remote.models.PearlDto>>,
+                val notes: Result<List<com.clawstack.shellguard.data.remote.models.SecureNoteDto>>,
+                val keys: Result<List<com.clawstack.shellguard.data.remote.models.SshKeyDto>>,
+                val attachments: Result<List<com.clawstack.shellguard.data.remote.models.AttachmentDto>>
+            )
 
-            coroutineScope {
+            val (typedPearlsResult, typedNotesResult, typedKeysResult, typedAttachmentsResult) = coroutineScope {
                 val pearlsDeferred = async { client.fetchVault(sessionToken) }
                 val notesDeferred = async { client.fetchNotes(sessionToken) }
                 val keysDeferred = async { client.fetchKeys(sessionToken) }
                 val attachmentsDeferred = async { client.fetchAttachments(sessionToken) }
-                typedPearlsResult = pearlsDeferred.await()
-                typedNotesResult = notesDeferred.await()
-                typedKeysResult = keysDeferred.await()
-                typedAttachmentsResult = attachmentsDeferred.await()
+                DownstreamPullResults(
+                    pearls = pearlsDeferred.await(),
+                    notes = notesDeferred.await(),
+                    keys = keysDeferred.await(),
+                    attachments = attachmentsDeferred.await()
+                )
             }
 
             if (typedPearlsResult.isFailure) {
