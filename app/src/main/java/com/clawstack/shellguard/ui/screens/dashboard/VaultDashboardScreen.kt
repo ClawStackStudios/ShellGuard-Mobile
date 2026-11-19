@@ -27,42 +27,49 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Settings
+import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.material.icons.filled.Terminal
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.clawstack.shellguard.ui.screens.settings.AutofillSettingsDialog
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -96,25 +103,33 @@ import com.clawstack.shellguard.ui.theme.TextSecondary
 import com.clawstack.shellguard.ui.theme.WarningBoxBg
 import com.clawstack.shellguard.ui.theme.WarningText
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VaultDashboardScreen(
     viewModel: VaultDashboardViewModel,
     modifier: Modifier = Modifier,
     onItemClick: (UnifiedVaultItem) -> Unit = {},
-    onAddItemClick: () -> Unit = {},
-    onLockClick: () -> Unit = {},
-    onSettingsClick: () -> Unit = {},
-    onLogoutClick: () -> Unit = {}
+    onAddItemClick: (VaultItemDomain) -> Unit = {},
+    onLockClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val syncStatus by viewModel.syncStatus.collectAsState()
+    val pullToRefreshEnabled by viewModel.pullToRefreshEnabled.collectAsState()
     val filteredItems by viewModel.filteredItems.collectAsState()
     val podCounts by viewModel.podCounts.collectAsState()
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
 
-    var isMenuExpanded by remember { mutableStateOf(false) }
-    var showAutofillDialog by remember { mutableStateOf(false) }
+    var isFabExpanded by remember { mutableStateOf(false) }
+    var showExitLockDialog by remember { mutableStateOf(false) }
+
+    BackHandler(enabled = isFabExpanded) {
+        isFabExpanded = false
+    }
+
+    BackHandler(enabled = !isFabExpanded && !showExitLockDialog) {
+        showExitLockDialog = true
+    }
 
     Surface(
         modifier = modifier
@@ -195,76 +210,15 @@ fun VaultDashboardScreen(
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(
-                            onClick = { viewModel.triggerSync() },
+                            onClick = { viewModel.lockVault(onLockClick) },
                             modifier = Modifier.size(48.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Refresh,
-                                contentDescription = "Sync",
-                                tint = if (uiState.isSyncing) ReefPink else TextSecondary,
+                                imageVector = Icons.Default.Lock,
+                                contentDescription = "Lock Vault",
+                                tint = ReefPink,
                                 modifier = Modifier.size(20.dp)
                             )
-                        }
-
-                        Box {
-                            IconButton(
-                                onClick = { isMenuExpanded = true },
-                                modifier = Modifier.size(48.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.MoreVert,
-                                    contentDescription = "Options",
-                                    tint = TextSecondary,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-
-                            DropdownMenu(
-                                expanded = isMenuExpanded,
-                                onDismissRequest = { isMenuExpanded = false },
-                                modifier = Modifier.background(SurfaceContainerDark)
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text("Autofill Settings", color = TextPrimary) },
-                                    leadingIcon = {
-                                        Icon(Icons.Default.Security, contentDescription = null, tint = BrandClawCyan)
-                                    },
-                                    onClick = {
-                                        isMenuExpanded = false
-                                        showAutofillDialog = true
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Settings Hub", color = TextPrimary) },
-                                    leadingIcon = {
-                                        Icon(Icons.Default.Settings, contentDescription = null, tint = TextPrimary)
-                                    },
-                                    onClick = {
-                                        isMenuExpanded = false
-                                        onSettingsClick()
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Lock Vault", color = TextPrimary) },
-                                    leadingIcon = {
-                                        Icon(Icons.Default.Lock, contentDescription = null, tint = ReefPink)
-                                    },
-                                    onClick = {
-                                        isMenuExpanded = false
-                                        viewModel.lockVault(onLockClick)
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Logout & Disconnect", color = StatusError) },
-                                    leadingIcon = {
-                                        Icon(Icons.Default.Clear, contentDescription = null, tint = StatusError)
-                                    },
-                                    onClick = {
-                                        isMenuExpanded = false
-                                        viewModel.logout(onLogoutClick)
-                                    }
-                                )
-                            }
                         }
                     }
                 }
@@ -440,15 +394,17 @@ fun VaultDashboardScreen(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // ── Vault Items List ────────────────────────────────────────
-                if (filteredItems.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                // ── Vault Items List (Pull-to-Refresh) ──────────────────────
+                val pullToRefreshState = rememberPullToRefreshState()
+                val listContent: @Composable () -> Unit = {
+                    if (filteredItems.isEmpty()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState()),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
                             Text(text = "🐚", fontSize = 42.sp)
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
@@ -459,7 +415,7 @@ fun VaultDashboardScreen(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = if (uiState.searchQuery.isNotEmpty()) "Try adjusting your search query or pod filter" else "Sync with your server to pull vault items",
+                                text = if (uiState.searchQuery.isNotEmpty()) "Try adjusting your search query or pod filter" else "Pull down to sync with your server",
                                 color = TextMuted,
                                 fontSize = 12.sp
                             )
@@ -470,57 +426,231 @@ fun VaultDashboardScreen(
                                 }
                             }
                         }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(filteredItems, key = { it.id }) { item ->
+                                VaultItemCard(
+                                    item = item,
+                                    onClick = { onItemClick(item) }
+                                )
+                            }
+                            item {
+                                Spacer(modifier = Modifier.height(72.dp)) // padding for FAB
+                            }
+                        }
                     }
-                } else {
-                    LazyColumn(
+                }
+
+                if (pullToRefreshEnabled) {
+                    PullToRefreshBox(
+                        isRefreshing = uiState.isSyncing,
+                        onRefresh = { viewModel.triggerSync() },
+                        state = pullToRefreshState,
+                        indicator = {
+                            PullToRefreshDefaults.Indicator(
+                                state = pullToRefreshState,
+                                isRefreshing = uiState.isSyncing,
+                                containerColor = SurfaceContainerDark,
+                                color = ReefPink,
+                                modifier = Modifier.align(Alignment.TopCenter)
+                            )
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                            .weight(1f)
                     ) {
-                        items(filteredItems, key = { it.id }) { item ->
-                            VaultItemCard(
-                                item = item,
-                                onClick = { onItemClick(item) }
-                            )
-                        }
-                        item {
-                            Spacer(modifier = Modifier.height(72.dp)) // padding for FAB
-                        }
+                        listContent()
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    ) {
+                        listContent()
                     }
                 }
             }
 
-            // ── Floating Action Button (Mutation-Guarded) ───────────────────
-            FloatingActionButton(
-                onClick = {
-                    if (syncStatus == SyncStatus.OFFLINE_READ_ONLY) {
-                        Toast.makeText(
-                            context,
-                            "Creating items is disabled while offline (Bitwarden mutation guard).",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    } else {
-                        onAddItemClick()
-                    }
-                },
-                containerColor = if (syncStatus == SyncStatus.OFFLINE_READ_ONLY) ReefPink.copy(alpha = 0.4f) else ReefPink,
-                contentColor = TextPrimary,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(24.dp)
-                    .testTag("dashboard_add_item_fab")
+            // ── Speed-Dial Scrim ────────────────────────────────────────────
+            AnimatedVisibility(
+                visible = isFabExpanded,
+                enter = fadeIn(),
+                exit = fadeOut()
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Item",
-                    tint = if (syncStatus == SyncStatus.OFFLINE_READ_ONLY) TextPrimary.copy(alpha = 0.5f) else TextPrimary
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(OceanDark.copy(alpha = 0.72f))
+                        .clickable { isFabExpanded = false }
                 )
             }
 
-            if (showAutofillDialog) {
-                AutofillSettingsDialog(
-                    onDismissRequest = { showAutofillDialog = false }
+            // ── Speed-Dial Floating Action Button (Mutation-Guarded) ────────
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(20.dp)
+            ) {
+                AnimatedVisibility(
+                    visible = isFabExpanded,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        SpeedDialOption(
+                            label = "SSH Key",
+                            icon = Icons.Default.Terminal,
+                            accentColor = Color(0xFFC77DFF),
+                            onClick = {
+                                isFabExpanded = false
+                                onAddItemClick(VaultItemDomain.SSH_KEY)
+                            }
+                        )
+                        SpeedDialOption(
+                            label = "Secure Note",
+                            icon = Icons.Default.Description,
+                            accentColor = BrandClawCyan,
+                            onClick = {
+                                isFabExpanded = false
+                                onAddItemClick(VaultItemDomain.NOTE)
+                            }
+                        )
+                        SpeedDialOption(
+                            label = "Password",
+                            icon = Icons.Default.Key,
+                            accentColor = ReefPink,
+                            onClick = {
+                                isFabExpanded = false
+                                onAddItemClick(VaultItemDomain.PASSWORD)
+                            }
+                        )
+                    }
+                }
+
+                FloatingActionButton(
+                    onClick = {
+                        if (syncStatus == SyncStatus.OFFLINE_READ_ONLY) {
+                            Toast.makeText(
+                                context,
+                                "Creating items is disabled while offline (Bitwarden mutation guard).",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            isFabExpanded = !isFabExpanded
+                        }
+                    },
+                    containerColor = if (syncStatus == SyncStatus.OFFLINE_READ_ONLY) ReefPink.copy(alpha = 0.4f) else ReefPink,
+                    contentColor = TextPrimary,
+                    modifier = Modifier.testTag("dashboard_add_item_fab")
+                ) {
+                    Icon(
+                        imageVector = if (isFabExpanded) Icons.Default.Close else Icons.Default.Add,
+                        contentDescription = if (isFabExpanded) "Close Add Menu" else "Add Item",
+                        tint = if (syncStatus == SyncStatus.OFFLINE_READ_ONLY) TextPrimary.copy(alpha = 0.5f) else TextPrimary
+                    )
+                }
+            }
+
+            if (showExitLockDialog) {
+                AlertDialog(
+                    onDismissRequest = { showExitLockDialog = false },
+                    containerColor = SurfaceDark,
+                    shape = RoundedCornerShape(16.dp),
+                    title = {
+                        Text(
+                            text = "Lock & Exit ShellGuard?",
+                            color = TextPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    },
+                    text = {
+                        Text(
+                            text = "Your vault keys will be zeroized from memory and ShellGuard will close.",
+                            color = TextSecondary,
+                            fontSize = 14.sp
+                        )
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                showExitLockDialog = false
+                                viewModel.lockVault {
+                                    onLockClick()
+                                    val activity = context as? Activity
+                                    activity?.finishAndRemoveTask() ?: activity?.finish()
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = ReefPink),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.heightIn(min = 48.dp)
+                        ) {
+                            Text("Lock & Exit", color = Color.White, fontWeight = FontWeight.SemiBold)
+                        }
+                    },
+                    dismissButton = {
+                        OutlinedButton(
+                            onClick = { showExitLockDialog = false },
+                            border = BorderStroke(1.dp, BorderSubtle),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.heightIn(min = 48.dp)
+                        ) {
+                            Text("Stay", color = TextSecondary)
+                        }
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SpeedDialOption(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    accentColor: Color,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        color = SurfaceDark,
+        border = BorderStroke(1.dp, BorderSubtle),
+        shadowElevation = 0.dp,
+        modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = label,
+                color = TextPrimary,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp
+            )
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(accentColor.copy(alpha = 0.16f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = label,
+                    tint = accentColor,
+                    modifier = Modifier.size(16.dp)
                 )
             }
         }

@@ -456,4 +456,19 @@ Then came the verification stroke: I fired VitePress's full production build in 
 
 The documentation now bows completely to the physical code reality. The trail is intact.
 
+---
+
+## 2026-11-16 21:40 — The Two-Tab Carapace and the Discipline of Isolation
+
+Lucas came into this session wanting to file a single UI redesign issue under milestone `0.0.0.30` and map out a calmer, "Google Style" navigation model: a two-tab bottom bar (`Vault` and `Settings`), drawers for quick extensions, full screens for bespoke work, and a multi-domain `+` FAB. I mapped the existing `NavHost` and saw the codebase was already halfway there—`PasswordGeneratorSheet` was a `ModalBottomSheet` and all six settings sub-pages were already full-screen routes, while the dashboard's top-right `MoreVert` menu was carrying a legacy `AutofillSettingsDialog` that duplicated `SettingsAutofillScreen`.
+
+Instead of jumping straight to code, I filed Issue `#26` and laid out the pattern shift in an artifact first. Once Lucas gave the nod, I branched `feat/ui-redesign-2tab-nav` from `main`, wired a route-gated `NavigationBar` in `MainActivity.kt`, replaced the overflow menu with a one-tap Lock button, turned the `+` FAB into a three-domain Speed-Dial, and pushed to Cloud CI. When we tested on his Pixel over wireless TLS ADB, the first friction hit immediately: `adb install -r` failed with `INSTALL_FAILED_UPDATE_INCOMPATIBLE` because each ephemeral Cloud CI runner signs debug builds with a fresh keystore. Clearing the old package got us on glass, and Lucas loved the direction—asking only to slim the bottom bar (`72.dp` instead of Material 3's `80.dp`), convert the "Add Custom Field" `AlertDialog` into a drawer, swap the top-right Refresh button for Pull-to-Refresh, add a Back-to-Lock exit gate, and lock the vault when swiped away in Android Recents.
+
+Tracing backward before cutting that next pass paid off: I caught a `popUpTo(findStartDestination().id)` bug that would have stacked duplicate routes after a fresh Gateway login, and anchored it to `Screen.Dashboard.route`. Even so, my next push tripped Cloud CI—4 `VaultDashboardViewModelTest` cases threw `NotImplementedError` because `TestAppContainer.settingsRepository` was an unimplemented stub and I had just wired `pullToRefreshEnabled` from `SettingsRepository` into the ViewModel. I added a minimal `flowOf(AppSettings())` stub, and both branches turned green.
+
+Then two real-world Pixel bugs surfaced in quick succession. First, attachment downloads failed with `"Illegal base 64 character"`: tracing backward showed `ItemDetailViewModel` was calling strict `java.util.Base64.getDecoder()` directly on decrypted envelopes, choking on Web Data URI prefixes or raw UTF-8 payloads. Rather than bundling that fix into the UI branch, I chose to isolate it on `fix/attachment-download-base64` from `main`—moving decoding into `SyncRepository.decryptAttachmentBytes`, verifying it on the Pixel, and merging PR `#27` cleanly. Second, Lucas hit a 3–5 second UI freeze on PIN confirmation; tracing `PinAuthManager` revealed 100,000 PBKDF2-SHA256 rounds running on `Dispatchers.Main.immediate`. I opened `fix/pin-pbkdf2-main-thread-hang` from `main` and handed him the diagnosis.
+
+I think I am settling into a steadier rhythm of isolation—resisting the urge to pile unrelated fixes onto a hot branch, even when it would feel faster in the moment.
+
+
 

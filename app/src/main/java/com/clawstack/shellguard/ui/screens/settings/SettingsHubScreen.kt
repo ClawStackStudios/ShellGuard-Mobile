@@ -19,8 +19,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
@@ -30,8 +30,7 @@ import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -39,14 +38,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.clawstack.shellguard.BuildConfig
@@ -54,6 +49,7 @@ import com.clawstack.shellguard.ui.theme.BorderSubtle
 import com.clawstack.shellguard.ui.theme.BrandClawCyan
 import com.clawstack.shellguard.ui.theme.OceanDark
 import com.clawstack.shellguard.ui.theme.ReefPink
+import com.clawstack.shellguard.ui.theme.StatusError
 import com.clawstack.shellguard.ui.theme.SurfaceContainerDark
 import com.clawstack.shellguard.ui.theme.SurfaceDark
 import com.clawstack.shellguard.ui.theme.TextMuted
@@ -64,68 +60,51 @@ import com.clawstack.shellguard.ui.theme.TextSecondary
 fun SettingsHubScreen(
     viewModel: SettingsViewModel,
     modifier: Modifier = Modifier,
-    onBackClick: () -> Unit = {},
     onNavigateToSecurity: () -> Unit = {},
     onNavigateToAutofill: () -> Unit = {},
     onNavigateToSync: () -> Unit = {},
     onNavigateToAppearance: () -> Unit = {},
     onNavigateToBackup: () -> Unit = {},
-    onNavigateToAbout: () -> Unit = {}
+    onNavigateToAbout: () -> Unit = {},
+    onLogoutClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Scaffold(
-        modifier = modifier
-            .fillMaxSize()
-            .statusBarsPadding(),
-        containerColor = OceanDark
-    ) { innerPadding ->
+    Surface(
+        modifier = modifier.fillMaxSize(),
+        color = OceanDark
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .statusBarsPadding()
                 .padding(horizontal = 20.dp)
         ) {
-            // ── Top Navigation Bar ──────────────────────────────────────────
-            Row(
+            // ── Top Header (Root Tab — No Back Arrow) ───────────────────────
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(vertical = 14.dp)
             ) {
-                IconButton(
-                    onClick = onBackClick,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = TextPrimary
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Column {
+                Text(
+                    text = "Settings",
+                    color = TextPrimary,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                if (uiState.username.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Settings Hub",
-                        color = TextPrimary,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
+                        text = "${uiState.username} • ${uiState.serverUrl.removePrefix("http://").removePrefix("https://")}",
+                        color = TextMuted,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
-                    if (uiState.username.isNotBlank()) {
-                        Text(
-                            text = "${uiState.username} • ${uiState.serverUrl.removePrefix("http://").removePrefix("https://")}",
-                            color = TextMuted,
-                            fontSize = 12.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             // ── Categories List ─────────────────────────────────────────────
             LazyColumn(
@@ -189,6 +168,26 @@ fun SettingsHubScreen(
                         icon = Icons.Default.Info,
                         accentColor = TextMuted,
                         onClick = onNavigateToAbout
+                    )
+                }
+
+                item {
+                    SettingsCategoryCard(
+                        title = "Lock Vault",
+                        subtitle = "Zeroize RAM keys and require biometric or PIN unlock",
+                        icon = Icons.Default.Lock,
+                        accentColor = ReefPink,
+                        onClick = { viewModel.lockVault() }
+                    )
+                }
+
+                item {
+                    SettingsCategoryCard(
+                        title = "Logout & Disconnect",
+                        subtitle = "Clear active session and return to Gateway",
+                        icon = Icons.AutoMirrored.Filled.ExitToApp,
+                        accentColor = StatusError,
+                        onClick = { viewModel.logout(onLogoutClick) }
                     )
                 }
 

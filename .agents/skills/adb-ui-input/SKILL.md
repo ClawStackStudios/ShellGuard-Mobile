@@ -9,13 +9,20 @@ metadata:
 
 # ADB UI Input & Verification Cheatsheet
 
-## Connection
+## Connection & Cloud CI APK Install
 ```bash
-# Auto-disambiguate first attached device (handles duplicate mDNS TLS handles gracefully):
-DEV=$(adb devices | grep -E '\s+device\s+' | head -n 1 | awk '{print $1}')
-ADB="/config/Android/Sdk/platform-tools/adb -s $DEV"
-$ADB exec-out screencap -p > /tmp/screen.png   # screenshot for verification
+ADB_BIN="/config/Android/Sdk/platform-tools/adb"
+# Auto-disambiguate first attached device (preserves mDNS TLS names containing spaces):
+DEV=$($ADB_BIN devices | grep -E '\s+device$' | head -n 1 | sed -E 's/[[:space:]]+device$//')
+$ADB_BIN -s "$DEV" exec-out screencap -p > /tmp/screen.png   # screenshot for verification
 ```
+
+> **Ephemeral Cloud CI Keystore Invariant**: Each GitHub Actions runner signs `app-debug.apk` with a fresh ephemeral `~/.android/debug.keystore`, so `adb install -r` across different CI runs fails with `INSTALL_FAILED_UPDATE_INCOMPATIBLE`. Confirm with the user before uninstalling (since uninstalling wipes local Room/KeyStore vault data), then run:
+> ```bash
+> $ADB_BIN -s "$DEV" uninstall com.clawstack.shellguard || true
+> $ADB_BIN -s "$DEV" install /path/to/app-debug.apk
+> $ADB_BIN -s "$DEV" shell am start -n com.clawstack.shellguard/.MainActivity
+> ```
 
 ## Core Invariants
 1. **Screenshot-verify EVERY input before acting on assumed state.** The field contents you assume are wrong until the screenshot says otherwise (dot-count = truth for password fields).

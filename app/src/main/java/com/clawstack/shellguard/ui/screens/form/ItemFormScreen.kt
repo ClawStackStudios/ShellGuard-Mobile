@@ -40,14 +40,16 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.AttachFile
 import com.clawstack.shellguard.ui.components.PasswordGeneratorSheet
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -90,6 +92,7 @@ import com.clawstack.shellguard.ui.theme.TextMuted
 import com.clawstack.shellguard.ui.theme.TextPrimary
 import com.clawstack.shellguard.ui.theme.TextSecondary
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemFormScreen(
     viewModel: ItemFormViewModel,
@@ -686,94 +689,125 @@ fun ItemFormScreen(
                 }
             }
 
-            // ── Add Custom Field Type Dialog ──────────────────────────────────
+            // ── Add Custom Field Bottom Drawer ────────────────────────────────
             if (showAddFieldDialog) {
                 var selectedType by remember { mutableStateOf(CustomFieldType.TEXT) }
                 var fieldLabel by remember { mutableStateOf("") }
                 var fieldValue by remember { mutableStateOf("") }
 
-                AlertDialog(
+                ModalBottomSheet(
                     onDismissRequest = { showAddFieldDialog = false },
-                    title = { Text("Add Custom Field", color = TextPrimary, fontWeight = FontWeight.Bold) },
-                    text = {
-                        Column {
-                            Text("Select Field Type:", color = TextMuted, fontSize = 12.sp)
-                            Spacer(modifier = Modifier.height(6.dp))
-                            CustomFieldType.values().forEach { type ->
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable { selectedType = type }
-                                        .padding(vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    RadioButton(
-                                        selected = selectedType == type,
-                                        onClick = { selectedType = type },
-                                        colors = RadioButtonDefaults.colors(selectedColor = ReefPink)
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text(
-                                        text = when (type) {
-                                            CustomFieldType.TEXT -> "Text (Standard string)"
-                                            CustomFieldType.HIDDEN -> "Hidden (Masked with eye toggle)"
-                                            CustomFieldType.BOOLEAN -> "Boolean (Toggle checkbox)"
-                                            CustomFieldType.LINKED -> "Linked (Pointer to another item)"
-                                        },
-                                        color = TextPrimary,
-                                        fontSize = 12.sp
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            OutlinedTextField(
-                                value = fieldLabel,
-                                onValueChange = { fieldLabel = it },
-                                label = { Text("Field Label", fontSize = 11.sp) },
-                                placeholder = { Text("e.g. Employee PIN, Server Port", color = TextMuted) },
-                                singleLine = true,
-                                shape = RoundedCornerShape(8.dp),
-                                colors = fieldColors,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-
-                            if (selectedType != CustomFieldType.BOOLEAN) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                OutlinedTextField(
-                                    value = fieldValue,
-                                    onValueChange = { fieldValue = it },
-                                    label = { Text("Initial Value", fontSize = 11.sp) },
-                                    singleLine = true,
-                                    shape = RoundedCornerShape(8.dp),
-                                    colors = fieldColors,
-                                    modifier = Modifier.fillMaxWidth()
+                    containerColor = SurfaceDark,
+                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                    dragHandle = { BottomSheetDefaults.DragHandle(color = BorderSubtle) }
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp)
+                            .padding(bottom = 28.dp)
+                            .verticalScroll(rememberScrollState())
+                            .imePadding()
+                    ) {
+                        Text(
+                            text = "Add Custom Field",
+                            color = TextPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text("Select Field Type:", color = TextMuted, fontSize = 12.sp)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        CustomFieldType.entries.forEach { type ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 48.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .clickable { selectedType = type }
+                                    .padding(horizontal = 4.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = selectedType == type,
+                                    onClick = { selectedType = type },
+                                    colors = RadioButtonDefaults.colors(selectedColor = ReefPink)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = when (type) {
+                                        CustomFieldType.TEXT -> "Text (Standard string)"
+                                        CustomFieldType.HIDDEN -> "Hidden (Masked with eye toggle)"
+                                        CustomFieldType.BOOLEAN -> "Boolean (Toggle checkbox)"
+                                        CustomFieldType.LINKED -> "Linked (Pointer to another item)"
+                                    },
+                                    color = TextPrimary,
+                                    fontSize = 13.sp
                                 )
                             }
                         }
-                    },
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                val finalValue = if (selectedType == CustomFieldType.BOOLEAN) "false" else fieldValue
-                                viewModel.addCustomField(selectedType, fieldLabel, finalValue)
-                                showAddFieldDialog = false
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = ReefPink),
-                            shape = RoundedCornerShape(8.dp)
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        OutlinedTextField(
+                            value = fieldLabel,
+                            onValueChange = { fieldLabel = it },
+                            label = { Text("Field Label", fontSize = 11.sp) },
+                            placeholder = { Text("e.g. Employee PIN, Server Port", color = TextMuted) },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(autoCorrect = false),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = fieldColors,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        if (selectedType != CustomFieldType.BOOLEAN) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            OutlinedTextField(
+                                value = fieldValue,
+                                onValueChange = { fieldValue = it },
+                                label = { Text("Initial Value", fontSize = 11.sp) },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(autoCorrect = false),
+                                shape = RoundedCornerShape(10.dp),
+                                colors = fieldColors,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(18.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Text("Add Field", color = TextPrimary)
+                            OutlinedButton(
+                                onClick = { showAddFieldDialog = false },
+                                shape = RoundedCornerShape(10.dp),
+                                border = BorderStroke(1.dp, BorderSubtle),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .heightIn(min = 48.dp)
+                            ) {
+                                Text("Cancel", color = TextSecondary)
+                            }
+                            Button(
+                                onClick = {
+                                    val finalValue = if (selectedType == CustomFieldType.BOOLEAN) "false" else fieldValue
+                                    viewModel.addCustomField(selectedType, fieldLabel, finalValue)
+                                    showAddFieldDialog = false
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = ReefPink),
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .heightIn(min = 48.dp)
+                            ) {
+                                Text("Add Field", color = Color.White, fontWeight = FontWeight.SemiBold)
+                            }
                         }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showAddFieldDialog = false }) {
-                            Text("Cancel", color = TextSecondary)
-                        }
-                    },
-                    containerColor = SurfaceDark,
-                    shape = RoundedCornerShape(14.dp)
-                )
+                    }
+                }
             }
 
             // ── Password Generator Bottom Sheet ──────────────────────────────
