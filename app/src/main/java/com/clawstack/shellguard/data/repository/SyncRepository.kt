@@ -507,15 +507,14 @@ class SyncRepository(
             }
         }
 
-        // Drain pending attachment deletes
-        // TODO(sync-offline): Ensure pending delete queue flushes atomically without resurrecting items on reconnect (Task 05).
+        // Drain pending attachment deletes (retain tombstone until remote delete succeeds)
         val pendingDeleteAttachments = database.secureAttachmentDao().getAll(ownerUuid).filter { it.syncState == "PENDING_DELETE" }
         for (item in pendingDeleteAttachments) {
             var remoteDeleted = true
             try {
                 val res = client.deleteAttachment(sessionToken, item.id)
                 remoteDeleted = res.isSuccess && (res.getOrNull() == true)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 remoteDeleted = false
             }
             if (remoteDeleted) {

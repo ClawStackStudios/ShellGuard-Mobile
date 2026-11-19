@@ -104,4 +104,28 @@ class VaultLockManagerTest {
         val lockedRestart = VaultLockManager(context, deviceVault)
         assertTrue(lockedRestart.isVaultLocked.value)
     }
+
+    @Test
+    fun testProcessDeathWithBackgroundTimestampLocksOnRelaunch() {
+        lockManager.unlockVault()
+        lockManager.setLockTimeout(LockTimeout.FIVE_MINUTES)
+        lockManager.onAppBackgrounded(100_000L)
+
+        // Simulate OS process death & cold relaunch
+        val relaunchedLockManager = VaultLockManager(context, deviceVault)
+        assertTrue(relaunchedLockManager.isVaultLocked.value)
+        assertEquals(null, deviceVault.getInMemoryShellKey())
+    }
+
+    @Test
+    fun testClockRollbackOnForegroundLocksFailClosed() {
+        lockManager.unlockVault()
+        lockManager.setLockTimeout(LockTimeout.FIVE_MINUTES)
+
+        val t0 = 500_000L
+        lockManager.onAppBackgrounded(t0)
+        // System clock jumped backwards
+        lockManager.onAppForegrounded(t0 - 10_000L)
+        assertTrue(lockManager.isVaultLocked.value)
+    }
 }

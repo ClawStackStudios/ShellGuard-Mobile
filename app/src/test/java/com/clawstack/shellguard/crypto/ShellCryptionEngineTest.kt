@@ -132,5 +132,36 @@ class ShellCryptionEngineTest {
         val shellKey = ShellCryptionEngine.deriveShellKey(testHuKey, testUserUuid)
         ShellCryptionEngine.decryptField("[]", shellKey, "vault_pearls:test")
     }
+
+    @Test
+    fun testCrossNamespaceAadSwapFailsClosedAcrossAll10Domains() {
+        val shellKey = ShellCryptionEngine.deriveShellKey(testHuKey, testUserUuid)
+        val id = "entity-cross-aad-1"
+        val namespaces = listOf(
+            ShellCryptionEngine.AadNamespace.pearlSecret(id),
+            ShellCryptionEngine.AadNamespace.pearlTotp(id),
+            ShellCryptionEngine.AadNamespace.pearlCustomFields(id),
+            ShellCryptionEngine.AadNamespace.pearlPasswordHistory(id),
+            ShellCryptionEngine.AadNamespace.secureNoteContent(id),
+            ShellCryptionEngine.AadNamespace.secureNoteCustomFields(id),
+            ShellCryptionEngine.AadNamespace.sshKeyPrivate(id),
+            ShellCryptionEngine.AadNamespace.sshKeyCustomFields(id),
+            ShellCryptionEngine.AadNamespace.secureAttachment(id),
+            ShellCryptionEngine.AadNamespace.totpBackup(testUserUuid)
+        )
+
+        for (i in namespaces.indices) {
+            val envelope = ShellCryptionEngine.encryptField("Secret-$i", shellKey, namespaces[i])
+            for (j in namespaces.indices) {
+                if (i == j) continue
+                try {
+                    ShellCryptionEngine.decryptField(envelope, shellKey, namespaces[j])
+                    fail("Expected SecurityException when decrypting ${namespaces[i]} with ${namespaces[j]}")
+                } catch (_: SecurityException) {
+                    // Expected fail-closed AAD mismatch
+                }
+            }
+        }
+    }
 }
 
