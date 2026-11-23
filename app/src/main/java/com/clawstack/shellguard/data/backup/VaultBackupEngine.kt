@@ -6,9 +6,16 @@ import com.clawstack.shellguard.data.local.ShellGuardDatabase
 import com.clawstack.shellguard.data.local.entities.SecureNoteEntity
 import com.clawstack.shellguard.data.local.entities.SshKeyEntity
 import com.clawstack.shellguard.data.local.entities.VaultPearlEntity
+import com.clawstack.shellguard.domain.models.CustomField
+import com.clawstack.shellguard.domain.models.CustomFieldSerializer
+import com.clawstack.shellguard.domain.models.CustomFieldType
+import com.clawstack.shellguard.domain.models.IdentityDetail
+import com.clawstack.shellguard.domain.models.IdentityFieldMapper
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.security.SecureRandom
@@ -120,7 +127,7 @@ data class VaultBackupPayload(
     val app: String = "ShellGuard Vault Backup",
     val version: String = "1.0",
     val exportedAt: String = java.time.Instant.now().toString(),
-    val ownerUuid: String,
+    val ownerUuid: String = "",
     val itemCount: Int = 0,
     val items: List<BackupVaultItem> = emptyList(),
     val pearls: List<BackupPearlItem>? = null,
@@ -202,21 +209,63 @@ data class BitwardenUri(
 )
 
 @Serializable
+data class BitwardenCard(
+    val cardholderName: String? = null,
+    val brand: String? = null,
+    val number: String? = null,
+    val expMonth: String? = null,
+    val expYear: String? = null,
+    val code: String? = null
+)
+
+@Serializable
+data class BitwardenIdentity(
+    val title: String? = null,
+    val firstName: String? = null,
+    val middleName: String? = null,
+    val lastName: String? = null,
+    val address1: String? = null,
+    val address2: String? = null,
+    val address3: String? = null,
+    val city: String? = null,
+    val state: String? = null,
+    val postalCode: String? = null,
+    val country: String? = null,
+    val company: String? = null,
+    val email: String? = null,
+    val phone: String? = null,
+    val ssn: String? = null,
+    val username: String? = null,
+    val passportNumber: String? = null,
+    val licenseNumber: String? = null
+)
+
+@Serializable
+data class BitwardenSshKey(
+    val privateKey: String? = null,
+    val publicKey: String? = null,
+    val keyFingerprint: String? = null
+)
+
+@Serializable
 data class BitwardenCustomField(
     val name: String = "",
     val value: String? = null,
-    val type: Int? = null
+    val type: JsonPrimitive? = null
 )
 
 @Serializable
 data class BitwardenItem(
     val id: String? = null,
-    val type: Int = 1, // 1: Login, 2: Note
+    val type: Int = 1, // 1: Login, 2: Note, 3: Card, 4: Identity, 5: SSH Key
     val name: String = "",
     val notes: String? = null,
     val favorite: Boolean = false,
     val folderId: String? = null,
     val login: BitwardenLogin? = null,
+    val card: BitwardenCard? = null,
+    val identity: BitwardenIdentity? = null,
+    val sshKey: BitwardenSshKey? = null,
     val fields: List<BitwardenCustomField> = emptyList()
 )
 
@@ -226,14 +275,25 @@ class VaultBackupEngine(
 ) {
     private val json = Json {
         ignoreUnknownKeys = true
+        isLenient = true
+        coerceInputValues = true
         encodeDefaults = true
-        prettyPrint = false
+        explicitNulls = false
     }
 
     companion object {
         const val SHELLGUARD_BACKUP_FORMAT = "shellguard-vault-backup-v1"
         const val DEFAULT_PBKDF2_ITERATIONS = 600_000
         private const val BACKUP_AAD = "shellguard_backup:json"
+    }
+
+    fun decodePlainBackup(rawJson: String): VaultBackupPayload {
+        val trimmed = rawJson.trim()
+        if (trimmed.startsWith("[")) {
+            val items = json.decodeFromString<List<BackupVaultItem>>(trimmed)
+            return VaultBackupPayload(ownerUuid = "", itemCount = items.size, items = items)
+        }
+        return json.decodeFromString(trimmed)
     }
 
     /**
@@ -249,7 +309,15 @@ class VaultBackupEngine(
             return BackupFormatType.SHELLGUARD_ENCRYPTED
         }
 
-        if (trimmed.contains("\"pearls\"") && trimmed.contains("\"ownerUuid\"")) {
+        val isShellGuardPlainObject = trimmed.contains("\"ShellGuard Vault Backup\"") ||
+            ((trimmed.contains("\"pearls\"") || trimmed.contains("\"items\"")) && trimmed.contains("\"ownerUuid\""))
+        val isShellGuardPlainArray = trimmed.startsWith("[") && (
+            trimmed.contains("\"password\"") ||
+                trimmed.contains("\"identity\"") ||
+                trimmed.contains("\"note\"") ||
+                trimmed.contains("\"key\"")
+            )
+        if (isShellGuardPlainObject || isShellGuardPlainArray) {
             return BackupFormatType.SHELLGUARD_PLAIN
         }
 
@@ -634,8 +702,18 @@ class VaultBackupEngine(
                     ))
                 }
                 else -> {
+                    val resolvedType = item.type.ifBlank { "password" }
+                    val fallbackTitle = if (resolvedType.equals("identity", ignoreCase = true)) {
+                        "Untitled Identity"
+                    } else {
+                        "Untitled Login"
+                    }
+                    val resolvedTitle = item.title.ifBlank { fallbackTitle }
+                    val resolvedSecret = item.secret.ifBlank {
+                        item.notes.ifBlank { item.username }.ifBlank { resolvedTitle }
+                    }
                     val encSecret = ShellCryptionEngine.encryptField(
-                        item.secret,
+                        resolvedSecret,
                         shellKey,
                         ShellCryptionEngine.AadNamespace.pearlSecret(itemId)
                     )
@@ -659,11 +737,11 @@ class VaultBackupEngine(
                     pearlsToUpsert.add(VaultPearlEntity(
                         id = itemId,
                         ownerUuid = targetOwnerUuid,
-                        title = item.title.ifBlank { "Untitled Login" },
+                        title = resolvedTitle,
                         secret = encSecret,
                         username = item.username,
                         url = item.url,
-                        type = item.type.ifBlank { "password" },
+                        type = resolvedType,
                         category = item.category,
                         notes = item.notes,
                         totpSecret = encTotp,
@@ -699,28 +777,39 @@ class VaultBackupEngine(
         val folderMap = bwExport.folders.associate { (it.id ?: "") to it.name }
         val pearls = mutableListOf<BackupPearlItem>()
         val notes = mutableListOf<BackupNoteItem>()
+        val sshKeys = mutableListOf<BackupSshKeyItem>()
 
         for (item in bwExport.items) {
             val category = folderMap[item.folderId.orEmpty()].orEmpty()
-            val tags = if (item.favorite) "[\"favorite\"]" else "[]"
-            val customFieldsJson = if (item.fields.isNotEmpty()) {
-                json.encodeToString(item.fields.map { mapOf("name" to it.name, "value" to (it.value ?: "")) })
+            val mappedCustomFields = item.fields.mapNotNull { field ->
+                val name = field.name.trim()
+                if (name.isEmpty()) return@mapNotNull null
+                CustomField(
+                    label = name,
+                    value = field.value.orEmpty(),
+                    type = CustomFieldType.fromWire(field.type?.contentOrNull)
+                )
+            }
+            val customFieldsJson = if (mappedCustomFields.isNotEmpty()) {
+                CustomFieldSerializer.serializeFields(mappedCustomFields)
             } else ""
 
             when (item.type) {
                 1 -> { // Login
                     val login = item.login
-                    val urisJson = if (login != null && login.uris.isNotEmpty()) {
-                        json.encodeToString(login.uris.map { mapOf("uri" to (it.uri ?: "")) })
-                    } else "[]"
+                    val rawUris = login?.uris?.mapNotNull { it.uri?.trim()?.takeIf { u -> u.isNotEmpty() } }.orEmpty()
+                    val urisJson = CustomFieldSerializer.serializeUris(rawUris.drop(1))
+                    val tags = if (item.favorite) CustomFieldSerializer.serializeTags(listOf("Favorite")) else "[]"
+                    val title = item.name.ifBlank { "Bitwarden Login" }
 
                     pearls.add(
                         BackupPearlItem(
                             id = UUID.randomUUID().toString(),
-                            title = item.name.ifBlank { "Bitwarden Login" },
-                            secret = login?.password.orEmpty(),
+                            title = title,
+                            secret = login?.password.orEmpty().ifBlank { item.notes.orEmpty().ifBlank { title } },
                             username = login?.username.orEmpty(),
-                            url = login?.uris?.firstOrNull()?.uri.orEmpty(),
+                            url = rawUris.firstOrNull().orEmpty(),
+                            type = "password",
                             category = category,
                             notes = item.notes.orEmpty(),
                             totpSecret = login?.totp.orEmpty(),
@@ -731,14 +820,121 @@ class VaultBackupEngine(
                     )
                 }
                 2 -> { // Secure Note
+                    val tags = if (item.favorite) CustomFieldSerializer.serializeTags(listOf("Favorite")) else "[]"
+                    val title = item.name.ifBlank { "Bitwarden Note" }
                     notes.add(
                         BackupNoteItem(
                             id = UUID.randomUUID().toString(),
-                            title = item.name.ifBlank { "Bitwarden Note" },
-                            content = item.notes.orEmpty(),
+                            title = title,
+                            content = item.notes.orEmpty().ifBlank { title },
                             category = category,
                             customFields = customFieldsJson,
                             tags = tags
+                        )
+                    )
+                }
+                3 -> { // Card
+                    val card = item.card
+                    val cardFields = mappedCustomFields.toMutableList()
+                    card?.brand?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                        cardFields.add(CustomField(label = "Card Brand", value = it, type = CustomFieldType.TEXT))
+                    }
+                    val expMonth = card?.expMonth?.trim().orEmpty()
+                    val expYear = card?.expYear?.trim().orEmpty()
+                    if (expMonth.isNotEmpty() && expYear.isNotEmpty()) {
+                        cardFields.add(CustomField(label = "Expiration", value = "${expMonth.padStart(2, '0')}/$expYear", type = CustomFieldType.TEXT))
+                    } else if (expMonth.isNotEmpty()) {
+                        cardFields.add(CustomField(label = "Expiration Month", value = expMonth, type = CustomFieldType.TEXT))
+                    } else if (expYear.isNotEmpty()) {
+                        cardFields.add(CustomField(label = "Expiration Year", value = expYear, type = CustomFieldType.TEXT))
+                    }
+                    card?.code?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                        cardFields.add(CustomField(label = "Security Code (CVV)", value = it, type = CustomFieldType.HIDDEN))
+                    }
+                    val cardTags = if (item.favorite) listOf("Credit Card", "Favorite") else listOf("Credit Card")
+                    val title = item.name.ifBlank { "Bitwarden Card" }
+
+                    pearls.add(
+                        BackupPearlItem(
+                            id = UUID.randomUUID().toString(),
+                            title = title,
+                            secret = card?.number.orEmpty().ifBlank { title },
+                            username = card?.cardholderName.orEmpty(),
+                            type = "card",
+                            category = category,
+                            notes = item.notes.orEmpty(),
+                            customFields = if (cardFields.isNotEmpty()) CustomFieldSerializer.serializeFields(cardFields) else "",
+                            tags = CustomFieldSerializer.serializeTags(cardTags)
+                        )
+                    )
+                }
+                4 -> { // Identity
+                    val iden = item.identity
+                    val idenTags = if (item.favorite) listOf("Identity", "Favorite") else listOf("Identity")
+                    val title = item.name.ifBlank { "Bitwarden Identity" }
+                    val detail = IdentityDetail(
+                        id = UUID.randomUUID().toString(),
+                        ownerUuid = targetOwnerUuid,
+                        title = title,
+                        honorificTitle = iden?.title.orEmpty(),
+                        firstName = iden?.firstName.orEmpty(),
+                        middleName = iden?.middleName.orEmpty(),
+                        lastName = iden?.lastName.orEmpty(),
+                        username = iden?.username.orEmpty(),
+                        company = iden?.company.orEmpty(),
+                        email = iden?.email.orEmpty(),
+                        phone = iden?.phone.orEmpty(),
+                        address1 = iden?.address1.orEmpty(),
+                        address2 = iden?.address2.orEmpty(),
+                        address3 = iden?.address3.orEmpty(),
+                        city = iden?.city.orEmpty(),
+                        state = iden?.state.orEmpty(),
+                        postalCode = iden?.postalCode.orEmpty(),
+                        country = iden?.country.orEmpty(),
+                        ssn = iden?.ssn.orEmpty(),
+                        passportNumber = iden?.passportNumber.orEmpty(),
+                        licenseNumber = iden?.licenseNumber.orEmpty(),
+                        category = category,
+                        notes = item.notes.orEmpty(),
+                        customFields = mappedCustomFields,
+                        tags = idenTags
+                    )
+                    val pearl = IdentityFieldMapper.toPearlDetail(detail)
+                    pearls.add(
+                        BackupPearlItem(
+                            id = pearl.id,
+                            title = pearl.title,
+                            secret = pearl.secret,
+                            username = pearl.username,
+                            type = "identity",
+                            category = pearl.category,
+                            notes = pearl.notes,
+                            customFields = if (pearl.customFields.isNotEmpty()) CustomFieldSerializer.serializeFields(pearl.customFields) else "",
+                            tags = CustomFieldSerializer.serializeTags(pearl.tags)
+                        )
+                    )
+                }
+                5 -> { // SSH Key
+                    val ssh = item.sshKey
+                    val sshTags = if (item.favorite) listOf("Favorite", "SSH Key") else listOf("SSH Key")
+                    val sshFields = mappedCustomFields.toMutableList()
+                    item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                        sshFields.add(CustomField(label = "Notes", value = it, type = CustomFieldType.TEXT))
+                    }
+                    ssh?.publicKey?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                        sshFields.add(CustomField(label = "Public Key", value = it, type = CustomFieldType.TEXT))
+                    }
+                    val title = item.name.ifBlank { "Bitwarden SSH Key" }
+
+                    sshKeys.add(
+                        BackupSshKeyItem(
+                            id = UUID.randomUUID().toString(),
+                            title = title,
+                            keyValue = ssh?.privateKey.orEmpty().ifBlank { title },
+                            username = ssh?.keyFingerprint.orEmpty(),
+                            category = category,
+                            customFields = if (sshFields.isNotEmpty()) CustomFieldSerializer.serializeFields(sshFields) else "",
+                            tags = CustomFieldSerializer.serializeTags(sshTags)
                         )
                     )
                 }
@@ -748,7 +944,8 @@ class VaultBackupEngine(
         val payload = VaultBackupPayload(
             ownerUuid = targetOwnerUuid,
             pearls = pearls,
-            notes = notes
+            notes = notes,
+            sshKeys = sshKeys
         )
 
         importPayload(payload, targetOwnerUuid).getOrThrow()

@@ -323,6 +323,7 @@ fun ItemDetailScreen(
                             ) {
                                 val (domainLabel, domainBg, domainColor) = when (state.domain) {
                                     VaultItemDomain.PASSWORD -> Triple("Password", ReefPink.copy(alpha = 0.15f), ReefPink)
+                                    VaultItemDomain.IDENTITY -> Triple("Identity", Color(0xFF3B82F6).copy(alpha = 0.15f), Color(0xFF60A5FA))
                                     VaultItemDomain.NOTE -> Triple("Secure Note", BrandClawCyan.copy(alpha = 0.15f), BrandClawCyan)
                                     VaultItemDomain.SSH_KEY -> Triple("SSH Key", Color(0xFF9D4EDD).copy(alpha = 0.15f), Color(0xFFC77DFF))
                                 }
@@ -633,6 +634,32 @@ fun ItemDetailScreen(
                                                     }
                                                 }
                                             )
+                                        }
+
+                                        VaultItemDomain.IDENTITY -> {
+                                            val identity = state.identityDetail
+                                            if (identity != null) {
+                                                IdentityDetailSection(
+                                                    identity = identity,
+                                                    isSecretRevealed = state.isSecretRevealed,
+                                                    onToggleReveal = {
+                                                        if (state.reprompt && !isRepromptPassed && !state.isSecretRevealed) {
+                                                            pendingSensitiveAction = { viewModel.toggleSecretVisibility() }
+                                                            showRepromptDialog = true
+                                                        } else {
+                                                            viewModel.toggleSecretVisibility()
+                                                        }
+                                                    },
+                                                    onCopy = { label, value, isSensitive ->
+                                                        if (isSensitive && state.reprompt && !isRepromptPassed) {
+                                                            pendingSensitiveAction = { copyToClipboard(label, value, isSensitive = true) }
+                                                            showRepromptDialog = true
+                                                        } else {
+                                                            copyToClipboard(label, value, isSensitive = isSensitive)
+                                                        }
+                                                    }
+                                                )
+                                            }
                                         }
                                     }
                                 }

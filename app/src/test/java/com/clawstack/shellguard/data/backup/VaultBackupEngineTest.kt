@@ -288,4 +288,87 @@ class VaultBackupEngineTest {
         assertEquals(1, pearlItems.size)
         assertEquals(sampleAttachments, pearlItems[0].attachments)
     }
+
+    @Test
+    fun testDetectV1PlaintextAndBitwardenAllTypesWithNullFields() = runTest {
+        val sgPlainV1 = """
+            {
+              "app": "ShellGuard Vault Backup",
+              "version": "1.0",
+              "ownerUuid": "$testOwnerUuid",
+              "items": [
+                {
+                  "id": "sg-iden-1",
+                  "type": "identity",
+                  "title": "Primary Identity",
+                  "secret": "Identity profile for Jane Doe",
+                  "username": "jdoe",
+                  "url": null,
+                  "notes": null,
+                  "custom_fields": "[{\"id\":\"1\",\"name\":\"First Name\",\"type\":\"text\",\"value\":\"Jane\"},{\"id\":\"2\",\"name\":\"SSN\",\"type\":\"hidden\",\"value\":\"123-45-6789\"}]"
+                }
+              ]
+            }
+        """.trimIndent()
+
+        assertEquals(BackupFormatType.SHELLGUARD_PLAIN, backupEngine.detectBackupFormat(sgPlainV1))
+        val plainPayload = backupEngine.decodePlainBackup(sgPlainV1)
+        val plainImport = backupEngine.importPayload(plainPayload, testOwnerUuid).getOrThrow()
+        assertEquals(1, plainImport.pearlsCount)
+
+        val bwAllTypesJson = """
+            {
+              "encrypted": false,
+              "folders": null,
+              "items": [
+                {
+                  "id": "bw-iden-4",
+                  "type": 4,
+                  "name": "Tester Identity",
+                  "notes": null,
+                  "favorite": true,
+                  "fields": null,
+                  "identity": {
+                    "title": "Mr",
+                    "firstName": "Tester",
+                    "middleName": "Q",
+                    "lastName": "Testing",
+                    "address1": "123 Reef Way",
+                    "city": "Ocean",
+                    "state": "CA",
+                    "postalCode": "90210",
+                    "country": "USA",
+                    "company": "ClawStack",
+                    "email": "tester@clawstack.io",
+                    "phone": "+1-555-0100",
+                    "ssn": "999-88-7777",
+                    "username": "testerguy",
+                    "passportNumber": "P1234567",
+                    "licenseNumber": "D7654321"
+                  }
+                },
+                {
+                  "id": "bw-ssh-5",
+                  "type": 5,
+                  "name": "Homelab Key",
+                  "fields": null,
+                  "sshKey": {
+                    "privateKey": "-----BEGIN OPENSSH PRIVATE KEY-----...",
+                    "publicKey": "ssh-ed25519 AAAAC3...",
+                    "keyFingerprint": "SHA256:abc"
+                  }
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val bwImport = backupEngine.importBitwardenJson(bwAllTypesJson, testOwnerUuid).getOrThrow()
+        assertEquals(1, bwImport.pearlsCount)
+        assertEquals(1, bwImport.sshKeysCount)
+
+        val allPearls = database.vaultPearlDao().getAllActivePearls(testOwnerUuid)
+        val identityPearls = allPearls.filter { it.type == "identity" }
+        assertEquals(2, identityPearls.size)
+    }
 }
+

@@ -817,3 +817,15 @@ Calibration is sharp with 0 over-confidence penalties across 8 ratified decision
 **Pattern reference**: `long-term/patterns.md § deterministic-datastore-viewmodel-synchronization`.
 
 
+
+## custom-field-wire-serializer-and-identity-projection — 2026-11-22 18:02
+
+**Context**: Adding first-class Identity items (`type = "identity"`) and fixing Bitwarden/ShellGuard backup import failures on Mobile (Issue #35).
+**Options considered**:
+- Option A: Add a separate `vault_identities` Room table (`MIGRATION_2_3`) and rename `CustomField.label` to `CustomField.name` across all Mobile UI files — Requires a SQLCipher schema migration, diverges from the server's `vault_pearls` table structure, and touches dozens of UI call sites.
+- Option B: Project `IdentityDetail` over `VaultPearlEntity(type = "identity")` via `IdentityFieldMapper`, implement `CustomFieldWireSerializer` (`KSerializer<CustomField>`) to emit Web-canonical `"name"` + lowercase types while accepting both `"name"` and `"label"`, and extract `IdentityFormSection.kt` / `IdentityDetailSection.kt` — Zero Room migration, 100% server AAD and `/api/vault` parity, and modular files under 300 lines.
+**Chosen**: Option B (`IdentityFieldMapper` over `vault_pearls` + `CustomFieldWireSerializer` + modular UI sections).
+**Why**: Once I saw that `VaultPearlEntity` already had `type: String = "password"` and the server stored Identities in `vault_pearls` with `AAD = vault_pearls_custom:<id>`, creating a separate mobile table would have fought the grain of the server contract. Using a custom `KSerializer` healed the `name`/`label` wire mismatch at the exact serialization seam without churning existing Kotlin callers.
+**Confidence**: high — verified by `CustomFieldTest`, `VaultBackupEngineTest`, `SyncRepositoryTest`, and green Cloud CI run `45097694988`.
+**Outcome**: Pushed `58371fc` on `feat/issue-35-identity-contract-and-imports`; Cloud CI run `45097694988` passed in 2m11s.
+**Pattern reference**: New pattern — first instance.

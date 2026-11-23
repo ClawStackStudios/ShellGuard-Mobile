@@ -15,6 +15,8 @@ import com.clawstack.shellguard.data.remote.models.CreateNoteRequest
 import com.clawstack.shellguard.data.remote.models.CreateSshKeyRequest
 import com.clawstack.shellguard.data.remote.models.CreateVaultItemRequest
 import com.clawstack.shellguard.domain.models.CustomFieldSerializer
+import com.clawstack.shellguard.domain.models.IdentityDetail
+import com.clawstack.shellguard.domain.models.IdentityFieldMapper
 import com.clawstack.shellguard.domain.models.PasswordHistoryEntry
 import com.clawstack.shellguard.domain.models.PearlDetail
 import com.clawstack.shellguard.domain.models.SecureNoteDetail
@@ -46,7 +48,8 @@ enum class SyncStatus {
 enum class VaultItemDomain {
     PASSWORD,
     NOTE,
-    SSH_KEY
+    SSH_KEY,
+    IDENTITY
 }
 
 data class UnifiedVaultItem(
@@ -134,13 +137,14 @@ class SyncRepository(
             val unifiedList = ArrayList<UnifiedVaultItem>(pearls.size + notes.size + sshKeys.size)
 
             pearls.forEach { pearl ->
+                val isIdentity = pearl.type.equals("identity", ignoreCase = true)
                 unifiedList.add(
                     UnifiedVaultItem(
                         id = pearl.id,
                         ownerUuid = pearl.ownerUuid,
                         title = pearl.title,
-                        subtitle = pearl.username ?: pearl.url ?: "Login",
-                        domain = VaultItemDomain.PASSWORD,
+                        subtitle = pearl.username.ifBlank { pearl.url }.ifBlank { if (isIdentity) "Identity" else "Login" },
+                        domain = if (isIdentity) VaultItemDomain.IDENTITY else VaultItemDomain.PASSWORD,
                         category = pearl.category,
                         tags = CustomFieldSerializer.deserializeTags(pearl.tags),
                         reprompt = pearl.reprompt,
@@ -976,7 +980,7 @@ class SyncRepository(
 
             val existing = database.vaultPearlDao().getById(ownerUuid, id)
             val updatedHistory = pearl.passwordHistory.toMutableList()
-            if (existing != null && pearl.secret.isNotBlank()) {
+            if (existing != null && pearl.secret.isNotBlank() && !pearl.type.equals("identity", ignoreCase = true)) {
                 try {
                     val oldSecret = if (cryptoEngine.isEncryptedEnvelope(existing.secret)) {
                         cryptoEngine.decryptField(existing.secret, shellKey, ShellCryptionEngine.AadNamespace.pearlSecret(id))
@@ -1097,6 +1101,17 @@ class SyncRepository(
 
             database.vaultPearlDao().upsert(entity)
         }
+    }
+
+    suspend fun getIdentityDetail(id: String): Result<IdentityDetail> {
+        return getPearlDetail(id).map { pearl ->
+            IdentityFieldMapper.fromPearlDetail(pearl)
+        }
+    }
+
+    suspend fun saveIdentityDetail(identity: IdentityDetail): Result<Unit> {
+        val pearl = IdentityFieldMapper.toPearlDetail(identity)
+        return savePearlDetail(pearl)
     }
 
     suspend fun getNoteDetail(id: String): Result<SecureNoteDetail> = withContext(Dispatchers.IO) {
@@ -1365,7 +1380,7 @@ class SyncRepository(
                 if (isOnline) {
                     val client = clientProvider(serverUrl!!)
                     val result = when (domain) {
-                        VaultItemDomain.PASSWORD -> client.deleteVaultItem(sessionToken!!, id)
+                        VaultItemDomain.PASSWORD, VaultItemDomain.IDENTITY -> client.deleteVaultItem(sessionToken!!, id)
                         VaultItemDomain.NOTE -> client.deleteNote(sessionToken!!, id)
                         VaultItemDomain.SSH_KEY -> client.deleteSshKey(sessionToken!!, id)
                     }
@@ -1374,13 +1389,13 @@ class SyncRepository(
 
                 if (remoteDeleteSucceeded) {
                     when (domain) {
-                        VaultItemDomain.PASSWORD -> database.vaultPearlDao().deleteById(ownerUuid, id)
+                        VaultItemDomain.PASSWORD, VaultItemDomain.IDENTITY -> database.vaultPearlDao().deleteById(ownerUuid, id)
                         VaultItemDomain.NOTE -> database.secureNoteDao().deleteById(ownerUuid, id)
                         VaultItemDomain.SSH_KEY -> database.sshKeyDao().deleteById(ownerUuid, id)
                     }
                 } else {
                     when (domain) {
-                        VaultItemDomain.PASSWORD -> {
+                        VaultItemDomain.PASSWORD, VaultItemDomain.IDENTITY -> {
                             val existing = database.vaultPearlDao().getById(ownerUuid, id)
                             if (existing != null && existing.remoteUpdatedAt > 0L) {
                                 database.vaultPearlDao().markForDeletion(ownerUuid, id)

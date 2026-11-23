@@ -314,6 +314,62 @@ class SyncRepositoryTest {
     }
 
     @Test
+    fun testSaveAndGetIdentityDetailRoundTrip() = runBlocking {
+        val identity = com.clawstack.shellguard.domain.models.IdentityDetail(
+            id = "identity-detail-1",
+            ownerUuid = testOwnerUuid,
+            title = "Personal Identity",
+            honorificTitle = "Dr",
+            firstName = "Ada",
+            middleName = "M",
+            lastName = "Lovelace",
+            username = "alovelace",
+            company = "Analytical Engine Co",
+            email = "ada@engine.org",
+            phone = "+44 20 7946 0958",
+            address1 = "10 St James Sq",
+            city = "London",
+            state = "Greater London",
+            postalCode = "SW1Y 4LE",
+            country = "UK",
+            ssn = "111-22-3333",
+            passportNumber = "UK9876543",
+            licenseNumber = "L12345",
+            category = "Personal",
+            notes = "Primary profile",
+            customFields = listOf(
+                CustomField(id = "cf-extra", label = "Citizenship", value = "British", type = CustomFieldType.TEXT)
+            ),
+            tags = listOf("Identity", "VIP"),
+            reprompt = true
+        )
+
+        val saveRes = syncRepository.saveIdentityDetail(identity)
+        assertTrue(saveRes.isSuccess)
+
+        val loaded = syncRepository.getIdentityDetail("identity-detail-1").getOrThrow()
+        assertEquals("Personal Identity", loaded.title)
+        assertEquals("Dr", loaded.honorificTitle)
+        assertEquals("Ada M Lovelace", loaded.fullName)
+        assertEquals("alovelace", loaded.username)
+        assertEquals("Analytical Engine Co", loaded.company)
+        assertEquals("ada@engine.org", loaded.email)
+        assertEquals("111-22-3333", loaded.ssn)
+        assertEquals("UK9876543", loaded.passportNumber)
+        assertEquals("L12345", loaded.licenseNumber)
+        assertEquals(1, loaded.customFields.size)
+        assertEquals("Citizenship", loaded.customFields[0].label)
+
+        val unified = syncRepository.observeUnifiedItems(testOwnerUuid).first()
+        val unifiedIdentity = unified.first { it.id == "identity-detail-1" }
+        assertEquals(VaultItemDomain.IDENTITY, unifiedIdentity.domain)
+
+        val delRes = syncRepository.deleteItem(VaultItemDomain.IDENTITY, "identity-detail-1")
+        assertTrue(delRes.isSuccess)
+        assertNull(database.vaultPearlDao().getById(testOwnerUuid, "identity-detail-1"))
+    }
+
+    @Test
     fun testGetPearlDetailWithUnencryptedEmptyArraysFromWebUi() = runBlocking {
         val shellKey = deviceVault.getInMemoryShellKey()!!
         val encSecret = ShellCryptionEngine.encryptField(

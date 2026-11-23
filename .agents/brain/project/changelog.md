@@ -309,3 +309,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Attachment SAF Download-Only Flow (`#24`)**: Removed `View` (`ACTION_VIEW` + `cacheDir/decrypted_attachments/` plaintext write) in favor of `ActivityResultContracts.CreateDocument` streaming and non-destructive `Toast` errors, covered by `ItemDetailViewModelTest.kt`.
 - **Ergonomics & Security (`#14`, `#22`)**: Upgraded interactive touch targets to `>= 48.dp`, added tactile copy/reveal haptics, and sanitized `VaultDashboardViewModel` sync error messages (CWE-532).
 - **Verification**: 136/136 unit & Robolectric tests passing on Cloud CI (Run `43771352373`).
+
+## [0.0.0.31] - 2026-11-22 (Build 31) — Hotfix: First-Class Identity Vault Items & Backup/Bitwarden Import Parity
+- Added `VaultItemDomain.IDENTITY`, `IdentityDetail`, and `IdentityFieldMapper` projecting 18 structured Identity attributes over `VaultPearlEntity(type = "identity")` (#35, PR #36).
+- Implemented `CustomFieldWireSerializer` emitting Web-canonical `name` + lowercase `type` (`text|hidden|checkbox|linked`) with backward fallback for legacy Mobile `label` + uppercase enum values.
+- Hardened `VaultBackupEngine` with `coerceInputValues = true`, v1.0 `SHELLGUARD_PLAIN` format detection (`"items"`), and full Bitwarden `type: 1..5` (including `type: 4` Identity) ingestion.
+- Extracted modular `IdentityFormSection.kt` and `IdentityDetailSection.kt` UI composables with masked `SSN`/`Passport Number`/`License Number` and Claw Re-Prompt enforcement; 155/155 tests green on Cloud CI.

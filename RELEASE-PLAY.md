@@ -3,6 +3,19 @@
 > **Single Source of Truth for Google Play Store What's New Notes**  
 > *Google Play enforces a strict 500-character limit per localized language block.*
 
+## `v0.0.0.31` — Identity Vault Items & Backup/Bitwarden Import Parity (Build 31)
+
+```xml
+<en-US>
+• Identity Vault Items: First-class Identity domain with 18 structured personal, contact, address & masked ID fields (SSN, Passport, License).
+• Bitwarden 5-Type Import: Full ingestion for Login, Secure Note, Card, Identity & SSH Key exports with null-safe JSON parsing.
+• ShellGuard Backup Fix: Accurate v1.0 format detection & Web CustomField wire parity.
+• 155 Tests Green on Cloud CI.
+</en-US>
+```
+
+---
+
 ## `v0.0.0.30` — Stage 3: Security Lifecycle, Biometrics & Offline Resilience (Build 30)
 
 ```xml

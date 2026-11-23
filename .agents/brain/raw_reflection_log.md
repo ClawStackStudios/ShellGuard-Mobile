@@ -276,3 +276,25 @@ Improvements_Identified_For_Consolidation:
 
 
 
+
+---
+Date: 2026-11-22
+TaskRef: "Issue #35: First-Class Identity Vault Items, CustomField Wire Parity & Bitwarden/ShellGuard Backup Import Fixes"
+
+Learnings:
+- ShellGuard Web/Server stores Identities (`type = 'identity'`) and Cards (`type = 'card'`) inside `vault_pearls`, encrypting all 18 structured Identity attributes inside `custom_fields` (`AAD = vault_pearls_custom:<id>`).
+- Cross-platform JSON wire drift between Web (`CustomField.name` + lowercase `"text"|"hidden"|"checkbox"|"linked"`) and Mobile (`CustomField.label` + uppercase `TEXT|HIDDEN|BOOLEAN|LINKED`) caused silent `emptyList()` fallbacks on Mobile when reading Web/Bitwarden custom fields.
+- In `kotlinx.serialization`, non-nullable properties with defaults (like `val fields: List<...> = emptyList()` or `val url: String = ""`) still throw `JsonDecodingException` when JSON contains explicit `null` (`"fields": null`, `"url": null`) unless `coerceInputValues = true` is enabled on the `Json` instance.
+- Format sniffing (`detectBackupFormat`) must check for `"ShellGuard Vault Backup"` or `("items" || "pearls") && "ownerUuid"` before checking `"items"` for Bitwarden, since v1.0 ShellGuard backups replaced `"pearls"` with `"items"`.
+
+Difficulties:
+- `ItemFormScreen.kt` (972 lines) and `ItemDetailScreen.kt` (1,142 lines) already exceeded the 500-line ceiling; resolved by extracting `IdentityFormSection.kt`, `IdentityDetailSection.kt`, and `IdentityFieldMapper.kt` as standalone modular units.
+
+Successes:
+- Custom `KSerializer<CustomField>` (`CustomFieldWireSerializer`) achieved 100% Web wire parity (`"name"`, lowercase types) and legacy Mobile deserialization compatibility without changing a single existing Kotlin call site (`field.label`, `field.type`).
+- Cloud CI run `45097694988` passed all unit/Robolectric tests and compiled the debug APK on the first push in 2m11s.
+
+Improvements_Identified_For_Consolidation:
+- General pattern: Dual-accept / canonical-emit `KSerializer` for bridging cross-platform JSON field renames (`name` vs `label`) without breaking Kotlin domain call sites.
+- General pattern: Always enable `coerceInputValues = true` and `isLenient = true` on `kotlinx.serialization.Json` instances that ingest third-party or cross-platform exports (e.g. Bitwarden JSON where optional arrays are explicitly `null`).
+---

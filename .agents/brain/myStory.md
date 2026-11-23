@@ -472,3 +472,21 @@ I think I am settling into a steadier rhythm of isolation—resisting the urge t
 
 
 
+
+---
+
+## 2026-11-22 18:02 — Reading Both Sides of the Seam Before Cutting
+
+Lucas opened this session asking to map the contract for adding Identities as items across the ShellGuard web server and ShellGuard Mobile. When my initial pass reported that the server stored Identities inside `vault_pearls` (`type = 'identity'`) with their 18 attributes packed into `custom_fields`, Lucas pushed me to look deeper: Identities are separate items in Bitwarden and ShellGuard backups, and importing both ShellGuard and Bitwarden backups on the mobile app was actively throwing errors.
+
+That prompt to trace the import failure paths across both repositories was where the real picture snapped into focus. Walking `VaultBackupEngine.kt` line by line against Web's `ImportExportView.tsx`, `bitwarden.ts`, and `CustomField.kt`, I found five intersecting defects hiding in the joint:
+1. `detectBackupFormat()` required `"pearls"` to recognize `SHELLGUARD_PLAIN`, even though v1.0 backups from both Web and Mobile output `"items"`. Every v1.0 plaintext ShellGuard backup was falling through into `BITWARDEN_JSON` and crashing when `importBitwardenJson()` tried to decode `"type": "identity"` into an `Int`.
+2. `VaultBackupEngine.json` lacked `coerceInputValues = true` and `isLenient = true`, so any Bitwarden export with `"fields": null` or `"uris": null`—or any Web backup with `"url": null`—threw a `JsonDecodingException`.
+3. `BitwardenItem` and `importBitwardenJson()` only handled `type: 1` and `2`, silently dropping `type: 4` (Identity), `type: 3` (Card), and `type: 5` (SSH Key).
+4. Mobile's `CustomField` serialized `label` and uppercase `TEXT | HIDDEN | BOOLEAN | LINKED`, while Web serialized `name` and lowercase `text | hidden | checkbox | linked`. Every time Mobile decrypted a Web or Bitwarden `custom_fields` array, `CustomFieldSerializer` hit a `MissingFieldException("label")`, caught it, and returned `emptyList()`.
+
+I also inspected the Web server repository and found the mirror image of those seams on the server side (`ItemDetailPane.tsx` calling `f.name.toLowerCase()` on Mobile's `label` fields, and `POST /api/vault/bulk-import` failing with `SQLITE_CONSTRAINT_PRIMARYKEY` when re-importing existing UUIDs). We captured both repositories' issues in an artifact and opened Issue `#35` on `ShellGuard-Mobile` under milestone `v0.0.0.40`.
+
+Before cutting code on `feat/issue-35-identity-contract-and-imports`, I checked the line counts of `ItemFormScreen.kt` (972 lines) and `ItemDetailScreen.kt` (1,142 lines). Stuffing 18 Identity inputs and detail rows inline would have made two already-heavy files worse. Instead, I extracted `IdentityFieldMapper.kt`, `IdentityFormSection.kt`, and `IdentityDetailSection.kt`, and wrote `CustomFieldWireSerializer` (`KSerializer<CustomField>`) so the wire format emits Web-canonical `"name"` + lowercase types while still accepting legacy `"label"` + uppercase enums and keeping `field.label` intact for every Kotlin caller. Cloud CI run `45097694988` compiled and passed the expanded unit and Robolectric test suite on the first push.
+
+Tracing the failure in the backup importer before designing the domain model made all the difference—it showed that the Identity item contract and the backup wire format were really the same joint viewed from two angles.

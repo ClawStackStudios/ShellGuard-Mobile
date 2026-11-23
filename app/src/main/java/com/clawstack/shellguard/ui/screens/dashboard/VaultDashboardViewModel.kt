@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 enum class PodFilter(val label: String) {
     ALL("All"),
     PASSWORDS("Passwords"),
+    IDENTITIES("Identities"),
     NOTES("Notes"),
     SSH_KEYS("SSH Keys"),
     ATTACHMENTS("Attachments")
@@ -80,6 +81,7 @@ class VaultDashboardViewModel(
             val matchesPod = when (selectedPod) {
                 PodFilter.ALL -> true
                 PodFilter.PASSWORDS -> item.domain == VaultItemDomain.PASSWORD
+                PodFilter.IDENTITIES -> item.domain == VaultItemDomain.IDENTITY
                 PodFilter.NOTES -> item.domain == VaultItemDomain.NOTE
                 PodFilter.SSH_KEYS -> item.domain == VaultItemDomain.SSH_KEY
                 PodFilter.ATTACHMENTS -> item.hasAttachments
@@ -100,6 +102,7 @@ class VaultDashboardViewModel(
         mapOf(
             PodFilter.ALL to items.size,
             PodFilter.PASSWORDS to items.count { it.domain == VaultItemDomain.PASSWORD },
+            PodFilter.IDENTITIES to items.count { it.domain == VaultItemDomain.IDENTITY },
             PodFilter.NOTES to items.count { it.domain == VaultItemDomain.NOTE },
             PodFilter.SSH_KEYS to items.count { it.domain == VaultItemDomain.SSH_KEY },
             PodFilter.ATTACHMENTS to attCount

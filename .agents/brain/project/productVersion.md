@@ -1,11 +1,11 @@
 # Product Version & Release State
 
 ## Active Version State
-- **Current Version**: `0.0.0.30`
-- **Monotonic Build Code**: `30` (`versionCode = 30` in `app/build.gradle.kts`)
+- **Current Version**: `0.0.0.31`
+- **Monotonic Build Code**: `31` (`versionCode = 31` in `app/build.gradle.kts`)
 - **Active Release Channel**: Production / GitHub Release & Google Play Track
-- **Latest Git Tag**: `v0.0.0.30`
-- **Release Status**: Staged / Releasing (PR #34)
+- **Latest Git Tag**: `v0.0.0.31`
+- **Release Status**: Staged / Releasing (PR #36)
 - **Central Version Source**: `app/build.gradle.kts` (`versionCode`, `versionName`)
 
 ## SemVer Calculus & Increment Rules (4-Digit Convention: `MAJOR.MINOR.PATCH.REVISION`)
@@ -31,13 +31,14 @@
 | `0.0.0.11` | `11` | `v0.0.0.11` | 2026-10-08 | Phase 7: Context-Aware Autofill Expansion, 2-Step Login & Option B Masking | Published |
 | `0.0.0.12` | `12` | `v0.0.0.12` | 2026-10-12 | Stage 1: Full Server Parity (Encrypted Attachments & Multi-URI Bridge) + Stage 1.5 PIN Re-Auth | Published |
 | `0.0.0.13` | `13` | `v0.0.0.13` | 2026-10-17 | Stage 2: Mental Flow & Search Ergonomics (Sub-16ms Indexing & Cold-Start Resilience) | Published |
-| `0.0.0.14` | `14` | `v0.0.0.14` | 2026-10-19 | Security Hotfix: Consent-Gated TLS Trust & Log Redaction (PR #4, #5) | Staged / Releasing |
+| `0.0.0.14` | `14` | `v0.0.0.14` | 2026-10-19 | Security Hotfix: Consent-Gated TLS Trust & Log Redaction (PR #4, #5) | Published |
+| `0.0.0.20` | `20` | `v0.0.0.20` | 2026-11-15 | Stage 2: Sync Bridge Resilience, SAF Import & Ergonomics | Published |
+| `0.0.0.30` | `30` | `v0.0.0.30` | 2026-11-18 | Stage 3: Security Lifecycle, Biometrics & Offline Resilience | Published |
+| `0.0.0.31` | `31` | `v0.0.0.31` | 2026-11-22 | Hotfix: First-Class Identity Vault Items & Backup/Bitwarden Import Parity (#35, PR #36) | Staged / Releasing |
 
 
 ## Pending Delta & Downstream Milestones (Option 1 Decade Spacing)
-- **Active Release**: Security & Transport Sovereignty Hotfix ➔ `0.0.0.14` (Build 14)
-- **Intermediate Hotfix Runway**: `0.0.0.15` through `0.0.0.19` (Builds 15–19)
-- **Stage 2 Completion (Task 04)**: Touch Targets, Haptics & Insets ➔ `0.0.0.20` (Build 20)
-- **Stage 3 Completion (Tasks 05–06)**: Security Lifecycle, Biometrics & Panic Purge ➔ `0.0.0.30` (Build 30)
+- **Active Release**: First-Class Identity Vault Items & Backup/Bitwarden Import Parity ➔ `0.0.0.31` (Build 31)
+- **Intermediate Hotfix Runway**: `0.0.0.32` through `0.0.0.39` (Builds 32–39)
 - **Stage 4 Completion (Tasks 07–08)**: Autofill Gauntlet & 16 KB Verification ➔ `0.0.0.40` (Build 40)
 - **Stage 5 / Structural Completion (Tasks 09–10)**: TOFU Pinning & QR Handshake ➔ `0.0.1.0` (Build 50)

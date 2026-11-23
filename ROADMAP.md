@@ -1,9 +1,9 @@
 ---
 roadmap_version: 2.0.0
-last_updated: 2026-11-18
+last_updated: 2026-11-22
 meta_phase: "Feature Verification and Polish"
-current_position: "Stage 3: Security Lifecycle, Biometrics & Offline Resilience (v0.0.0.30 / Build 30) — Complete (#15, #16); Next: Stage 4 (v0.0.0.40)"
-baseline_release: "v0.0.0.20 (Build 20) Published"
+current_position: "Hotfix v0.0.0.31 (Build 31): First-Class Identity Vault Items & Backup/Bitwarden Import Parity (#35) — Complete; Next: Stage 4 (v0.0.0.40)"
+baseline_release: "v0.0.0.31 (Build 31) Staged"
 target_release: "v0.0.1.0 (Build 50) Production Release Candidate"
 statistics:
   description: "Meta-Phase roadmap for holistic feature verification, full server sync parity, mental flow ergonomics, and Android production polish."

@@ -1,8 +1,5 @@
 # Decision Log
 
-## 2026-10-11 — systemic transport security vs. security theatre
-Addressed user challenge on cleartext HTTP over Tailscale. Uncovered that static `SHA-256(hu-)` transmission and unencrypted metadata over HTTP permit session hijacking and vault destruction, while `relaxedTrustManager` nullifies TLS integrity. Ratified the Systemic Zero-Knowledge Transport Invariant in `android-development.md` § 5, mandated UI amber transport warning pills, scheduled TOFU certificate pinning, and set roadmap trajectory toward zero-knowledge PAKE/SRP-6a authentication.
-
 ## 2026-10-11 — docs bow to code and ephemeral cache spec alignment
 Executed `/walk-the-docs` and `/draft-release` for Stage 1 (`v0.0.0.12 (Build 12)`). Reconciled all 5 domain specs in `project/` to physical code reality (hybrid attachment storage, `clearDecryptedCache` lifecycle, `password_history` empty string defaults, `androidapp://` routing, and amber cleartext warnings), cementing the principle that documentation must reflect physical code rather than aspirations.
 
@@ -66,5 +63,6 @@ Mapped the main ShellGuard repository against mobile sync pathways using elite P
 ## 2026-11-07 — github native control plane offload
 Offloaded repository roadmap tracking, release anchors, and surgical task orders from flat markdown into native GitHub primitives. Provisioned 5 GitHub Milestones (Build 12 closed, Builds 20, 30, 40, 50 open), created stage and domain labels, and ingested Issues #9–#21 into GitHub Project #1 ('ShellGuard Core & Distributed Roadmap') without deleting original meta-prompt lines.
 
-
+## 2026-11-22 — identity projection over vault_pearls & custom_field wire parity
+Traced Identity item storage and backup import failures across `ShellGuard` Web/Server and `ShellGuard-Mobile` (see `systemPatterns.md`). Discovered that Identities live in `vault_pearls(type = 'identity')` with 18 attributes inside `custom_fields`, and that mobile imports failed because `CustomField` used `label`/`TEXT` instead of Web's `name`/`text` while `VaultBackupEngine.detectBackupFormat()` required legacy `"pearls"` and omitted `coerceInputValues = true`. Implemented `CustomFieldWireSerializer`, `IdentityFieldMapper`, lenient backup decoding, and modular `IdentityFormSection`/`IdentityDetailSection` UI under Issue #35 (`58371fc`).
 

@@ -6,6 +6,7 @@ import com.clawstack.shellguard.data.repository.VaultItemDomain
 import com.clawstack.shellguard.di.AppContainer
 import com.clawstack.shellguard.domain.models.CustomField
 import com.clawstack.shellguard.domain.models.CustomFieldType
+import com.clawstack.shellguard.domain.models.IdentityDetail
 import com.clawstack.shellguard.domain.models.PasswordHistoryEntry
 import com.clawstack.shellguard.domain.models.PearlDetail
 import com.clawstack.shellguard.domain.models.SecureNoteDetail
@@ -32,6 +33,23 @@ data class ItemFormUiState(
     val secret: String = "",
     val notes: String = "",
     val totpSecret: String = "",
+    val honorificTitle: String = "",
+    val firstName: String = "",
+    val middleName: String = "",
+    val lastName: String = "",
+    val company: String = "",
+    val email: String = "",
+    val phone: String = "",
+    val address1: String = "",
+    val address2: String = "",
+    val address3: String = "",
+    val city: String = "",
+    val state: String = "",
+    val postalCode: String = "",
+    val country: String = "",
+    val ssn: String = "",
+    val passportNumber: String = "",
+    val licenseNumber: String = "",
     val reprompt: Boolean = false,
     val tags: List<String> = emptyList(),
     val customFields: List<CustomField> = emptyList(),
@@ -112,6 +130,52 @@ class ItemFormViewModel(
                         }
                     )
                 }
+                VaultItemDomain.IDENTITY -> {
+                    val result = appContainer.syncRepository.getIdentityDetail(id)
+                    result.fold(
+                        onSuccess = { identity ->
+                            val ownerUuid = appContainer.deviceVault.getOwnerUuid().orEmpty()
+                            val loadedAttachments = identity.attachments.mapNotNull { attId ->
+                                appContainer.syncRepository.getAttachment(ownerUuid, attId).getOrNull()?.let { entity ->
+                                    com.clawstack.shellguard.ui.screens.detail.AttachmentItemDetail(entity.id, entity.fileName, entity.sizeBytes, entity.mimeType)
+                                }
+                            }
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false,
+                                    title = identity.title,
+                                    category = identity.category,
+                                    username = identity.username,
+                                    notes = identity.notes,
+                                    honorificTitle = identity.honorificTitle,
+                                    firstName = identity.firstName,
+                                    middleName = identity.middleName,
+                                    lastName = identity.lastName,
+                                    company = identity.company,
+                                    email = identity.email,
+                                    phone = identity.phone,
+                                    address1 = identity.address1,
+                                    address2 = identity.address2,
+                                    address3 = identity.address3,
+                                    city = identity.city,
+                                    state = identity.state,
+                                    postalCode = identity.postalCode,
+                                    country = identity.country,
+                                    ssn = identity.ssn,
+                                    passportNumber = identity.passportNumber,
+                                    licenseNumber = identity.licenseNumber,
+                                    reprompt = identity.reprompt,
+                                    tags = identity.tags,
+                                    customFields = identity.customFields,
+                                    attachments = loadedAttachments
+                                )
+                            }
+                        },
+                        onFailure = { e ->
+                            _uiState.update { it.copy(isLoading = false, errorMessage = e.message ?: "Failed to load identity") }
+                        }
+                    )
+                }
                 VaultItemDomain.NOTE -> {
                     val result = appContainer.syncRepository.getNoteDetail(id)
                     result.fold(
@@ -179,6 +243,23 @@ class ItemFormViewModel(
     fun updateSecret(v: String) = _uiState.update { it.copy(secret = v) }
     fun updateNotes(v: String) = _uiState.update { it.copy(notes = v) }
     fun updateTotpSecret(v: String) = _uiState.update { it.copy(totpSecret = v) }
+    fun updateHonorificTitle(v: String) = _uiState.update { it.copy(honorificTitle = v) }
+    fun updateFirstName(v: String) = _uiState.update { it.copy(firstName = v) }
+    fun updateMiddleName(v: String) = _uiState.update { it.copy(middleName = v) }
+    fun updateLastName(v: String) = _uiState.update { it.copy(lastName = v) }
+    fun updateCompany(v: String) = _uiState.update { it.copy(company = v) }
+    fun updateEmail(v: String) = _uiState.update { it.copy(email = v) }
+    fun updatePhone(v: String) = _uiState.update { it.copy(phone = v) }
+    fun updateAddress1(v: String) = _uiState.update { it.copy(address1 = v) }
+    fun updateAddress2(v: String) = _uiState.update { it.copy(address2 = v) }
+    fun updateAddress3(v: String) = _uiState.update { it.copy(address3 = v) }
+    fun updateCity(v: String) = _uiState.update { it.copy(city = v) }
+    fun updateState(v: String) = _uiState.update { it.copy(state = v) }
+    fun updatePostalCode(v: String) = _uiState.update { it.copy(postalCode = v) }
+    fun updateCountry(v: String) = _uiState.update { it.copy(country = v) }
+    fun updateSsn(v: String) = _uiState.update { it.copy(ssn = v) }
+    fun updatePassportNumber(v: String) = _uiState.update { it.copy(passportNumber = v) }
+    fun updateLicenseNumber(v: String) = _uiState.update { it.copy(licenseNumber = v) }
     fun toggleReprompt(v: Boolean) = _uiState.update { it.copy(reprompt = v) }
     fun toggleSecretVisibility() = _uiState.update { it.copy(isSecretVisible = !it.isSecretVisible) }
 
@@ -322,6 +403,38 @@ class ItemFormViewModel(
                         reprompt = state.reprompt
                     )
                     appContainer.syncRepository.savePearlDetail(pearl)
+                }
+                VaultItemDomain.IDENTITY -> {
+                    val identity = IdentityDetail(
+                        id = state.id,
+                        ownerUuid = ownerUuid,
+                        title = state.title.trim(),
+                        honorificTitle = state.honorificTitle.trim(),
+                        firstName = state.firstName.trim(),
+                        middleName = state.middleName.trim(),
+                        lastName = state.lastName.trim(),
+                        username = state.username.trim(),
+                        company = state.company.trim(),
+                        email = state.email.trim(),
+                        phone = state.phone.trim(),
+                        address1 = state.address1.trim(),
+                        address2 = state.address2.trim(),
+                        address3 = state.address3.trim(),
+                        city = state.city.trim(),
+                        state = state.state.trim(),
+                        postalCode = state.postalCode.trim(),
+                        country = state.country.trim(),
+                        ssn = state.ssn.trim(),
+                        passportNumber = state.passportNumber.trim(),
+                        licenseNumber = state.licenseNumber.trim(),
+                        category = state.category.trim(),
+                        notes = state.notes.trim(),
+                        customFields = state.customFields,
+                        attachments = state.attachments.map { it.id },
+                        tags = state.tags,
+                        reprompt = state.reprompt
+                    )
+                    appContainer.syncRepository.saveIdentityDetail(identity)
                 }
                 VaultItemDomain.NOTE -> {
                     val note = SecureNoteDetail(

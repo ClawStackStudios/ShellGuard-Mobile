@@ -6,6 +6,7 @@ import com.clawstack.shellguard.data.repository.SyncStatus
 import com.clawstack.shellguard.data.repository.VaultItemDomain
 import com.clawstack.shellguard.di.AppContainer
 import com.clawstack.shellguard.domain.models.CustomField
+import com.clawstack.shellguard.domain.models.IdentityDetail
 import com.clawstack.shellguard.domain.models.PasswordHistoryEntry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -36,6 +37,7 @@ sealed interface ItemDetailUiState {
         val passwordHistory: List<PasswordHistoryEntry> = emptyList(),
         val uris: List<String> = emptyList(),
         val attachments: List<AttachmentItemDetail> = emptyList(),
+        val identityDetail: IdentityDetail? = null,
         val reprompt: Boolean = false,
         val isOffline: Boolean = false,
         val isSecretRevealed: Boolean = false
@@ -114,6 +116,36 @@ class ItemDetailViewModel(
                         },
                         onFailure = { e ->
                             _rawState.value = ItemDetailUiState.Error(e.message ?: "Failed to load password item")
+                        }
+                    )
+                }
+                VaultItemDomain.IDENTITY -> {
+                    val result = appContainer.syncRepository.getIdentityDetail(itemId)
+                    result.fold(
+                        onSuccess = { identity ->
+                            val ownerUuid = appContainer.deviceVault.getOwnerUuid().orEmpty()
+                            val loadedAttachments = identity.attachments.mapNotNull { attId ->
+                                appContainer.syncRepository.getAttachment(ownerUuid, attId).getOrNull()?.let { entity ->
+                                    AttachmentItemDetail(entity.id, entity.fileName, entity.sizeBytes, entity.mimeType)
+                                }
+                            }
+                            _rawState.value = ItemDetailUiState.Success(
+                                domain = VaultItemDomain.IDENTITY,
+                                id = identity.id,
+                                title = identity.title,
+                                category = identity.category,
+                                username = identity.username.ifBlank { identity.fullName },
+                                notes = identity.notes,
+                                customFields = identity.customFields,
+                                tags = identity.tags,
+                                attachments = loadedAttachments,
+                                identityDetail = identity,
+                                reprompt = identity.reprompt,
+                                isOffline = syncStatus.value == SyncStatus.OFFLINE_READ_ONLY
+                            )
+                        },
+                        onFailure = { e ->
+                            _rawState.value = ItemDetailUiState.Error(e.message ?: "Failed to load identity item")
                         }
                     )
                 }
