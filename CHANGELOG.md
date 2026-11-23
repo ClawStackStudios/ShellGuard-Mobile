@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.0.31] - 2026-11-22 (Build 31) — Hotfix: First-Class Identity Vault Items & Backup/Bitwarden Import Parity
+### Added
+- **First-Class Identity Vault Items (`VaultDomainModels.kt`, `IdentityFieldMapper.kt`, `SyncRepository.kt`)**: Added `VaultItemDomain.IDENTITY`, `IdentityDetail` with 18 structured personal/contact/address/identification fields + computed `Full Name` & `Location`, bidirectional projection over `VaultPearlEntity(type = "identity")` (`AAD = vault_pearls_custom:<id>`), and `getIdentityDetail` / `saveIdentityDetail` / `deleteItem` repository support (#35, PR #36).
+- **Modular Identity Reef UI (`IdentityFormSection.kt`, `IdentityDetailSection.kt`, `VaultDashboardScreen.kt`)**: Added `PodFilter.IDENTITIES`, 4th Speed-Dial FAB option (`Identity`), blue Identity card badge, structured form sections with `KeyboardOptions(autoCorrectEnabled = false)`, and detail cards with masked `SSN`/`Passport Number`/`License Number` and Claw Re-Prompt enforcement (#35, PR #36).
+- **Bitwarden 5-Type Ingestion (`VaultBackupEngine.kt`)**: Added `BitwardenIdentity`, `BitwardenCard`, and `BitwardenSshKey` DTOs and full ingestion for Bitwarden `type: 4` (Identity), `type: 3` (Card), and `type: 5` (SSH Key) exports alongside Logins (`1`) and Secure Notes (`2`) (#35, PR #36).
+
+### Changed
+- **Web-Canonical `CustomField` Wire Serialization (`CustomField.kt`)**: Implemented `CustomFieldWireSerializer` (`KSerializer<CustomField>`) emitting `{ id, name, value, type: "text"|"hidden"|"checkbox"|"linked" }` while accepting both `"name"` and legacy `"label"` + case-insensitive/numeric field types during deserialization (#35, PR #36).
+
+### Fixed
+- **ShellGuard v1.0 Plaintext Backup Format Detection (`VaultBackupEngine.kt`, `SettingsViewModel.kt`)**: Fixed `detectBackupFormat()` so v1.0 ShellGuard plaintext backups (`"app": "ShellGuard Vault Backup"`, `"ownerUuid"`, `"items"`) are recognized as `SHELLGUARD_PLAIN` instead of falling through to `BITWARDEN_JSON` (#35, PR #36).
+- **Null-Safe Backup & Bitwarden JSON Decoding (`VaultBackupEngine.kt`)**: Enabled `coerceInputValues = true` and `isLenient = true` on `VaultBackupEngine.json` so explicit `null` properties (`"fields": null`, `"uris": null`, `"folders": null`, `"url": null`) never throw `JsonDecodingException`, and fixed Bitwarden login `uris` serialization to `List<String>` (#35, PR #36).
+
+### Verified
+- **Cloud CI Test Suite**: **155/155 unit and Robolectric tests passing green** on GitHub Actions (`Continuous Integration & Verification`, Run `45097694988`).
+
 ## [0.0.0.30] - 2026-11-18 (Build 30) — Stage 3: Security Lifecycle, Biometrics & Offline Resilience
 ### Added
 - **2-Tab Reef Navigation & Speed-Dial FAB (`MainActivity.kt`, `VaultDashboardScreen.kt`)**: Streamlined navigation into a route-gated 2-tab bar (`Vault` | `Settings`), 3-domain `+` Speed-Dial FAB, Pull-to-Refresh wired to `SettingsRepository.pullToRefreshEnabled`, Back-to-Lock exit gate, and `VaultTaskCleanupService` Recents-swipe lock (#26, PR #33).
@@ -276,7 +292,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   <sub>Engineered with precision for the ClawStack / ShellGuard ecosystem.</sub>
 </div>
 
-[Unreleased]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.12...HEAD
+[Unreleased]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.31...HEAD
+[0.0.0.31]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.30...v0.0.0.31
+[0.0.0.30]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.20...v0.0.0.30
+[0.0.0.20]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.14...v0.0.0.20
+[0.0.0.14]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.13...v0.0.0.14
+[0.0.0.13]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.12...v0.0.0.13
 [0.0.0.12]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.11...v0.0.0.12
 [0.0.0.11]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.10...v0.0.0.11
 [0.0.0.10]: https://github.com/ClawStackStudios/ShellGuard-Mobile/compare/v0.0.0.9...v0.0.0.10

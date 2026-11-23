@@ -389,3 +389,9 @@ The `BackupManager.kt` service exports the full vault across all domains (Pearls
 ## 7. Audit Log Entity
 
 An immutable ledger capturing high-privilege events (vault hatch, biometric toggle, sync failures, exports). Never synced to the server; stored locally to provide forensic visibility into the physical device's lifecycle.
+
+## 8. Identity Projection Over `vault_pearls` (`v0.0.0.31`)
+
+Identity records (`VaultItemDomain.IDENTITY`) are stored in `vault_pearls` (`VaultPearlEntity`) with `type = "identity"` without requiring a separate table or Room schema migration:
+- Structured identity fields are encrypted as a JSON array inside `custom_fields` bound to `AAD = vault_pearls_custom:<id>`.
+- `VaultBackupEngine` supports all 5 Bitwarden JSON export item types (`1` Login, `2` Secure Note, `3` Card, `4` Identity, `5` SSH Key) with null-safe `Json { coerceInputValues = true; isLenient = true }` decoding and accurate v1.0 ShellGuard plaintext backup detection (`"app": "ShellGuard Vault Backup"` / `"ownerUuid"` + `"items"`).

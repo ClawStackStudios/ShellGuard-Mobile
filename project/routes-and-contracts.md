@@ -577,3 +577,9 @@ While cleartext HTTP and self-signed TLS are supported to accommodate homelab in
 - **Zero-Knowledge Auth Evolution**: Future revisions will replace static `SHA-256(hu-)` transmission with a zero-knowledge challenge-response protocol (SRP-6a / OPAQUE) to prevent session credential harvesting even across unencrypted HTTP channels.
 
 ---
+
+## 7. Identity Item Wire Contract (`type = "identity"`)
+
+Identities share the `/api/vault` (`GET`, `POST`, `PUT`, `DELETE`) endpoint and `vault_pearls` persistence carrier with `type = "identity"`:
+- **`CustomFieldWireSerializer` (`CustomField.kt`)**: Emits Web-canonical `{ "id": "<uuid>", "name": "<label>", "value": "<val>", "type": "text" | "hidden" | "checkbox" | "linked" }` inside `custom_fields` (`AAD = vault_pearls_custom:<id>`) while accepting both `"name"` and legacy `"label"` + case-insensitive/numeric field types on deserialization.
+- **`IdentityDetail` & `IdentityFieldMapper` (`VaultDomainModels.kt`, `IdentityFieldMapper.kt`)**: Projects all 18 structured Identity attributes (`Title`, `First Name`, `Middle Name`, `Last Name`, `Username`, `Company`, `Email`, `Phone`, `Address 1..3`, `City`, `State / Province`, `Postal Code`, `Country`, `SSN`, `Passport Number`, `License Number`) plus computed `Full Name` and `Location` to/from `PearlDetail(type = "identity")` with non-empty `finalSecret` fallback (`notes || fullName || username || title`).

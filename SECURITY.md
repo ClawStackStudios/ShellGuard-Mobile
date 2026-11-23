@@ -10,9 +10,9 @@ We actively maintain and provide security patches for the latest release and the
 
 | Version | Supported | Status |
 | :--- | :--- | :--- |
-| `0.0.0.30` (Build 30) | ✅ Yes | Current Production / Stage 3 Release |
-| `0.0.0.20` (Build 20) | ⚠️ Maintenance | Security critical patches only |
-| `< 0.0.0.20` | ❌ No | End of Life — upgrade to latest release |
+| `0.0.0.31` (Build 31) | ✅ Yes | Current Production / Identity & Import Hotfix Release |
+| `0.0.0.30` (Build 30) | ⚠️ Maintenance | Stage 3 Baseline |
+| `< 0.0.0.30` | ❌ No | End of Life — upgrade to latest release |
 
 ---
 

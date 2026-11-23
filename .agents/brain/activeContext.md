@@ -1,10 +1,9 @@
 # Active Context: ShellGuard Mobile
 
 ## Current Focus
-Stage 3 (`v0.0.0.30` Build 30) on branch `feat/issue-15-lock-persistence-and-offline` (PR #34) is CI-green (152/152 tests passing, Cloud CI Run `44461930488`) and verified on physical Google Pixel (`sailfish`). Issues `#15` and `#16` are closed; `/walk-the-docs` alignment is complete with `RELEASE-v0.0.0.20.md` pruned and `RELEASE-v0.0.0.30.md` active.
+Issue `#35` (First-Class Identity Vault Items, `CustomField` Wire Parity & Bitwarden/ShellGuard Backup Import Fixes) on branch `feat/issue-35-identity-contract-and-imports` (`58371fc`) is CI-green (Cloud CI Run `45097694988`, all unit/Robolectric tests passing and debug APK compiled).
 
 ## Recent Events (Sliding Window of 10)
-12. **2026-10-19**: Integrated PR #4 & PR #5 on `feat/security-remediations-integration`, fixed `GatewayScreen.kt` Box overlap, and verified on physical Google Pixel over TLS ADB.
 13. **2026-10-19**: Realigned Master Roadmap to Option 1 Decade Spacing (`v0.0.0.14` ➔ `v0.0.0.20` ➔ `v0.0.0.30` ➔ `v0.0.0.40` ➔ `v0.0.1.0`) and released `v0.0.0.14` (Build 14).
 14. **2026-10-21**: Executed `/walk-the-docs` and authored 6 `/mobile/` VitePress chapters (`b925728`).
 15. **2026-10-24**: Reviewed Jules PR #6 (`EncryptedDeviceVault` fail-closed fix) and dispatched Approach B (`interface DeviceVault`) guidance.
@@ -12,9 +11,10 @@ Stage 3 (`v0.0.0.30` Build 30) on branch `feat/issue-15-lock-persistence-and-off
 17. **2026-11-07**: Provisioned GitHub native control plane (5 Milestones, 10 labels, Issues #9–#21, Project #1).
 18. **2026-11-15**: Executed Milestone 2 on `feat/stage-2-v0.0.0.20`: closed `#13`, `#22`, `#23`, `#24`; bumped `v0.0.0.20` (Build 20), 136/136 tests passing.
 19. **2026-11-16**: Shipped 2-tab Reef navigation, Pull-to-Refresh, Recents-swipe lock (`VaultTaskCleanupService`), attachment Base64 fix (`PR #27`), off-main PBKDF2 (`PR #30`), cold-start lock gate (`PR #31`), and client caching (`PR #32`, `PR #33`).
-20. **2026-11-18**: Closed `#16` (PIN keypad spring press/dot animations, `CircularDialPicker` polar math + 12 o'clock guard + 5s/15s haptics + 48dp targets, Panic Purge DataStore `.onStart` race + `Dispatchers.IO` `.commit()` cascade) and `#15` (`VaultLockManager` clock-rollback guard, offline CRUD cold-restart flush test, 10-domain AAD swap test); opened PR #34 and ran `/walk-the-docs` for `v0.0.0.30` (Build 30).
+20. **2026-11-18**: Closed `#16` and `#15`; opened PR #34 and ran `/walk-the-docs` for `v0.0.0.30` (Build 30).
+21. **2026-11-22**: Mapped cross-repo Identity & Backup/Bitwarden import seams across `ShellGuard` and `ShellGuard-Mobile`, opened Issue `#35` under `v0.0.0.40`, implemented `CustomFieldWireSerializer`, `IdentityDetail` + `IdentityFieldMapper`, `VaultBackupEngine` format sniffer & Bitwarden types `1..5`, and modular `IdentityFormSection` / `IdentityDetailSection` UI (`58371fc`, Cloud CI Run `45097694988` green).
 
 ## Next Steps
-- Merge PR #34 into `main` and cut `v0.0.0.30` release tag.
-- Begin Stage 4 (`v0.0.0.40` Build 40): Issues `#17` (Browser/Native Autofill Gauntlet) and `#18` (16 KB Page Alignment & ProGuard R8 audit).
-
+- Open PR for `feat/issue-35-identity-contract-and-imports` (Issue `#35`) and verify on physical Google Pixel (`sailfish`).
+- Open companion interoperability issue on `ClawStackStudios/ShellGuard` (`v0.0.3.1`).
+- Proceed with Stage 4 (`v0.0.0.40` Build 40): Issues `#17` (Browser/Native Autofill Gauntlet) and `#18` (16 KB Page Alignment & ProGuard R8 audit).
