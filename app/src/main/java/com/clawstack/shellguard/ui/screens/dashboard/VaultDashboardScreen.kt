@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Security
 import android.app.Activity
@@ -507,6 +508,15 @@ fun VaultDashboardScreen(
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         SpeedDialOption(
+                            label = "Identity",
+                            icon = Icons.Default.Person,
+                            accentColor = Color(0xFF3B82F6),
+                            onClick = {
+                                isFabExpanded = false
+                                onAddItemClick(VaultItemDomain.IDENTITY)
+                            }
+                        )
+                        SpeedDialOption(
                             label = "SSH Key",
                             icon = Icons.Default.Terminal,
                             accentColor = Color(0xFFC77DFF),
@@ -678,11 +688,13 @@ fun VaultItemCard(
             // Domain Icon Badge
             val (badgeBg, iconVector) = when (item.domain) {
                 VaultItemDomain.PASSWORD -> Pair(ReefPink.copy(alpha = 0.15f), Icons.Default.Key)
+                VaultItemDomain.IDENTITY -> Pair(Color(0xFF3B82F6).copy(alpha = 0.15f), Icons.Default.Person)
                 VaultItemDomain.NOTE -> Pair(BrandClawCyan.copy(alpha = 0.15f), Icons.Default.Description)
                 VaultItemDomain.SSH_KEY -> Pair(Color(0xFF9D4EDD).copy(alpha = 0.15f), Icons.Default.Terminal)
             }
             val badgeTint = when (item.domain) {
                 VaultItemDomain.PASSWORD -> ReefPink
+                VaultItemDomain.IDENTITY -> Color(0xFF3B82F6)
                 VaultItemDomain.NOTE -> BrandClawCyan
                 VaultItemDomain.SSH_KEY -> Color(0xFFC77DFF)
             }

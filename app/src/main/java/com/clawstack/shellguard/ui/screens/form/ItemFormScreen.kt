@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Terminal
@@ -238,6 +239,13 @@ fun ItemFormScreen(
                                 onClick = { viewModel.setDomain(VaultItemDomain.SSH_KEY) },
                                 modifier = Modifier.weight(1f)
                             )
+                            DomainSegment(
+                                label = "Identity",
+                                icon = Icons.Default.Person,
+                                isSelected = uiState.domain == VaultItemDomain.IDENTITY,
+                                onClick = { viewModel.setDomain(VaultItemDomain.IDENTITY) },
+                                modifier = Modifier.weight(1f)
+                            )
                         }
                         Spacer(modifier = Modifier.height(16.dp))
                     }
@@ -428,6 +436,14 @@ fun ItemFormScreen(
                                 colors = fieldColors
                             )
                         }
+
+                        VaultItemDomain.IDENTITY -> {
+                            IdentityFormSection(
+                                uiState = uiState,
+                                viewModel = viewModel,
+                                fieldColors = fieldColors
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -490,7 +506,7 @@ fun ItemFormScreen(
                         Spacer(modifier = Modifier.height(20.dp))
                     }
 
-                    if (uiState.domain == com.clawstack.shellguard.data.repository.VaultItemDomain.PASSWORD || uiState.domain == com.clawstack.shellguard.data.repository.VaultItemDomain.NOTE) {
+                    if (uiState.domain == VaultItemDomain.PASSWORD || uiState.domain == VaultItemDomain.NOTE || uiState.domain == VaultItemDomain.IDENTITY) {
                         AttachmentPickerSection(
                             attachments = uiState.attachments,
                             onLaunchPicker = { attachmentLauncher.launch("*/*") },

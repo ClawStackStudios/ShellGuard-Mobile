@@ -260,7 +260,7 @@ class SettingsViewModel(
             }
             BackupFormatType.SHELLGUARD_PLAIN -> {
                 try {
-                    val payload = com.clawstack.shellguard.data.remote.KtorClientProvider.jsonConfig.decodeFromString<com.clawstack.shellguard.data.backup.VaultBackupPayload>(rawContent)
+                    val payload = appContainer.backupEngine.decodePlainBackup(rawContent)
                     appContainer.backupEngine.importPayload(payload, ownerUuid)
                 } catch (t: Throwable) {
                     Result.failure(t)

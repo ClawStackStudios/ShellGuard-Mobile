@@ -97,4 +97,35 @@ class CustomFieldTest {
         assertEquals(originalFields[1].label, restoredFields[1].label)
         assertEquals(originalFields[1].value, restoredFields[1].value)
     }
+
+    @Test
+    fun testWebAndLegacyMobileWireCompatibility() {
+        val fields = listOf(
+            CustomField(id = "cf-1", label = "First Name", value = "Jane", type = CustomFieldType.TEXT),
+            CustomField(id = "cf-2", label = "SSN", value = "000-00-0000", type = CustomFieldType.HIDDEN),
+            CustomField(id = "cf-3", label = "Verified", value = "true", type = CustomFieldType.BOOLEAN)
+        )
+        val wireJson = CustomFieldSerializer.serializeFields(fields)
+        assertTrue(wireJson.contains("\"name\":\"First Name\""))
+        assertTrue(wireJson.contains("\"type\":\"text\""))
+        assertTrue(wireJson.contains("\"type\":\"hidden\""))
+        assertTrue(wireJson.contains("\"type\":\"checkbox\""))
+
+        val legacyMobileJson = """
+            [
+              {"id":"leg-1","label":"Legacy Field","value":"v1","type":"TEXT"},
+              {"id":"leg-2","label":"Legacy Bool","value":"true","type":"BOOLEAN"},
+              {"name":"Web Field","value":"v2","type":"hidden"}
+            ]
+        """.trimIndent()
+        val parsed = CustomFieldSerializer.deserializeFields(legacyMobileJson)
+        assertEquals(3, parsed.size)
+        assertEquals("Legacy Field", parsed[0].label)
+        assertEquals(CustomFieldType.TEXT, parsed[0].type)
+        assertEquals("Legacy Bool", parsed[1].label)
+        assertEquals(CustomFieldType.BOOLEAN, parsed[1].type)
+        assertEquals("Web Field", parsed[2].label)
+        assertEquals(CustomFieldType.HIDDEN, parsed[2].type)
+    }
 }
+
