@@ -343,14 +343,23 @@ class ItemFormViewModel(
                 val rawBytes = context.contentResolver.openInputStream(contentUri)?.use { it.readBytes() }
 
                 if (rawBytes != null && rawBytes.isNotEmpty()) {
+                    val state = _uiState.value
                     val ownerUuid = appContainer.deviceVault.getOwnerUuid().orEmpty()
+                    val parentType = when (state.domain) {
+                        VaultItemDomain.PASSWORD -> "password"
+                        VaultItemDomain.IDENTITY -> "identity"
+                        VaultItemDomain.NOTE -> "note"
+                        VaultItemDomain.SSH_KEY -> "key"
+                    }
                     val result = appContainer.syncRepository.stageAttachment(
                         ownerUuid = ownerUuid,
                         title = fileName,
                         fileName = fileName,
                         mimeType = mimeType,
-                        category = "",
-                        rawPlaintextBytes = rawBytes
+                        category = state.category.trim(),
+                        rawPlaintextBytes = rawBytes,
+                        parentId = state.id,
+                        parentType = parentType
                     )
 
                     result.onSuccess { entity ->
